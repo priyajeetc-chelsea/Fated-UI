@@ -169,7 +169,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
                 activeOpacity={0.7}
               >
                 <Ionicons 
-                  name={"chatbox-outline"} 
+                  name={"heart-outline"} 
                   size={25} 
                   color={'#000'} 
                 />

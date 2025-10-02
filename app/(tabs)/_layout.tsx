@@ -18,12 +18,20 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: 'black',
         },
-      }}>
+      }}
+      initialRouteName="homepage">
       <Tabs.Screen
-        name="index"
+        name="homepage"
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="matches"
+        options={{
+          title: 'Matches',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
         }}
       />
       <Tabs.Screen

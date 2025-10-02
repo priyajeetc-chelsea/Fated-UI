@@ -41,17 +41,52 @@ export interface ApiMatch {
   opinions: RawApiOpinion[];
 }
 
-// Actual API Response Structure
-export interface ApiResponse {
+
+// New Potential Match Types
+export interface PotentialMatchLike {
+  userId: number;
+  firstName: string;
+  comment: string;
+  likedOpinion: {
+    id: number;
+    question: string;
+    answer: string;
+  };
+}
+
+export interface PotentialMatchMutual {
+  userId: number;
+  firstName: string;
+  comment: string;
+  likedOpinion: {
+    id: number;
+    question: string;
+    answer: string;
+  };
+  photoUrl: string;
+}
+
+export interface ApiPotentialMatches {
+  likesYou: PotentialMatchLike[];
+  mutualLike: PotentialMatchMutual[];
+}
+
+export interface ApiConfirmedMatch {
+  userId: string;
+  name: string;
+  photoUrl: string;
+  chatThreadId: string;
+  lastActive: string;
+}
+
+export interface ApiAllMatchesResponse {
   code: number;
   msg: string;
   model: {
-    tags: {
-      all: Tag[];
-      trendingTags: TrendingTag[] | null;
+    confirmedMatches: {
+      matches: ApiConfirmedMatch[];
     };
-    matches: ApiMatch[];
-    hasMore: boolean;
+    potentialMatches: ApiPotentialMatches;
   };
 }
 

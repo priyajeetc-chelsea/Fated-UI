@@ -18,11 +18,12 @@ export default function AppHeader() {
 
 const styles = StyleSheet.create({
   headerContent: {
+    flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 15, // Increased top padding to prevent cutoff
-    minHeight: 60, // Added minimum height to contain larger fonts
-    justifyContent: 'flex-start', // Start from top
-    alignItems: 'flex-start', // Align to left
+    paddingTop: 15,
+    minHeight: 60,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
   title: {
     fontSize: 35,

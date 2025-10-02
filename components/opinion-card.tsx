@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 import { ThemedText } from './themed-text';
 
@@ -24,8 +24,6 @@ interface OpinionCardProps {
 }
 
 export default function OpinionCard({ data, onLike, onPass, onRemove }: OpinionCardProps) {
-  const cardColor = '#FFCC00'; // Bumble yellow color
-  
   const likeScale = useSharedValue(1);
 
   const likeButtonStyle = useAnimatedStyle(() => {

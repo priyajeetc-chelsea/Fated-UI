@@ -3,6 +3,65 @@ import { ApiUser, MatchRequest, MatchResponse, SwipeRequest } from '@/types/api'
 // API service with real endpoint and mock fallback
 class ApiService {
   private readonly API_BASE_URL = 'https://vzr1rz8idc.execute-api.ap-south-1.amazonaws.com/staging';
+  // Fetch all matches (confirmed and potential)
+  async fetchAllMatches(): Promise<import('@/types/api').ApiAllMatchesResponse> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/matches/all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const apiResponse = await response.json();
+      return apiResponse;
+    } catch (error) {
+      console.error('❌ Failed to fetch all matches:', error);
+      throw error;
+    }
+  }
+
+  // Fetch opinions for a potential match user
+  async fetchUserOpinions(matchUserId: number): Promise<any> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/user/opinions?matchUserId=${matchUserId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const apiResponse = await response.json();
+      return apiResponse;
+    } catch (error) {
+      console.error('❌ Failed to fetch user opinions:', error);
+      throw error;
+    }
+  }
+
+  // Fetch user profile by matchUserId
+  async fetchUserProfile(matchUserId: number): Promise<any> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/user/profile?matchUserId=${matchUserId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const apiResponse = await response.json();
+      return apiResponse;
+    } catch (error) {
+      console.error('❌ Failed to fetch user profile:', error);
+      throw error;
+    }
+  }
   
   // Mock data as fallback when CORS fails
   private getMockResponse(request: MatchRequest): MatchResponse {
@@ -219,7 +278,7 @@ class ApiService {
   }
 
   // Send swipe action to the server
-  async sendSwipe(takeId: number, swipeRight: boolean, comment?: string): Promise<boolean> {
+  async sendSwipe(takeId: number, swipeRight: boolean, comment: string = ''): Promise<any> {
     try {
       const swipeData: SwipeRequest = {
         takeId,
@@ -228,7 +287,6 @@ class ApiService {
       };
 
       console.log('🔄 Sending swipe action:', swipeData);
-      
       const response = await fetch(`${this.API_BASE_URL}/swipe`, {
         method: 'POST',
         headers: {
@@ -243,13 +301,10 @@ class ApiService {
 
       const result = await response.json();
       console.log('✅ Swipe response:', result);
-      
-      return true;
+      return result;
     } catch (error) {
       console.error('💥 Failed to send swipe:', error);
-      // For now, we'll return true even if the request fails
-      // In production, you might want to queue failed requests for retry
-      return true;
+      return null;
     }
   }
 

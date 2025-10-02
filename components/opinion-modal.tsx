@@ -144,31 +144,19 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
 
                 {/* Buttons - Outside both cards */}
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={styles.likeOpinionButton}
-                    onPress={handleContinue}
-                  >
-                    <Ionicons name="heart" size={24} color="white" />
-                    <Text style={{color: 'black', fontSize: 14, fontWeight: '600'}}>Opinion</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={styles.likeProfileButton}
-                    onPress={handleContinue}
-                  >
-                    <Ionicons name="heart" size={24} color="white" />
-                    <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Profile</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Cancel Button */}
-                <View style={styles.cancelContainer}>
-                  <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={handleClose}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.cancelButton}
+                        onPress={handleClose}
+                    >
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.likeProfileButton}
+                        onPress={handleContinue}
+                    >
+                        <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Send Match</Text>
+                        <Ionicons name="heart" size={24} color="white" />
+                    </TouchableOpacity>
                 </View>
                 </View>
               </TouchableWithoutFeedback>
@@ -316,42 +304,27 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     marginBottom: 8, // Reduced margin
   },
-  likeOpinionButton: {
-    flex: 1,
-    backgroundColor: '#9966CC', // Dark pink color
-    paddingVertical: 10,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    gap: 5,
-    borderWidth: 1,
-    borderColor:'#9966CC',
-  },
   likeProfileButton: {
     flex: 1,
-    backgroundColor: '#000', // Purple color
+    backgroundColor: '#9966CC', // Purple color
     paddingVertical: 10,
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 5,
-    borderWidth: 1,
-    borderColor: '#000',
-  },
-  cancelContainer: {
-    marginHorizontal: 8,
   },
   cancelButton: {
     flex: 1,
-    paddingVertical: 16,
+    backgroundColor: 'black',
+    paddingVertical: 10,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: 'white',
   }
 });
