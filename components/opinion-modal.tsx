@@ -2,17 +2,17 @@ import { ApiOpinion } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
@@ -101,22 +101,37 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
               <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                 <View style={styles.modalContent}>
                   {/* Opinion Card */}
-                  <ThemedView style={styles.opinionCard}>
+                  <ThemedView style={[
+                    styles.opinionCard,
+                    opinion.text.length > 300 && styles.opinionCardLong
+                  ]}>
                     <View style={styles.opinionHeader}>
                       <ThemedText style={styles.userName}>{userName}</ThemedText>
-                    </View>
-                    
-                    <ThemedText style={styles.opinionText}>
-                      {opinion.text}
-                    </ThemedText>
-                    
-                    {opinion.theme && (
+                       {opinion.theme && (
                       <View style={styles.tagsContainer}>
                         <View style={styles.tag}>
                           <Text style={styles.tagText}>{opinion.theme}</Text>
                         </View>
                       </View>
                     )}
+                    </View>
+                    
+                    {opinion.text.length > 300 ? (
+                      <TextInput
+                        style={[styles.opinionText, styles.opinionTextContainer]}
+                        value={opinion.text}
+                        multiline={true}
+                        scrollEnabled={true}
+                        editable={false}
+                        textAlignVertical="top"
+                      />
+                    ) : (
+                      <ThemedText style={styles.opinionTextShort}>
+                        {opinion.text}
+                      </ThemedText>
+                    )}
+                    
+                   
                   </ThemedView>
 
                   {/* Comment Section - Outside the opinion card */}
@@ -201,42 +216,56 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 8,
   },
+  opinionCardLong: {
+    height: 350, // Fixed height only for long opinions
+  },
   opinionHeader: {
-    marginBottom: 12,
+    marginBottom: 8,
+    display: 'flex', 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
   },
   userName: {
     fontSize: 18,
     fontWeight: '600',
     color: '#000',
   },
+  opinionTextContainer: {
+    height: 280, // Fixed height for scrollable area (300 - header - tags - padding)
+  },
   opinionText: {
     fontSize: 16,
     lineHeight: 24,
     color: '#333',
+  },
+  opinionTextShort: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#333',
     marginBottom: 12,
+    height: 120, // Fixed height only for long opinions
+
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
   },
   tag: {
-    backgroundColor: '#FFCC00', // Bumble yellow for consistency
-    paddingHorizontal: 12,
+    backgroundColor: '#FFCF00', // Bumble yellow for consistency
+    paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 16,
     marginRight: 8,
-    marginBottom: 8,
   },
   tagText: {
     color: '#000',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '500',
   },
   commentSection: {

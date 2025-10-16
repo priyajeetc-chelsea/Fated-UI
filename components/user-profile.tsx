@@ -1,4 +1,3 @@
-import { Fonts } from '@/constants/theme';
 import { ApiUser } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
@@ -97,9 +96,12 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
                 style={styles.userPhoto}
                 blurRadius={3}
               />
-              <ThemedText style={[styles.userName, { color: '#333' }]}>
+              <ThemedText style={[styles.userName, { color: '#000' }]}>
                 {user.name}
               </ThemedText>
+               {/* <ThemedText style={styles.userGender}>
+                ({user.gender})
+              </ThemedText> */}
             </View>
           </View>
         )}
@@ -215,14 +217,7 @@ const styles = StyleSheet.create({
   userInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  headerUserName: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    gap: 8,
   },
   userInfoSection: {
     flexDirection: 'row',
@@ -241,9 +236,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-  },
-  userInfoLeft: {
-    flex: 1,
   },
   header: {
     paddingTop: 60,
@@ -269,13 +261,13 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   userName: {
-    fontSize: 22,
+    fontSize: 25,
     fontWeight: '500',
     color: '#000',
   },
-  opinionCount: {
-    fontSize: 14,
-    opacity: 0.8,
+   userGender: {
+    fontSize: 12,
+    color: '#9966CC',
   },
   opinionsContainer: {
     flex: 1,
@@ -304,22 +296,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
-    marginBottom: 12,
+    marginBottom: 10,
     maxWidth: '70%', // Prevent overflow beyond opinion card
     overflow: 'hidden', // Ensure content doesn't overflow
   },
   themeText: {
-    color: '#333',
+    color: '#000',
     fontSize: 12,
     fontWeight: '600',
     flexShrink: 1, // Allow text to shrink if needed
   },
   questionText: {
-    fontSize: 20,
+    fontSize: 22,
     lineHeight: 22,
     color: 'black',
     fontWeight: '600',
-    fontFamily: Fonts.headline,
+    fontFamily: 'Times New Roman',
     marginBottom: 10,
   },
   opinionText: {
@@ -330,7 +322,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     fontSize: 14,
-    color: '#FF6B6B', // Bumble yellow for consistency
+    color: '#9966CC', // Bumble yellow for consistency
     fontWeight: '600',
     marginTop: 8,
     marginBottom: 16,
@@ -347,7 +339,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   likedButton: {
-    borderColor: '#FF6B6B',
+    borderColor: '#9966CC',
     backgroundColor: '#FFF5F5',
   },
   crossButton: {

@@ -1,10 +1,10 @@
-import AppHeader from '@/components/app-header';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AppHeader from './app-header';
 
 interface BaseLayoutProps {
   children: React.ReactNode;
@@ -31,6 +31,7 @@ export default function BaseLayout({
 }: BaseLayoutProps) {
   const [stickyHeaderOpacity] = useState(new Animated.Value(0));
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -57,10 +58,10 @@ export default function BaseLayout({
           <View style={styles.headerContainer}>
             {showBackButton && (
               <TouchableOpacity style={styles.headerBackButton} onPress={handleBackPress}>
-                <Ionicons name="arrow-back" size={24} color="#333" />
+                <Ionicons name="arrow-back" size={26} color="#333" />
               </TouchableOpacity>
             )}
-            <AppHeader />
+            {pathname === '/homepage' && <AppHeader />}
           </View>
         )}
         
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   stickyHeaderText: {
-    fontSize: 23,
+    fontSize: 26,
     fontWeight: '600',
     color: '#000',
   },

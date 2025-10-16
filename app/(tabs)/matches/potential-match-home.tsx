@@ -25,7 +25,7 @@ interface ModalOpinion {
 
 const DUMMY_PROFILE = {
   userId: 203,
-  firstName: 'Ishana',
+  firstName: 'ana',
   gender: 'Female',
   pronouns: 'She/Her',
   dob: '1999-02-14',
@@ -248,8 +248,24 @@ export default function PotentialMatchHome() {
     setModalOpinion(null);
   };
 
-  const handleRemoveUser = () => {
+  const handleRemoveUser = async () => {
     showFeedbackAnimation('cross');
+    
+    // Call swipe API with false (reject) before going back
+    if (user && user.opinions.length > 0) {
+      try {
+        // Get the first opinion's takeId for the swipe API call
+        const firstOpinion = user.opinions[0];
+        const takeId = firstOpinion.takeId || parseInt(firstOpinion.id);
+        
+        if (takeId && !isNaN(takeId)) {
+          await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
+          console.log('User rejected via swipe API');
+        }
+      } catch (error) {
+        console.error('Failed to send reject swipe:', error);
+      }
+    }
     
     setTimeout(() => {
       router.back();

@@ -230,8 +230,8 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   userName: {
-    fontSize: 22,
-    fontWeight: '500',
+    fontSize: 24,
+    fontWeight: '600',
     color: '#000',
   },
   opinionsContainer: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 18,
     marginBottom: 12,
     maxWidth: '70%',
     overflow: 'hidden',
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 22,
     color: 'black',
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 10,
   },
   opinionText: {
@@ -286,8 +286,7 @@ const styles = StyleSheet.create({
   profilePhoto: {
     width: '100%',
     height: 300,
-    borderRadius: 12,
-    marginTop: 10,
+    borderRadius: 10,
   },
   detailRow: {
     flexDirection: 'row',

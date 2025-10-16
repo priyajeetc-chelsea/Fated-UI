@@ -118,7 +118,7 @@ class ApiService {
     const allMatches = [
       {
         "userId": 203,
-        "firstName": "Ishana",
+        "firstName": "ccaac",
         "age": 25,
         "gender": "Female",
         "opinions": [
@@ -304,6 +304,37 @@ class ApiService {
       return result;
     } catch (error) {
       console.error('💥 Failed to send swipe:', error);
+      return null;
+    }
+  }
+
+  // Send final swipe action (for like/cross buttons in profile page)
+  async sendFinalSwipe(swiperId: number, swipedId: number, swipeRight: boolean): Promise<any> {
+    try {
+      const finalSwipeData = {
+        swiperId,
+        swipedId,
+        swipeRight
+      };
+
+      console.log('🔄 Sending final swipe action:', finalSwipeData);
+      const response = await fetch('https://vzr1rz8idc.execute-api.ap-south-1.amazonaws.com/staging/finalSwipe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(finalSwipeData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Final swipe failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Final swipe response:', result);
+      return result;
+    } catch (error) {
+      console.error('💥 Failed to send final swipe:', error);
       return null;
     }
   }

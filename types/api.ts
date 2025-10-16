@@ -52,6 +52,7 @@ export interface PotentialMatchLike {
     question: string;
     answer: string;
   };
+  waitingForMatchResponse?: boolean;
 }
 
 export interface PotentialMatchMutual {
@@ -64,6 +65,7 @@ export interface PotentialMatchMutual {
     answer: string;
   };
   photoUrl: string;
+  waitingForMatchResponse?: boolean;
 }
 
 export interface ApiPotentialMatches {

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
+  Image,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -14,11 +15,13 @@ interface PotentialMatch {
   id: string;
   name: string;
   photo?: string;
+  type: 'likesYou' | 'mutualLike';
   likedOpinion: {
     id: string;
     content: string;
     comment?: string;
   };
+  waitingForMatchResponse?: boolean;
 }
 
 interface PotentialMatchModalProps {
@@ -26,24 +29,42 @@ interface PotentialMatchModalProps {
   potentialMatch: PotentialMatch | null;
   onClose: () => void;
   onLikeOpinion?: (matchUserId: string) => void;
+  onLikeProfile?: (matchUserId: string) => void;
 }
 
-export function PotentialMatchModal({ visible, potentialMatch, onClose, onLikeOpinion }: PotentialMatchModalProps) {
+export function PotentialMatchModal({ visible, potentialMatch, onClose, onLikeOpinion, onLikeProfile }: PotentialMatchModalProps) {
   const [showHomeLike, setShowHomeLike] = React.useState(false);
 
   React.useEffect(() => {
-    if (showHomeLike && potentialMatch && onLikeOpinion) {
-      onLikeOpinion(potentialMatch.id);
+    if (showHomeLike && potentialMatch) {
+      if (potentialMatch.type === 'likesYou' && onLikeOpinion) {
+        onLikeOpinion(potentialMatch.id);
+      } else if (potentialMatch.type === 'mutualLike' && onLikeProfile) {
+        onLikeProfile(potentialMatch.id);
+      }
       setShowHomeLike(false);
       onClose();
     }
-  }, [showHomeLike, potentialMatch, onLikeOpinion, onClose]);
+  }, [showHomeLike, potentialMatch, onLikeOpinion, onLikeProfile, onClose]);
 
-  const handleLikeOpinion = () => {
+  const handleLikeAction = () => {
     setShowHomeLike(true);
   };
 
   if (!potentialMatch) return null;
+  const isLocked = potentialMatch.type === 'likesYou';
+  const isWaitingForResponse = potentialMatch.waitingForMatchResponse === true;
+  const buttonText = potentialMatch.type === 'likesYou' ? 'Like Their Opinion' : 'Like Their Profile';
+  
+  let unlockMessage;
+  if (isWaitingForResponse) {
+    unlockMessage = 'Waiting for your match to like you back';
+  } else if (potentialMatch.type === 'likesYou') {
+    unlockMessage = ' Please like an opinion of this user to unlock match and view each other&apos;s profile';
+  } else {
+    unlockMessage = 'Please like the profile of this user to unlock final match';
+  }
+
 
   return (
     <Modal
@@ -65,11 +86,23 @@ export function PotentialMatchModal({ visible, potentialMatch, onClose, onLikeOp
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           {/* User Info */}
           <View style={styles.userSection}>
-            <View style={styles.hiddenProfilePhoto}>
-              <Ionicons name="person" size={60} color="#999" />
-            </View>
+            {isLocked ? (
+              <View style={styles.hiddenProfilePhoto}>
+                <Ionicons name="person" size={60} color="#999" />
+              </View>
+            ) : (
+              potentialMatch.photo ? (
+                <Image source={{ uri: potentialMatch.photo }} style={styles.profilePhoto} />
+              ) : (
+                <View style={styles.hiddenProfilePhoto}>
+                  <Ionicons name="person" size={60} color="#999" />
+                </View>
+              )
+            )}
             <Text style={styles.userName}>{potentialMatch.name}</Text>
-            <Text style={styles.subtitle}>Liked your opinion</Text>
+            <Text style={styles.subtitle}>
+              {isLocked ? "Liked your opinion" : "Mutual match!"}
+            </Text>
           </View>
 
           {/* Opinion Card */}
@@ -89,27 +122,38 @@ export function PotentialMatchModal({ visible, potentialMatch, onClose, onLikeOp
           <View style={styles.unlockMessage}>
             <Ionicons name="lock-closed" size={24} color="#9966CC" />
             <Text style={styles.unlockText}>
-              Please like an opinion of this user to unlock match and view each other&apos;s photo
+             {unlockMessage}
             </Text>
           </View>
 
           {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.likeButton}
-              onPress={handleLikeOpinion}
-            >
-              <Ionicons name="heart" size={20} color="white" />
-              <Text style={styles.likeButtonText}>Like Their Opinion</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={onClose}
-            >
-              <Text style={styles.cancelButtonText}>Maybe Later</Text>
-            </TouchableOpacity>
-          </View>
+          {!isWaitingForResponse ? (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.likeButton}
+                onPress={handleLikeAction}
+              >
+                <Ionicons name="heart" size={20} color="white" />
+                <Text style={styles.likeButtonText}>{buttonText}</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={onClose}
+              >
+                <Text style={styles.cancelButtonText}>Maybe Later</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={onClose}
+              >
+                <Text style={styles.cancelButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -160,6 +204,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 15,
+  },
+  profilePhoto: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     marginBottom: 15,
   },
   userName: {

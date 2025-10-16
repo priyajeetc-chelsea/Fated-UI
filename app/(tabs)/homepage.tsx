@@ -157,8 +157,25 @@ export default function HomeScreen() {
     setSelectedUserName('');
   };
 
-  const handleRemoveUser = () => {
+  const handleRemoveUser = async () => {
     showFeedbackAnimation('cross');
+    
+    // Call swipe API with false (reject) before removing user
+    const currentUser = users[currentUserIndex];
+    if (currentUser && currentUser.opinions.length > 0) {
+      try {
+        // Get the first opinion's takeId for the swipe API call
+        const firstOpinion = currentUser.opinions[0];
+        const takeId = parseInt(firstOpinion.id); // takeId is stored in the id field
+        
+        if (takeId && !isNaN(takeId)) {
+          await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
+          console.log('User rejected via swipe API');
+        }
+      } catch (error) {
+        console.error('Failed to send reject swipe:', error);
+      }
+    }
     
     setTimeout(() => {
       const newUsers = users.filter((_, index) => index !== currentUserIndex);
@@ -166,6 +183,12 @@ export default function HomeScreen() {
       
       if (currentUserIndex >= newUsers.length) {
         setCurrentUserIndex(0);
+      }
+      
+      // Check if we have 2 or fewer users left, then fetch more
+      if (newUsers.length <= 2) {
+        console.log('Low on users, fetching more...');
+        loadMatches(currentRequest, false, true); // appendToExisting = true
       }
     }, 1000);
   };

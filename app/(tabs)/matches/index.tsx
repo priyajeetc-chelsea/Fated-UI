@@ -1,12 +1,12 @@
-// import OpinionModal from '@/components/opinion-modal';
 import { PotentialMatchModal } from '@/components/potential-match-modal';
 import { apiService } from '@/services/api';
 import { PotentialMatchLike, PotentialMatchMutual } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,11 +28,13 @@ type SelectedPotentialMatch = {
   id: string;
   name: string;
   photo?: string;
+  type: 'likesYou' | 'mutualLike';
   likedOpinion: {
     id: string;
     content: string;
     comment?: string;
   };
+  waitingForMatchResponse?: boolean;
 };
 
 
@@ -46,54 +48,79 @@ export default function MatchesScreen() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [potentialMatches, setPotentialMatches] = useState<PotentialMatchDisplay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Removed unused showOpinionModal state
-  // Removed unused modalOpinion and modalUserName
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchMatches = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await apiService.fetchAllMatches();
-        // Map confirmedMatches
-        const confirmed = (res.model?.confirmedMatches?.matches || []).map((m: any) => ({
-          id: m.userId?.toString() ?? '',
-          name: m.name ?? '',
-          photo: m.photoUrl ?? '',
-          lastMessage: '', // API does not provide lastMessage
-          timestamp: m.lastActive ?? '',
-        }));
-        setMatches(confirmed);
-        // likesYou (locked)
-        const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
-          type: 'likesYou',
-          data: pm,
-        }));
-        // mutualLike (show photo)
-        const mutualLike: PotentialMatchDisplay[] = (res.model?.potentialMatches?.mutualLike || []).map((pm) => ({
-          type: 'mutualLike',
-          data: pm,
-        }));
-        setPotentialMatches([...likesYou, ...mutualLike]);
-      } catch {
-        setError('Failed to load matches.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMatches();
+  const fetchMatches = useCallback(async () => {
+    setError(null);
+    try {
+      const res = await apiService.fetchAllMatches();
+      // Map confirmedMatches
+      const confirmed = (res.model?.confirmedMatches?.matches || []).map((m: any) => ({
+        id: m.userId?.toString() ?? '',
+        name: m.name ?? '',
+        photo: m.photoUrl ?? '',
+        lastMessage: '', // API does not provide lastMessage
+        timestamp: m.lastActive ?? '',
+      }));
+      setMatches(confirmed);
+      // likesYou (locked)
+      const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
+        type: 'likesYou',
+        data: pm,
+      }));
+      // mutualLike (show photo)
+      const mutualLike: PotentialMatchDisplay[] = (res.model?.potentialMatches?.mutualLike || []).map((pm) => ({
+        type: 'mutualLike',
+        data: pm,
+      }));
+      setPotentialMatches([...likesYou, ...mutualLike]);
+    } catch {
+      setError('Failed to load matches.');
+    }
   }, []);
 
+  // Initial load
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setLoading(true);
+      await fetchMatches();
+      setLoading(false);
+    };
+    loadInitialData();
+  }, [fetchMatches]);
+
+  // Reload when screen comes into focus (e.g., when coming back from user profile)
+  useFocusEffect(
+    useCallback(() => {
+      fetchMatches();
+    }, [fetchMatches])
+  );
+
+  // Handle pull-to-refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchMatches();
+    setRefreshing(false);
+  }, [fetchMatches]);
+
   const renderMatchItem = (match: Match) => (
-    <TouchableOpacity key={match.id} style={styles.matchItem}>
-      <Image source={{ uri: match.photo }} style={styles.matchPhoto} />
-      <View style={styles.matchInfo}>
-        <Text style={styles.matchName}>{match.name}</Text>
-        <Text style={styles.lastMessage}>{match.lastMessage}</Text>
+    <TouchableOpacity key={match.id} style={styles.whatsappChatItem}>
+      <View style={styles.chatPhotoContainer}>
+        <Image source={{ uri:`https://picsum.photos/200/200?random=${match.id}` }} style={styles.chatPhoto} />
       </View>
-      <Text style={styles.timestamp}>{match.timestamp}</Text>
+      <View style={styles.chatContent}>
+        <View style={styles.chatHeader}>
+          <Text style={styles.chatName}>{match.name}</Text>
+          <Text style={styles.chatTime}>{match.timestamp}</Text>
+        </View>
+        <View style={styles.chatMessageContainer}>
+          <Text style={styles.chatMessage} numberOfLines={1}>
+            {match.lastMessage || "Say hello!"}
+          </Text>
+        </View>
+      </View>
     </TouchableOpacity>
   );
 
@@ -102,60 +129,97 @@ export default function MatchesScreen() {
       return (
         <TouchableOpacity
           key={`likesYou-${pm.data.userId}`}
-          style={styles.potentialMatchItem}
+          style={styles.whatsappChatItem}
           onPress={() => setSelectedPotentialMatch({
             id: pm.data.userId.toString(),
             name: pm.data.firstName,
+            type: 'likesYou',
             likedOpinion: {
               id: pm.data.likedOpinion.id.toString(),
               content: pm.data.likedOpinion.answer,
               comment: pm.data.comment,
             },
+            waitingForMatchResponse: pm.data.waitingForMatchResponse,
           })}
         >
-          <View style={styles.hiddenPhoto}>
-            <Ionicons name="lock-closed" size={32} color="#9966CC" />
+          <View style={styles.chatPhotoContainer}>
+            <View style={styles.lockedChatPhoto}>
+              <Ionicons name="lock-closed" size={26} color="#333" />
+            </View>
           </View>
-          <View style={styles.potentialMatchInfo}>
-            <Text style={styles.potentialMatchName}>{pm.data.firstName}</Text>
-            <Text style={styles.likedOpinionPreview} numberOfLines={2}>
-              Liked: &quot;{pm.data.likedOpinion.answer.substring(0, 60)}...&quot;
-            </Text>
+          <View style={styles.chatContent}>
+            <View style={styles.chatHeader}>
+              <View style={styles.nameWithBadge}>
+                <Text style={styles.chatName}>{pm.data.firstName}</Text>
+                {/* <View style={styles.lockedInlineBadge}>
+                  <Text style={styles.lockedInlineText}>LOCKED</Text>
+                </View> */}
+              </View>
+              {/* <Text style={styles.chatTime}>now</Text> */}
+            </View>
+            <View style={styles.chatMessageContainer}>
+              <Text style={styles.chatMessage} numberOfLines={1}>
+                {pm.data.likedOpinion.answer.substring(0, 40)}...&quot;
+              </Text>
+              {/* <View style={styles.chatBadge}>
+                <Text style={styles.chatBadgeText}>!</Text>
+              </View> */}
+            </View>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
         </TouchableOpacity>
       );
     } else {
       return (
         <TouchableOpacity
           key={`mutualLike-${pm.data.userId}`}
-          style={styles.potentialMatchItem}
+          style={styles.whatsappChatItem}
           onPress={() => setSelectedPotentialMatch({
             id: pm.data.userId.toString(),
             name: pm.data.firstName,
-            photo: pm.data.photoUrl,
+            photo: `https://picsum.photos/200/200?random=${pm.data.userId}` || pm.data.photoUrl,
+            type: 'mutualLike',
             likedOpinion: {
               id: pm.data.likedOpinion.id.toString(),
               content: pm.data.likedOpinion.answer,
               comment: pm.data.comment,
             },
+            waitingForMatchResponse: pm.data.waitingForMatchResponse,
           })}
         >
-          {pm.data.photoUrl && pm.data.photoUrl.trim() !== '' ? (
-            <Image source={{ uri: pm.data.photoUrl }} style={styles.matchPhoto} />
-          ) : (
-            <Image 
-              source={{ uri: `https://picsum.photos/200/200?random=${pm.data.userId}` }} 
-              style={styles.matchPhoto} 
-            />
-          )}
-          <View style={styles.potentialMatchInfo}>
-            <Text style={styles.potentialMatchName}>{pm.data.firstName}</Text>
-            <Text style={styles.likedOpinionPreview} numberOfLines={2}>
-              Liked: &quot;{pm.data.likedOpinion.answer.substring(0, 60)}...&quot;
-            </Text>
+          <View style={styles.chatPhotoContainer}>
+            {pm.data.photoUrl && pm.data.photoUrl.trim() !== '' ? (
+              <Image 
+                source={{ uri:`https://picsum.photos/200/200?random=${pm.data.userId}` || pm.data.photoUrl }} 
+                style={styles.chatPhoto}
+                onError={() => {
+                  console.log('Photo failed to load for user:', pm.data.userId);
+                }}
+              />
+            ) : (
+              <View style={styles.chatPlaceholderPhoto}>
+                <Ionicons name="person" size={28} color="#999" />
+              </View>
+            )}
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <View style={styles.chatContent}>
+            <View style={styles.chatHeader}>
+              <View style={styles.nameWithBadge}>
+                <Text style={styles.chatName}>{pm.data.firstName}</Text>
+                {/* <View style={styles.mutualInlineBadge}>
+                  <Text style={styles.mutualInlineText}>mutual</Text>
+                </View> */}
+              </View>
+              {/* <Text style={styles.chatTime}>now</Text> */}
+            </View>
+            <View style={styles.chatMessageContainer}>
+              <Text style={styles.chatMessage} numberOfLines={1}>
+                {pm.data.likedOpinion.answer.substring(0, 40)}...&quot;
+              </Text>
+              <View style={styles.chatBadge}>
+                <Text style={styles.chatBadgeText}>1</Text>
+              </View>
+            </View>
+          </View>
         </TouchableOpacity>
       );
     }
@@ -200,7 +264,17 @@ export default function MatchesScreen() {
           <Text style={{ color: 'red' }}>{error}</Text>
         </View>
       ) : (
-        <ScrollView style={styles.content}>
+        <ScrollView 
+          style={styles.content}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#9966CC']} // Android
+              tintColor="#9966CC" // iOS
+            />
+          }
+        >
           {activeTab === 'matches' ? (
             <View style={styles.matchesList}>
               {matches.length === 0 ? (
@@ -224,11 +298,15 @@ export default function MatchesScreen() {
       <PotentialMatchModal
         visible={selectedPotentialMatch !== null}
         potentialMatch={selectedPotentialMatch}
-        onClose={() => setSelectedPotentialMatch(null)}
+        onClose={() => {
+          setSelectedPotentialMatch(null);
+          // Reload matches when modal closes
+          fetchMatches();
+        }}
         onLikeOpinion={async (matchUserId) => {
-          // Find the match in either likesYou or mutualLike
+          // For likesYou users - show their opinions first
           const matchDisplay = potentialMatches.find(pm => {
-            if (pm.type === 'likesYou' || pm.type === 'mutualLike') {
+            if (pm.type === 'likesYou') {
               return pm.data.userId.toString() === matchUserId;
             }
             return false;
@@ -250,6 +328,7 @@ export default function MatchesScreen() {
               params: {
                 userName: matchData.firstName,
                 opinions: JSON.stringify(opinions),
+                fromMatches: 'true', // Flag to know we came from matches
               },
             });
           } catch {
@@ -265,9 +344,28 @@ export default function MatchesScreen() {
                     tag: { id: 0, name: '' },
                   },
                 ]),
+                fromMatches: 'true',
               },
             });
           }
+        }}
+        onLikeProfile={async (matchUserId) => {
+          // For mutualLike users - go directly to user profile page
+          const matchDisplay = potentialMatches.find(pm => {
+            if (pm.type === 'mutualLike') {
+              return pm.data.userId.toString() === matchUserId;
+            }
+            return false;
+          });
+          if (!matchDisplay) return;
+          
+          router.push({
+            pathname: '/matches/user-profile-page',
+            params: { 
+              userBId: matchUserId,
+              fromMatches: 'true', // Flag to know we came from matches
+            }
+          });
         }}
       />
       {/* Removed unused OpinionModal */}
@@ -399,10 +497,195 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#9966CC',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 15,
+  },
+  lockedPhotoContainer: {
+    position: 'relative',
+    marginRight: 15,
+  },
+  lockedOverlay: {
+    position: 'absolute',
+    bottom: -8,
+    left: 0,
+    right: 0,
+    backgroundColor: '#9966CC',
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    alignItems: 'center',
+  },
+  lockedText: {
+    color: '#ffffff',
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  lockHint: {
+    fontSize: 12,
+    color: '#9966CC',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  photoContainer: {
+    position: 'relative',
+    marginRight: 15,
+  },
+  placeholderPhoto: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mutualBadge: {
+    position: 'absolute',
+    bottom: -8,
+    left: 0,
+    right: 0,
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    alignItems: 'center',
+  },
+  mutualText: {
+    color: '#ffffff',
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  mutualHint: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  // WhatsApp-style chat interface for mutual likes
+  whatsappChatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5E5',
+  },
+  chatPhotoContainer: {
+    marginRight: 12,
+  },
+  chatPhoto: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  chatPlaceholderPhoto: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  chatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  nameWithBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  userImageContainer: {
+    marginRight: 6,
+  },
+  userImageSmall: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  userImagePlaceholder: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginRight: 8,
+  },
+  mutualInlineBadge: {
+    backgroundColor: '#9966CC',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  mutualInlineText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  chatTime: {
+    fontSize: 12,
+    color: '#999999',
+  },
+  chatMessageContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chatMessage: {
+    fontSize: 14,
+    color: '#666666',
+    flex: 1,
+    marginRight: 8,
+  },
+  chatBadge: {
+    backgroundColor: '#9966CC',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  chatBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  // Locked chat photo styles
+  lockedChatPhoto: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#f5f5f5f5',
+    borderWidth: 1,
+    borderColor: '#9966CC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockedInlineBadge: {
+    backgroundColor: '#666666',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  lockedInlineText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   potentialMatchInfo: {
     flex: 1,

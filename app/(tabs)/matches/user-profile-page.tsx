@@ -2,14 +2,15 @@ import BaseLayout from '@/components/base-layout';
 import UserProfileLayout from '@/components/user-profile-layout';
 import { apiService } from '@/services/api';
 import { ApiUser } from '@/types/api';
-import { useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // Fallback user data in case no profile is passed
 const FALLBACK_USER_DATA = {
   userId: 203,
-  firstName: "Ishana",
+  firstName: "ccaac",
   gender: "Female",
   pronouns: "She/Her",
   dob: "1999-02-14",
@@ -54,6 +55,7 @@ For example, while I appreciate how platforms like Twitter or Reddit allow niche
 
 export default function UserProfilePage() {
   const params = useLocalSearchParams();
+  const router = useRouter();
   const [user, setUser] = useState<ApiUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
@@ -61,6 +63,46 @@ export default function UserProfilePage() {
   const handleScroll = (event: any) => {
     const scrollY = event.nativeEvent.contentOffset.y;
     setShowStickyHeader(scrollY > 100);
+  };
+
+  const handleCrossPress = async () => {
+    // Call swipe API with false (reject) before going back
+    if (user && user.opinions.length > 0) {
+      try {
+        // Get the first opinion's takeId for the swipe API call
+        const firstOpinion = user.opinions[0];
+        const takeId = parseInt(firstOpinion.id); // takeId is stored in the id field
+        
+        if (takeId && !isNaN(takeId)) {
+          await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
+          console.log('User rejected via swipe API');
+        }
+      } catch (error) {
+        console.error('Failed to send reject swipe:', error);
+      }
+    }
+    
+    router.back();
+  };
+
+  const handleLikePress = async () => {
+    if (user) {
+      try {
+        // Use hardcoded swiperId (203) and the user's ID as swipedId
+        const swiperId = 203; // My user ID
+        const swipedId = parseInt(user.id);
+        
+        await apiService.sendFinalSwipe(swiperId, swipedId, true);
+        console.log('User liked via final swipe API');
+        
+        // Navigate to matches page and reload data
+        router.push('/matches');
+      } catch (error) {
+        console.error('Failed to send final swipe:', error);
+        // Still navigate back on error
+        router.back();
+      }
+    }
   };
 
   useEffect(() => {
@@ -222,7 +264,27 @@ export default function UserProfilePage() {
         showStickyHeader={showStickyHeader}
         onScroll={handleScroll}
         layoutType="full-profile"
+        showCrossButton={false}
       />
+      
+      {/* Bottom Action Buttons */}
+      <View style={styles.bottomButtonsContainer}>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.crossButton]} 
+          onPress={handleCrossPress}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="close" size={32} color="#fff" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.likeButton]} 
+          onPress={handleLikePress}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="heart" size={32} color="#fff" />
+        </TouchableOpacity>
+      </View>
     </BaseLayout>
   );
 }
@@ -236,5 +298,37 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  bottomButtonsContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 40,
+    paddingHorizontal: 20,
+  },
+  actionButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  crossButton: {
+    backgroundColor: '#666',
+  },
+  likeButton: {
+    backgroundColor: '#9966CC',
   },
 });
