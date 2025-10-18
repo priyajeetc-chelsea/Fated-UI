@@ -22,6 +22,8 @@ interface Match {
   photo: string;
   lastMessage: string;
   timestamp: string;
+  unreadCount: number;
+  isUnread: boolean;
 }
 
 type SelectedPotentialMatch = {
@@ -61,8 +63,10 @@ export default function MatchesScreen() {
         id: m.userId?.toString() ?? '',
         name: m.name ?? '',
         photo: m.photoUrl ?? '',
-        lastMessage: '', // API does not provide lastMessage
-        timestamp: m.lastActive ?? '',
+        lastMessage: m.lastMessage ? m.lastMessage.content : 'Say hello!',
+        timestamp: '', // timestamp not provided in new API
+        unreadCount: m.unreadCount ?? 0,
+        isUnread: m.isUnread ?? false,
       }));
       setMatches(confirmed);
       // likesYou (locked)
@@ -80,6 +84,9 @@ export default function MatchesScreen() {
       setError('Failed to load matches.');
     }
   }, []);
+
+  // Calculate total unread count for confirmed matches
+  const totalUnreadCount = matches.reduce((total, match) => total + match.unreadCount, 0);
 
   // Initial load
   useEffect(() => {
@@ -106,7 +113,21 @@ export default function MatchesScreen() {
   }, [fetchMatches]);
 
   const renderMatchItem = (match: Match) => (
-    <TouchableOpacity key={match.id} style={styles.whatsappChatItem}>
+    <TouchableOpacity 
+      key={match.id} 
+      style={styles.whatsappChatItem}
+      onPress={() => {
+        router.push({
+          pathname: '/chat/[userId]',
+          params: {
+            userId: match.id,
+            userName: match.name,
+            isFinalMatch: 'true',
+            isPotentialMatch: 'false',
+          },
+        });
+      }}
+    >
       <View style={styles.chatPhotoContainer}>
         <Image source={{ uri:`https://picsum.photos/200/200?random=${match.id}` }} style={styles.chatPhoto} />
       </View>
@@ -117,8 +138,13 @@ export default function MatchesScreen() {
         </View>
         <View style={styles.chatMessageContainer}>
           <Text style={styles.chatMessage} numberOfLines={1}>
-            {match.lastMessage || "Say hello!"}
+            {match.lastMessage}
           </Text>
+          {match.isUnread && match.unreadCount > 0 && (
+            <View style={styles.chatBadge}>
+              <Text style={styles.chatBadgeText}>{match.unreadCount}</Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -130,17 +156,22 @@ export default function MatchesScreen() {
         <TouchableOpacity
           key={`likesYou-${pm.data.userId}`}
           style={styles.whatsappChatItem}
-          onPress={() => setSelectedPotentialMatch({
-            id: pm.data.userId.toString(),
-            name: pm.data.firstName,
-            type: 'likesYou',
-            likedOpinion: {
-              id: pm.data.likedOpinion.id.toString(),
-              content: pm.data.likedOpinion.answer,
-              comment: pm.data.comment,
-            },
-            waitingForMatchResponse: pm.data.waitingForMatchResponse,
-          })}
+          onPress={() => {
+            // For likesYou, we could either show modal or go to chat
+            // Let's provide both options - tap for modal, long press for chat
+            setSelectedPotentialMatch({
+              id: pm.data.userId.toString(),
+              name: pm.data.firstName,
+              type: 'likesYou',
+              likedOpinion: {
+                id: pm.data.likedOpinion.id.toString(),
+                content: pm.data.likedOpinion.answer,
+                comment: pm.data.comment,
+              },
+              waitingForMatchResponse: pm.data.waitingForMatchResponse,
+            });
+          }}
+
         >
           <View style={styles.chatPhotoContainer}>
             <View style={styles.lockedChatPhoto}>
@@ -173,18 +204,21 @@ export default function MatchesScreen() {
         <TouchableOpacity
           key={`mutualLike-${pm.data.userId}`}
           style={styles.whatsappChatItem}
-          onPress={() => setSelectedPotentialMatch({
-            id: pm.data.userId.toString(),
-            name: pm.data.firstName,
-            photo: `https://picsum.photos/200/200?random=${pm.data.userId}` || pm.data.photoUrl,
-            type: 'mutualLike',
-            likedOpinion: {
-              id: pm.data.likedOpinion.id.toString(),
-              content: pm.data.likedOpinion.answer,
-              comment: pm.data.comment,
-            },
-            waitingForMatchResponse: pm.data.waitingForMatchResponse,
-          })}
+          onPress={() => {
+            // Show profile modal for mutual likes (main tap action)
+            setSelectedPotentialMatch({
+              id: pm.data.userId.toString(),
+              name: pm.data.firstName,
+              photo: `https://picsum.photos/200/200?random=${pm.data.userId}` || pm.data.photoUrl,
+              type: 'mutualLike',
+              likedOpinion: {
+                id: pm.data.likedOpinion.id.toString(),
+                content: pm.data.likedOpinion.answer,
+                comment: pm.data.comment,
+              },
+              waitingForMatchResponse: pm.data.waitingForMatchResponse,
+            });
+          }}
         >
           <View style={styles.chatPhotoContainer}>
             {pm.data.photoUrl && pm.data.photoUrl.trim() !== '' ? (
@@ -233,9 +267,16 @@ export default function MatchesScreen() {
           style={[styles.tab, activeTab === 'matches' && styles.activeTab]}
           onPress={() => setActiveTab('matches')}
         >
-          <Text style={[styles.tabText, activeTab === 'matches' && styles.activeTabText]}>
-            Matches
-          </Text>
+          <View style={styles.tabContent}>
+            <Text style={[styles.tabText, activeTab === 'matches' && styles.activeTabText]}>
+              Matches
+            </Text>
+            {totalUnreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.badgeText}>{totalUnreadCount}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
         <View style={styles.separator} />
         <TouchableOpacity
@@ -701,4 +742,5 @@ const styles = StyleSheet.create({
     color: '#666',
     fontStyle: 'italic',
   },
+
 });

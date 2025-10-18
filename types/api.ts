@@ -73,12 +73,19 @@ export interface ApiPotentialMatches {
   mutualLike: PotentialMatchMutual[];
 }
 
+export interface LastMessage {
+  id: number;
+  content: string;
+}
+
 export interface ApiConfirmedMatch {
-  userId: string;
+  matchId: number;
+  userId: number;
   name: string;
   photoUrl: string;
-  chatThreadId: string;
-  lastActive: string;
+  lastMessage: LastMessage | null;
+  unreadCount: number;
+  isUnread: boolean;
 }
 
 export interface ApiAllMatchesResponse {

@@ -58,7 +58,7 @@ export default function ThemeFilterBubbles({ tags, onThemeChange }: ThemeFilterB
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
+    paddingVertical: 5,
   },
   scrollContent: {
     paddingHorizontal: 20,

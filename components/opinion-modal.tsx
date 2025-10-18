@@ -248,9 +248,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#333',
-    marginBottom: 12,
-    height: 120, // Fixed height only for long opinions
-
+    marginBottom: 20,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -265,7 +263,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     color: '#000',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '500',
   },
   commentSection: {
