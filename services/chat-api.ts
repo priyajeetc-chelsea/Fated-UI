@@ -81,7 +81,6 @@ class ChatApiService {
       }
 
       const data = await response.json();
-      console.log('📜 Chat history fetched:', data);
       return data;
     } catch (error) {
       console.error('❌ Failed to fetch chat history:', error);
@@ -112,10 +111,8 @@ class ChatApiService {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      console.log('✅ Messages marked as read for senderId:', senderId, 'lastReadMessageId:', lastReadMessageId);
     } catch (error) {
-      console.error('❌ Failed to mark messages as read:', error);
+      console.error('Failed to mark messages as read:', error);
       throw error;
     }
   }
@@ -139,10 +136,9 @@ class ChatApiService {
       }
 
       const data = await response.json();
-      console.log('📋 All matches with unread counts fetched:', data);
       return data;
     } catch (error) {
-      console.error('❌ Failed to fetch matches:', error);
+      console.error('Failed to fetch matches:', error);
       throw error;
     }
   }

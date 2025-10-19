@@ -3,8 +3,10 @@ import { apiService } from '@/services/api';
 import { PotentialMatchLike, PotentialMatchMutual } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  AppState,
+  AppStateStatus,
   Image,
   RefreshControl,
   ScrollView,
@@ -54,6 +56,11 @@ export default function MatchesScreen() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // Refs for polling management
+  const pollingIntervalRef = useRef<any>(null);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const isScreenFocusedRef = useRef(true);
+
   const fetchMatches = useCallback(async () => {
     setError(null);
     try {
@@ -85,6 +92,36 @@ export default function MatchesScreen() {
     }
   }, []);
 
+  // Silent fetch for polling (doesn't show errors)
+  const silentFetchMatches = useCallback(async () => {
+    try {
+      const res = await apiService.fetchAllMatches();
+      const confirmed = (res.model?.confirmedMatches?.matches || []).map((m: any) => ({
+        id: m.userId?.toString() ?? '',
+        name: m.name ?? '',
+        photo: m.photoUrl ?? '',
+        lastMessage: m.lastMessage ? m.lastMessage.content : 'Say hello!',
+        timestamp: '',
+        unreadCount: m.unreadCount ?? 0,
+        isUnread: m.isUnread ?? false,
+      }));
+      setMatches(confirmed);
+      
+      const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
+        type: 'likesYou',
+        data: pm,
+      }));
+      const mutualLike: PotentialMatchDisplay[] = (res.model?.potentialMatches?.mutualLike || []).map((pm) => ({
+        type: 'mutualLike',
+        data: pm,
+      }));
+      setPotentialMatches([...likesYou, ...mutualLike]);
+    } catch (error) {
+      // Silent fail for polling
+      console.error('Silent polling failed:', error);
+    }
+  }, []);
+
   // Calculate total unread count for confirmed matches
   const totalUnreadCount = matches.reduce((total, match) => total + match.unreadCount, 0);
 
@@ -101,9 +138,64 @@ export default function MatchesScreen() {
   // Reload when screen comes into focus (e.g., when coming back from user profile)
   useFocusEffect(
     useCallback(() => {
+      isScreenFocusedRef.current = true;
       fetchMatches();
+      
+      return () => {
+        isScreenFocusedRef.current = false;
+      };
     }, [fetchMatches])
   );
+
+  // Set screen as not focused when component unmounts
+  useEffect(() => {
+    return () => {
+      isScreenFocusedRef.current = false;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, []);
+
+  // Start polling for real-time updates
+  useEffect(() => {
+    const startPolling = () => {
+      pollingIntervalRef.current = setInterval(() => {
+        // Only poll when app is active and screen is focused
+        if (AppState.currentState === 'active' && isScreenFocusedRef.current) {
+          silentFetchMatches();
+        }
+      }, 5000); // Poll every 5 seconds
+    };
+
+    // Start polling after initial load
+    const timeoutId = setTimeout(startPolling, 3000); // Start after 3 seconds
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [silentFetchMatches]);
+
+  // Handle app state changes
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App came to foreground - refresh matches if screen is focused
+        if (isScreenFocusedRef.current) {
+          silentFetchMatches();
+        }
+      }
+      appStateRef.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [silentFetchMatches]);
 
   // Handle pull-to-refresh
   const onRefresh = useCallback(async () => {

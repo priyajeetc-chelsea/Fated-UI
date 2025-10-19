@@ -3,8 +3,8 @@ import { useChat } from '@/hooks/use-chat';
 import { ChatMessage } from '@/services/chat-api';
 import { webSocketService } from '@/services/websocket';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -47,6 +47,7 @@ export default function ChatScreen() {
     sendMessage,
     loadMoreMessages,
     retryFailedMessage,
+    markMessagesAsRead,
   } = useChat({
     currentUserId,
     otherUserId,
@@ -63,6 +64,16 @@ export default function ChatScreen() {
       }, 100);
     }
   }, [messages]);
+
+  // Mark messages as read when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Mark messages as read when chat screen is focused
+      setTimeout(() => {
+        markMessagesAsRead();
+      }, 500);
+    }, [markMessagesAsRead])
+  );
 
   // Force cleanup when component unmounts (navigating away)
   useEffect(() => {

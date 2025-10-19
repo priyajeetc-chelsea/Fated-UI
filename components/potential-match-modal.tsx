@@ -72,6 +72,7 @@ export function PotentialMatchModal({
     isLoadingMore,
     sendMessage,
     retryFailedMessage,
+    markMessagesAsRead,
   } = useChat({
     ...chatConfig,
     enabled: shouldEnableChat || false,
@@ -85,6 +86,15 @@ export function PotentialMatchModal({
       }, 100);
     }
   }, [messages]);
+
+  // Mark messages as read when modal becomes visible or messages change
+  useEffect(() => {
+    if (visible && shouldEnableChat && messages.length > 0) {
+      setTimeout(() => {
+        markMessagesAsRead();
+      }, 500);
+    }
+  }, [visible, shouldEnableChat, messages.length, markMessagesAsRead]);
 
   // Force cleanup when modal closes
   useEffect(() => {
@@ -683,17 +693,18 @@ const styles = StyleSheet.create({
   },
  unlockSection: {
     alignItems: 'center',
+    height: 60,
     backgroundColor: '#f5f0ff',
     borderRadius: 12,
     padding: 15,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   unlockText: {
     flex: 1,
     fontSize: 14,
+    textAlign: 'center',
     color: '#9966CC',
-    marginLeft: 10,
-    lineHeight: 20,
+    flexWrap: 'wrap',
   }
 
 });

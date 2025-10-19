@@ -49,21 +49,16 @@ export class WebSocketService {
       }
 
       if (this.ws?.readyState === WebSocket.OPEN) {
-        //WebSocket already connected
         resolve();
         return;
       }
 
       if (this.isConnecting) {
-        // WebSocket connection in progress, waiting
-        // Wait for current connection attempt
         const checkConnection = () => {
           if (!this.isConnecting) {
             if (this.ws?.readyState === WebSocket.OPEN) {
-              console.log('✅ WebSocket connection completed');
               resolve();
             } else {
-              console.log('❌ WebSocket connection failed');
               reject(new Error('Connection failed'));
             }
           } else {
@@ -80,7 +75,6 @@ export class WebSocketService {
         this.ws = new WebSocket(this.WS_URL);
 
         this.ws.onopen = () => {
-          console.log('✅ WebSocket connected - $connect route triggered automatically');
           this.isConnecting = false;
           this.reconnectAttempts = 0;
           this.processMessageQueue();
@@ -91,37 +85,30 @@ export class WebSocketService {
         this.ws.onmessage = (event) => {
           try {
             const message = JSON.parse(event.data);
-            console.log('📨 Received WebSocket message:', message);
             
-            // Handle different message types according to API spec
             if (message.type === 'sendMessage') {
-              // Message delivery confirmation
               this.notifyListeners(message as WebSocketResponse);
             } else if (message.type === 'message') {
-              // Incoming real-time message
               this.notifyListeners(message as IncomingMessage);
             } else {
-              // Generic message handling
               this.notifyListeners(message);
             }
           } catch (error) {
-            console.error('❌ Failed to parse WebSocket message:', error);
+            console.error('Failed to parse WebSocket message:', error);
           }
         };
 
         this.ws.onclose = (event) => {
-
           this.isConnecting = false;
           this.notifyConnectionListeners(false);
           
           if (!event.wasClean && this.reconnectAttempts < this.maxReconnectAttempts && this.activeConnections > 0) {
-            console.log('🔄 Scheduling reconnection due to unexpected disconnect');
             this.scheduleReconnect();
           }
         };
 
         this.ws.onerror = (error) => {
-          console.error('❌ WebSocket error:', error);
+          console.error('WebSocket error:', error);
           this.isConnecting = false;
           reject(error);
         };
@@ -143,16 +130,12 @@ export class WebSocketService {
   }
 
   private scheduleReconnect() {
-    // Only reconnect if there are active connections
     if (this.activeConnections === 0) {
-    //   console.log('🔌 No active connections, skipping reconnect');
       return;
     }
 
     this.reconnectAttempts++;
     const delay = this.reconnectInterval * Math.pow(2, this.reconnectAttempts - 1);
-    
-    console.log(`🔄 Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
     
     setTimeout(() => {
       if (this.activeConnections > 0) {
@@ -163,8 +146,6 @@ export class WebSocketService {
 
   // Force reconnection by disconnecting and immediately reconnecting
   forceReconnect(userId?: number): Promise<void> {
-    console.log('🔄 Force reconnecting WebSocket...');
-    
     // Reset reconnection attempts for clean slate
     this.reconnectAttempts = 0;
     
@@ -208,24 +189,12 @@ export class WebSocketService {
       let resolved = false;
 
       const responseListener = (response: WebSocketResponse) => {
-        console.log('🔍 Checking response for message:', { 
-          responseType: response.type, 
-          responseMessageId: response.messageId,
-          responseSenderId: response.senderId,
-          originalSenderId: message.senderId,
-          responseStatus: response.status,
-          resolved
-        });
-        
-        // Match on type and either senderId or just accept the first sendMessage response
         if (response.type === 'sendMessage' && !resolved) {
-          // If senderId matches or is undefined, accept this response
           if (!response.senderId || response.senderId === message.senderId) {
             resolved = true;
             this.removeListener(responseListener);
             clearTimeout(timeout);
             
-            // Ensure we return the correct senderId in response
             const enhancedResponse: WebSocketResponse = {
               ...response,
               senderId: response.senderId || message.senderId
@@ -239,24 +208,15 @@ export class WebSocketService {
       // Set timeout for response  
       const timeout = setTimeout(() => {
         if (!resolved) {
-          console.log('⏰ Message send timeout for:', message);
           this.removeListener(responseListener);
           reject(new Error('Message send timeout'));
         }
-      }, 15000); // Increased timeout to 15 seconds
+      }, 15000);
 
       this.addListener(responseListener);
 
       try {
         this.ws!.send(JSON.stringify(message));
-        console.log('📤 Sent message via WebSocket:', {
-          action: message.action,
-          senderId: message.senderId,
-          receiverId: message.receiverId,
-          content: message.content.substring(0, 30) + '...',
-          isFinalMatch: message.isFinalMatch,
-          isPotentialMatch: message.isPotentialMatch
-        });
       } catch (error) {
         this.removeListener(responseListener);
         clearTimeout(timeout);
@@ -323,27 +283,17 @@ export class WebSocketService {
     const isConnecting = this.isConnecting;
     const isConnected = this.isConnected();
     const hasActiveConnections = this.activeConnections > 0;
-    const connectionState = this.getConnectionState();
     
     // Need refresh if we have active connections but are not connected and not actively connecting
     const needsRefresh = hasActiveConnections && !isConnected && !isConnecting;
-    
-    console.log('🔍 Connection refresh check:', {
-      isConnecting,
-      isConnected,
-      hasActiveConnections,
-      connectionState,
-      needsRefresh
-    });
     
     return needsRefresh;
   }
 
   // Explicit disconnect method as per API requirements
   disconnect() {
-    console.log('🔌 Explicitly disconnecting WebSocket - $disconnect route will be triggered');
     if (this.ws) {
-      this.ws.close(1000, 'User initiated disconnect'); // Clean close
+      this.ws.close(1000, 'User initiated disconnect');
       this.ws = null;
     }
     this.messageQueue = [];
@@ -361,7 +311,6 @@ export class WebSocketService {
 
   // Force disconnect and reset all state - for when leaving chat screens
   forceDisconnectAndReset() {
-    
     // Close connection immediately
     if (this.ws) {
       this.ws.close(1000, 'Force disconnect');
@@ -401,13 +350,11 @@ export class WebSocketService {
   // Connection reference counting for proper cleanup
   addConnectionReference(userId?: number): Promise<void> {
     this.activeConnections++;
-    console.log(`📊 Active connections: ${this.activeConnections}`);
     
     // Clear any pending disconnect timer
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
-      console.log('🔄 Cancelled pending disconnect timer');
     }
 
     // If connection is in a problematic state, force refresh
@@ -420,16 +367,14 @@ export class WebSocketService {
 
   removeConnectionReference() {
     this.activeConnections = Math.max(0, this.activeConnections - 1);
-    console.log(`📊 Active connections: ${this.activeConnections}`);
     
     // If no active connections, schedule disconnect after delay
     if (this.activeConnections === 0) {
       this.reconnectTimer = setTimeout(() => {
         if (this.activeConnections === 0) {
-          console.log('🔌 Disconnecting WebSocket due to inactivity');
           this.disconnect();
         }
-      }, 30000); // 30 second delay before disconnect
+      }, 30000);
     }
   }
 
