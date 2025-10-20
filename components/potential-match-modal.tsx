@@ -268,10 +268,10 @@ export function PotentialMatchModal({
               ) : (
                 <>
                   <Image source={{ uri: potentialMatch.photo }} style={styles.profilePhoto} />
-                  <Text style={styles.userName}>{potentialMatch.name}</Text>
-                  <View style={styles.unlockSection}>
+                  {potentialMatch.waitingForMatchResponse?null:<View style={styles.unlockSection}>
                     <Text style={styles.unlockText}>Please like the profile of this user to unlock final match</Text>
-                  </View>
+                  </View>}
+                  
                 </>
               )}
             </View>
@@ -303,14 +303,14 @@ export function PotentialMatchModal({
                     style={styles.likeButton} 
                     onPress={handleLikeOpinion}
                   >
-                    <Text style={styles.likeButtonText}>View Their Opinions</Text>
+                    <Text style={styles.likeButtonText}> <Ionicons name="heart" size={20} color="white" /> Like Opinion</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity 
                     style={styles.likeButton} 
                     onPress={handleLikeProfile}
                   >
-                    <Text style={styles.likeButtonText}>Like Their Profile</Text>
+                    <Text style={styles.likeButtonText}><Ionicons name="heart" size={20} color="white" /> Like Profile</Text>
                   </TouchableOpacity>
                 )}
                 
@@ -442,13 +442,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: 16,
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
-    textAlign: 'center',
+    marginBottom: 12,
   },
   matchInfo: {
     fontSize: 16,

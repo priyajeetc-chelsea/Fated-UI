@@ -107,13 +107,11 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
                   ]}>
                     <View style={styles.opinionHeader}>
                       <ThemedText style={styles.userName}>{userName}</ThemedText>
-                       {opinion.theme && (
-                      <View style={styles.tagsContainer}>
-                        <View style={styles.tag}>
-                          <Text style={styles.tagText}>{opinion.theme}</Text>
+                      {opinion.theme && (
+                        <View style={styles.themeTag}>
+                          <Text style={styles.themeText}>{opinion.theme}</Text>
                         </View>
-                      </View>
-                    )}
+                      )}
                     </View>
                     
                     {opinion.text.length > 300 ? (
@@ -254,17 +252,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  tag: {
-    backgroundColor: '#FFCF00', // Bumble yellow for consistency
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+   themeTag: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 16,
-    marginRight: 8,
+    marginBottom: 12,
+    maxWidth: '70%',
+    backgroundColor:'#FFCF00',//bumble yellow
+    overflow: 'hidden',
   },
-  tagText: {
+  themeText: {
     color: '#000',
     fontSize: 12,
     fontWeight: '500',
+    flexShrink: 1,
   },
   commentSection: {
     backgroundColor: '#fff',

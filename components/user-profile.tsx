@@ -131,7 +131,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
               }}
             >
               {/* Theme Tag - Always show */}
-              <View style={[styles.themeTag, { backgroundColor: 'rgba(255,204,0,0.2)' }]}>
+              <View style={styles.themeTag}>
                 <ThemedText style={styles.themeText}>{opinion.theme}</ThemedText>
               </View>
 
@@ -217,45 +217,12 @@ const styles = StyleSheet.create({
   userInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
-  userInfoSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 100, // Account for fixed header
-    paddingBottom: 20,
-    paddingHorizontal: 40,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 40,
-    alignItems: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
+
   userPhoto: {
-    width: 60,
-    height: 60,
+    width: 40,
+    height: 40,
     borderRadius: 30,
     borderWidth: 2,
     borderColor: '#fff',
@@ -293,9 +260,10 @@ const styles = StyleSheet.create({
   },
   themeTag: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 20,
+    borderRadius: 16,
+    backgroundColor:'#FFCF00',//bumble yellow
     marginBottom: 10,
     maxWidth: '70%', // Prevent overflow beyond opinion card
     overflow: 'hidden', // Ensure content doesn't overflow
@@ -303,14 +271,14 @@ const styles = StyleSheet.create({
   themeText: {
     color: '#000',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     flexShrink: 1, // Allow text to shrink if needed
   },
   questionText: {
     fontSize: 22,
     lineHeight: 22,
     color: 'black',
-    fontWeight: '600',
+    fontWeight: 'bold',
     fontFamily: 'Times New Roman',
     marginBottom: 10,
   },
@@ -322,7 +290,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     fontSize: 14,
-    color: '#9966CC', // Bumble yellow for consistency
+    color: '#9966CC',
     fontWeight: '600',
     marginTop: 8,
     marginBottom: 16,

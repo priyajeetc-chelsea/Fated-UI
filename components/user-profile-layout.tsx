@@ -123,7 +123,7 @@ export default function UserProfileLayout({
   const renderOpinionCards = () => (
     userData.opinions.map((opinion) => (
       <View key={opinion.id} style={styles.opinionCard}>
-        <View style={[styles.themeTag, { backgroundColor: 'rgba(255,204,0,0.2)' }]}>
+        <View style={styles.themeTag}>
           <ThemedText style={styles.themeText}>{opinion.theme}</ThemedText>
         </View>
         <ThemedText style={styles.questionText}>{opinion.question}</ThemedText>
@@ -152,7 +152,7 @@ export default function UserProfileLayout({
                 style={styles.userPhoto}
                 blurRadius={3}
               />
-              <ThemedText style={[styles.userName, { color: '#333' }]}>
+              <ThemedText style={[styles.userName, { color: '#000' }]}>
                 {userData.firstName}
               </ThemedText>
             </View>
@@ -206,7 +206,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   mainContainer: {
-    flex: 1
+    flex: 1,
+    marginTop: 10,
   },
   containerHeader: {
     flexDirection: 'row',
@@ -220,11 +221,11 @@ const styles = StyleSheet.create({
   userInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   userPhoto: {
-    width: 60,
-    height: 60,
+    width: 40,
+    height: 40,
     borderRadius: 30,
     borderWidth: 2,
     borderColor: '#fff',
@@ -257,24 +258,26 @@ const styles = StyleSheet.create({
   },
   themeTag: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 18,
+    borderRadius: 16,
     marginBottom: 12,
     maxWidth: '70%',
+    backgroundColor:'#FFCF00',//bumble yellow
     overflow: 'hidden',
   },
   themeText: {
-    color: '#333',
+    color: '#000',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     flexShrink: 1,
   },
   questionText: {
-    fontSize: 20,
+    fontSize: 22,
     lineHeight: 22,
     color: 'black',
-    fontWeight: '500',
+    fontWeight: 'bold',
+    fontFamily: 'Times New Roman',
     marginBottom: 10,
   },
   opinionText: {

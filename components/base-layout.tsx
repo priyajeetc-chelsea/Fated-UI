@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   headerBackButton: {
-    marginTop: 18,
+    marginTop: 15,
     marginRight: 15,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 20,
@@ -167,10 +167,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 13,
   },
   stickyHeaderText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '600',
     color: '#000',
   },

@@ -38,14 +38,14 @@ export const Fonts = Platform.select({
     /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
     /** Tempos Headline for questions */
-    headline: 'Times New Roman',
+    headline: 'Roboto',
   },
   default: {
     sans: 'normal',
     serif: 'serif',
     rounded: 'normal',
     mono: 'monospace',
-    headline: 'Times New Roman',
+    headline: 'Roboto',
   },
   web: {
     sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
