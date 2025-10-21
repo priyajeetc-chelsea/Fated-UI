@@ -65,6 +65,23 @@ export default function ChatScreen() {
     }
   }, [messages]);
 
+  // Auto-scroll to bottom when chat screen first loads (to show latest messages)
+  const hasMessages = messages.length > 0;
+  useEffect(() => {
+    if (hasMessages) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }, 300);
+    }
+  }, [hasMessages]); // Trigger only when messages are first loaded
+
+  // Auto-scroll when starting to type (focus on input)
+  const handleInputFocus = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
   // Mark messages as read when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -96,10 +113,20 @@ export default function ChatScreen() {
     const message = inputText.trim();
     setInputText('');
     
+    // Auto-scroll to bottom when sending a message
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+    
     const success = await sendMessage(message);
     if (!success) {
       Alert.alert('Failed to send message', 'Please check your connection and try again.');
     }
+    
+    // Ensure scroll to bottom after message is sent
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 200);
   };
 
   const renderMessage = (message: ChatMessage, index: number) => {
@@ -191,7 +218,7 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{otherUserName}</Text>
-          {!isConnected && <ConnectionIndicator />}
+          {/* {!isConnected && <ConnectionIndicator />} */}
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#9966CC" />
@@ -214,11 +241,10 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{otherUserName}</Text>
-          {(!isConnected || isReconnecting) && <ConnectionIndicator />}
-          {/* Debug info - remove in production */}
+          {/* {(!isConnected || isReconnecting) && <ConnectionIndicator />} */}
           {__DEV__ && (
             <Text style={{ fontSize: 10, color: '#999' }}>
-              {isConnected ? '🟢' : isReconnecting ? '🟡' : '🔴'} {otherUserId}
+              {otherUserId}
             </Text>
           )}
         </View>
@@ -271,6 +297,7 @@ export default function ChatScreen() {
               style={styles.textInput}
               value={inputText}
               onChangeText={setInputText}
+              onFocus={handleInputFocus}
               placeholder="Type a message..."
               placeholderTextColor="#999"
               multiline

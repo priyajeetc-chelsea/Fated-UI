@@ -50,7 +50,7 @@ export function PotentialMatchModal({
 }: PotentialMatchModalProps) {
   const { currentUser } = useUser();
   const [inputText, setInputText] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
   const mainScrollRef = useRef<ScrollView>(null);
 
   // Initialize chat when modal opens and potentialMatch is available
@@ -78,14 +78,33 @@ export function PotentialMatchModal({
     enabled: shouldEnableChat || false,
   });
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (only if user hasn't scrolled up)
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && !isUserScrolledUp) {
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
+        mainScrollRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
-  }, [messages]);
+  }, [messages, isUserScrolledUp]);
+
+  // Auto-scroll to bottom when modal opens and has messages (to show latest messages)
+  const hasMessages = messages.length > 0;
+  useEffect(() => {
+    if (visible && hasMessages) {
+      setIsUserScrolledUp(false); // Reset scroll state when modal opens
+      setTimeout(() => {
+        mainScrollRef.current?.scrollToEnd({ animated: false });
+      }, 300);
+    }
+  }, [visible, hasMessages]);
+
+  // Auto-scroll when starting to type (focus on input) - always scroll to show typing area
+  const handleInputFocus = () => {
+    setIsUserScrolledUp(false); // Reset scroll state when user starts typing
+    setTimeout(() => {
+      mainScrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
 
   // Mark messages as read when modal becomes visible or messages change
   useEffect(() => {
@@ -132,10 +151,21 @@ export function PotentialMatchModal({
     const message = inputText.trim();
     setInputText('');
     
+    // Reset scroll state and auto-scroll when sending a message
+    setIsUserScrolledUp(false);
+    setTimeout(() => {
+      mainScrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+    
     const success = await sendMessage(message);
     if (!success) {
       Alert.alert('Failed to send message', 'Please check your connection and try again.');
     }
+    
+    // Ensure scroll to bottom after message is sent
+    setTimeout(() => {
+      mainScrollRef.current?.scrollToEnd({ animated: true });
+    }, 200);
   };
 
   const renderMessage = (message: ChatMessage, index: number) => {
@@ -242,9 +272,9 @@ export function PotentialMatchModal({
               <Ionicons name="arrow-back" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{potentialMatch.name}</Text>
-            <View style={styles.headerRight}>
+            {/* <View style={styles.headerRight}>
               {shouldEnableChat && (!isConnected || isReconnecting) && <ConnectionIndicator />}
-            </View>
+            </View> */}
           </View>
 
           {/* Single continuous scrollable content */}
@@ -253,6 +283,12 @@ export function PotentialMatchModal({
             style={styles.content} 
             showsVerticalScrollIndicator={false} 
             contentContainerStyle={styles.scrollContent}
+            onScroll={(event) => {
+              const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+              const isAtBottom = contentOffset.y >= (contentSize.height - layoutMeasurement.height - 50);
+              setIsUserScrolledUp(!isAtBottom);
+            }}
+            scrollEventThrottle={100}
           >
             {/* User Info */}
             <View style={styles.userSection}>
@@ -358,6 +394,7 @@ export function PotentialMatchModal({
                   style={styles.textInput}
                   value={inputText}
                   onChangeText={setInputText}
+                  onFocus={handleInputFocus}
                   placeholder="Type a message..."
                   placeholderTextColor="#999"
                   multiline

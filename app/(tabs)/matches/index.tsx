@@ -344,7 +344,7 @@ export default function MatchesScreen() {
             <View style={styles.chatMessageContainer}>
               <Text style={styles.chatMessage} numberOfLines={1}>
                 {pm.data.lastMessage 
-                  ? pm.data.lastMessage.content 
+                  ? pm.data.lastMessage.content
                   : `"${pm.data.likedOpinion.answer.substring(0, 40)}..."`
                 }
               </Text>
