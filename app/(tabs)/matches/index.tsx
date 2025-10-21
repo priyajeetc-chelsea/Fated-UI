@@ -43,8 +43,8 @@ type SelectedPotentialMatch = {
 
 
 type PotentialMatchDisplay =
-  | ({ type: 'likesYou'; data: PotentialMatchLike })
-  | ({ type: 'mutualLike'; data: PotentialMatchMutual });
+  | ({ type: 'likesYou'; data: PotentialMatchLike & { unreadCount: number; isUnread: boolean; lastMessage?: { id: number; content: string } } })
+  | ({ type: 'mutualLike'; data: PotentialMatchMutual & { unreadCount: number; isUnread: boolean; lastMessage?: { id: number; content: string } } });
 
 export default function MatchesScreen() {
   const [activeTab, setActiveTab] = useState<'matches' | 'potential'>('matches');
@@ -65,26 +65,65 @@ export default function MatchesScreen() {
     setError(null);
     try {
       const res = await apiService.fetchAllMatches();
-      // Map confirmedMatches
-      const confirmed = (res.model?.confirmedMatches?.matches || []).map((m: any) => ({
-        id: m.userId?.toString() ?? '',
-        name: m.name ?? '',
-        photo: m.photoUrl ?? '',
-        lastMessage: m.lastMessage ? m.lastMessage.content : 'Say hello!',
-        timestamp: '', // timestamp not provided in new API
-        unreadCount: m.unreadCount ?? 0,
-        isUnread: m.isUnread ?? false,
-      }));
+      
+      // Temporary debugging to understand the issue
+      const confirmedMatches = res.model?.confirmedMatches?.matches || [];
+      const potentialMatches = res.model?.potentialMatches?.mutualLike || [];
+      
+      if (confirmedMatches.length > 0 && potentialMatches.length > 0) {
+        const firstConfirmed = confirmedMatches[0];
+        const firstPotential = potentialMatches[0] as any;
+        
+        if (firstConfirmed.lastMessage?.content === firstPotential.lastMessage?.content) {
+          console.warn('⚠️ DUPLICATE MESSAGE DETECTED:', {
+            confirmed: `${firstConfirmed.name} (${firstConfirmed.userId}): "${firstConfirmed.lastMessage?.content}"`,
+            potential: `${firstPotential.firstName} (${firstPotential.userId}): "${firstPotential.lastMessage?.content}"`,
+            messageIds: {
+              confirmed: firstConfirmed.lastMessage?.id,
+              potential: firstPotential.lastMessage?.id
+            }
+          });
+        }
+      }
+      
+      // Map confirmedMatches with duplicate message detection
+      const confirmed = (res.model?.confirmedMatches?.matches || []).map((m: any) => {
+        let displayMessage = m.lastMessage ? m.lastMessage.content : 'Say hello!';
+        
+        return {
+          id: m.userId?.toString() ?? '',
+          name: m.name ?? '',
+          photo: m.photoUrl ?? '',
+          lastMessage: displayMessage,
+          timestamp: '', // timestamp not provided in new API
+          unreadCount: m.unreadCount ?? 0,
+          isUnread: m.isUnread ?? false,
+          originalMessageId: m.lastMessage?.id, // Keep track of original message ID
+        };
+      });
       setMatches(confirmed);
-      // likesYou (locked)
+      // likesYou (locked) - add unread count logic
       const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
         type: 'likesYou',
-        data: pm,
+        data: {
+          ...pm,
+          // Use actual API values for unread count, isUnread, and lastMessage
+          unreadCount: (pm as any).unreadCount ?? 0,
+          isUnread: (pm as any).isUnread ?? false,
+          lastMessage: (pm as any).lastMessage ?? null,
+        },
       }));
-      // mutualLike (show photo)
+      // mutualLike (show photo) - add unread count logic with duplicate detection
       const mutualLike: PotentialMatchDisplay[] = (res.model?.potentialMatches?.mutualLike || []).map((pm) => ({
         type: 'mutualLike',
-        data: pm,
+        data: {
+          ...pm,
+          // Use actual API values for unread count, isUnread, and lastMessage
+          unreadCount: (pm as any).unreadCount ?? 0,
+          isUnread: (pm as any).isUnread ?? false,
+          lastMessage: (pm as any).lastMessage ?? null,
+          originalMessageId: (pm as any).lastMessage?.id, // Keep track of original message ID
+        },
       }));
       setPotentialMatches([...likesYou, ...mutualLike]);
     } catch {
@@ -109,11 +148,23 @@ export default function MatchesScreen() {
       
       const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
         type: 'likesYou',
-        data: pm,
+        data: {
+          ...pm,
+          // Use actual API values for unread count, isUnread, and lastMessage
+          unreadCount: (pm as any).unreadCount ?? 0,
+          isUnread: (pm as any).isUnread ?? false,
+          lastMessage: (pm as any).lastMessage ?? null,
+        },
       }));
       const mutualLike: PotentialMatchDisplay[] = (res.model?.potentialMatches?.mutualLike || []).map((pm) => ({
         type: 'mutualLike',
-        data: pm,
+        data: {
+          ...pm,
+          // Use actual API values for unread count, isUnread, and lastMessage
+          unreadCount: (pm as any).unreadCount ?? 0,
+          isUnread: (pm as any).isUnread ?? false,
+          lastMessage: (pm as any).lastMessage ?? null,
+        },
       }));
       setPotentialMatches([...likesYou, ...mutualLike]);
     } catch (error) {
@@ -124,6 +175,16 @@ export default function MatchesScreen() {
 
   // Calculate total unread count for confirmed matches
   const totalUnreadCount = matches.reduce((total, match) => total + match.unreadCount, 0);
+  
+  // Calculate total unread count for potential matches
+  const potentialUnreadCount = potentialMatches.reduce((total, pm) => {
+    // If chat has started (lastMessage exists), use actual unreadCount
+    if (pm.data.lastMessage) {
+      return total + pm.data.unreadCount;
+    }
+    // If chat has not started, count as 1 (liked opinion indicator)
+    return total + 1;
+  }, 0);
 
   // Initial load
   useEffect(() => {
@@ -282,11 +343,18 @@ export default function MatchesScreen() {
             </View>
             <View style={styles.chatMessageContainer}>
               <Text style={styles.chatMessage} numberOfLines={1}>
-                {pm.data.likedOpinion.answer.substring(0, 40)}...&quot;
+                {pm.data.lastMessage 
+                  ? pm.data.lastMessage.content 
+                  : `"${pm.data.likedOpinion.answer.substring(0, 40)}..."`
+                }
               </Text>
-              {/* <View style={styles.chatBadge}>
-                <Text style={styles.chatBadgeText}>!</Text>
-              </View> */}
+              {(pm.data.lastMessage ? pm.data.unreadCount > 0 : true) && (
+                <View style={styles.chatBadge}>
+                  <Text style={styles.chatBadgeText}>
+                    {pm.data.lastMessage ? pm.data.unreadCount : 1}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -339,11 +407,18 @@ export default function MatchesScreen() {
             </View>
             <View style={styles.chatMessageContainer}>
               <Text style={styles.chatMessage} numberOfLines={1}>
-                {pm.data.likedOpinion.answer.substring(0, 40)}...&quot;
+                {pm.data.lastMessage 
+                  ? pm.data.lastMessage.content 
+                  : `"${pm.data.likedOpinion.answer.substring(0, 40)}..."`
+                }
               </Text>
-              <View style={styles.chatBadge}>
-                <Text style={styles.chatBadgeText}>1</Text>
-              </View>
+              {(pm.data.lastMessage ? pm.data.unreadCount > 0 : true) && (
+                <View style={styles.chatBadge}>
+                  <Text style={styles.chatBadgeText}>
+                    {pm.data.lastMessage ? pm.data.unreadCount : 1}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -379,9 +454,9 @@ export default function MatchesScreen() {
             <Text style={[styles.tabText, activeTab === 'potential' && styles.activeTabText]}>
               Potential Matches
             </Text>
-            {potentialMatches.length > 0 && (
+            {potentialUnreadCount > 0 && (
               <View style={styles.notificationBadge}>
-                <Text style={styles.badgeText}>{potentialMatches.length}</Text>
+                <Text style={styles.badgeText}>{potentialUnreadCount}</Text>
               </View>
             )}
           </View>
