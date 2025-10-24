@@ -95,7 +95,6 @@ export default function ChatScreen() {
   // Force cleanup when component unmounts (navigating away)
   useEffect(() => {
     return () => {
-      console.log('📱 ChatScreen unmounting - forcing WebSocket cleanup');
       webSocketService.forceDisconnectAndReset();
     };
   }, []);

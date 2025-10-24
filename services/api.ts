@@ -1,20 +1,49 @@
+import { authApiService } from '@/services/auth/api';
 import { ApiUser, MatchRequest, MatchResponse, SwipeRequest } from '@/types/api';
 
-// API service with real endpoint and mock fallback
+// API service with real endpoint and authentication support
 class ApiService {
   private readonly API_BASE_URL = 'https://vzr1rz8idc.execute-api.ap-south-1.amazonaws.com/staging';
+
+  /**
+   * Make an authenticated API request
+   */
+  private async makeAuthenticatedRequest(
+    endpoint: string, 
+    options: RequestInit = {}
+  ): Promise<Response> {
+    const url = `${this.API_BASE_URL}${endpoint}`;
+    return authApiService.createAuthenticatedRequest(url, options);
+  }
+
+  /**
+   * Make a public API request (no authentication required)
+   */
+  private async makePublicRequest(
+    endpoint: string, 
+    options: RequestInit = {}
+  ): Promise<Response> {
+    const url = `${this.API_BASE_URL}${endpoint}`;
+    const defaultOptions: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      ...options,
+    };
+    return fetch(url, defaultOptions);
+  }
+
   // Fetch all matches (confirmed and potential)
   async fetchAllMatches(): Promise<import('@/types/api').ApiAllMatchesResponse> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/matches/all`, {
+      const response = await this.makeAuthenticatedRequest('/matches/all', {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const apiResponse = await response.json();
       return apiResponse;
     } catch (error) {
@@ -26,15 +55,15 @@ class ApiService {
   // Fetch opinions for a potential match user
   async fetchUserOpinions(matchUserId: number): Promise<any> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/user/opinions?matchUserId=${matchUserId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await this.makeAuthenticatedRequest(
+        `/user/opinions?matchUserId=${matchUserId}`, 
+        { method: 'GET' }
+      );
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const apiResponse = await response.json();
       return apiResponse;
     } catch (error) {
@@ -46,15 +75,15 @@ class ApiService {
   // Fetch user profile by matchUserId
   async fetchUserProfile(matchUserId: number): Promise<any> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/user/profile?matchUserId=${matchUserId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await this.makeAuthenticatedRequest(
+        `/user/profile?matchUserId=${matchUserId}`, 
+        { method: 'GET' }
+      );
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
       const apiResponse = await response.json();
       return apiResponse;
     } catch (error) {
@@ -208,14 +237,9 @@ class ApiService {
   // API request method with CORS fallback
   private async makeRequest<T>(endpoint: string, data: MatchRequest): Promise<T> {
     try {
-      console.log('🌐 Attempting API request to:', `${this.API_BASE_URL}${endpoint}`);
-      console.log('📤 Request data:', data);
       
-      const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
+      const response = await this.makeAuthenticatedRequest(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
 
@@ -224,7 +248,6 @@ class ApiService {
       }
 
       const apiResponse = await response.json();
-      console.log('✅ Raw API Response received:', apiResponse);
       
       // Check if response has the expected structure
       if (apiResponse.code === 200 && apiResponse.model) {
@@ -263,7 +286,6 @@ class ApiService {
       // Check if it's a CORS error
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         console.warn('🚫 CORS error detected - falling back to mock data');
-        console.warn('💡 API owner needs to enable CORS for:', window.location.origin);
         return this.getMockResponse(data) as T;
       }
       
@@ -287,11 +309,8 @@ class ApiService {
       };
 
       console.log('🔄 Sending swipe action:', swipeData);
-      const response = await fetch(`${this.API_BASE_URL}/swipe`, {
+      const response = await this.makeAuthenticatedRequest('/swipe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(swipeData),
       });
 
@@ -318,11 +337,8 @@ class ApiService {
       };
 
       console.log('🔄 Sending final swipe action:', finalSwipeData);
-      const response = await fetch('https://vzr1rz8idc.execute-api.ap-south-1.amazonaws.com/staging/finalSwipe', {
+      const response = await this.makeAuthenticatedRequest('/finalSwipe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(finalSwipeData),
       });
 
