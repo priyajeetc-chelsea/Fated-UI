@@ -2,13 +2,14 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FontSizes, Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
 import { ThemedButton } from './themed-button';
 import { ThemedInput } from './themed-input';
@@ -87,9 +88,15 @@ export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <ThemedText type="title" style={styles.title}>
-              Welcome to Fated
-            </ThemedText>
+            <View style={styles.brandContainer}>
+              <Ionicons 
+                name="heart" 
+                size={40} 
+                color="#9966CC" 
+                style={styles.logo}
+              />
+              <ThemedText style={styles.brandText}>fated</ThemedText>
+            </View>
             <ThemedText style={styles.subtitle}>
               Enter your phone number to get started
             </ThemedText>
@@ -146,6 +153,21 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: Spacing.xxl,
+  },
+  brandContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  logo: {
+    marginRight: 8,
+  },
+  brandText: {
+    fontSize: 42,
+    fontFamily: 'Tempos-Headline',
+    lineHeight: 44,
+    color: '#9966CC',
+    includeFontPadding: false,
   },
   title: {
     textAlign: 'center',

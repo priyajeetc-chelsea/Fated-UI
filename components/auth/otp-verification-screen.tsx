@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     KeyboardAvoidingView,
@@ -133,9 +134,15 @@ export function OtpVerificationScreen({ onSuccess, onBack }: OtpVerificationScre
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <ThemedText type="title" style={styles.title}>
-              Verify Phone Number
-            </ThemedText>
+            <View style={styles.brandContainer}>
+              <Ionicons 
+                name="heart" 
+                size={32} 
+                color="#9966CC" 
+                style={styles.logo}
+              />
+              <ThemedText style={styles.brandText}>fated</ThemedText>
+            </View>
             <ThemedText style={styles.subtitle}>
               Enter the 6-digit code sent to
             </ThemedText>
@@ -238,6 +245,22 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: Spacing.xxl,
+  },
+  brandContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  logo: {
+    marginRight: 6,
+  },
+  brandText: {
+    fontSize: 36,
+    letterSpacing: -1,
+    fontFamily: 'Tempos-Headline',
+    lineHeight: 38,
+    color: '#9966CC',
+    includeFontPadding: false,
   },
   title: {
     textAlign: 'center',

@@ -4,13 +4,14 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import React from 'react';
 import {
-    Modal,
-    ModalProps,
-    Pressable,
-    StatusBar,
-    StyleSheet,
-    View,
+  Modal,
+  ModalProps,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { OtpVerificationScreen } from './otp-verification-screen';
 import { PhoneInputScreen } from './phone-input-screen';
 
@@ -51,47 +52,61 @@ export function AuthModal({
     <Modal
       visible={isVisible}
       animationType="slide"
-      presentationStyle="pageSheet"
-      statusBarTranslucent
+      presentationStyle="fullScreen"
+      statusBarTranslucent={false}
       {...modalProps}
     >
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-      />
-      
-      <ThemedView style={styles.container}>
-        {/* Close overlay - only show on phone input screen */}
-        {!isOtpSent && (
-          <Pressable
-            style={[styles.overlay, { backgroundColor: overlayColor }]}
-            onPress={handleClose}
-          />
-        )}
-
-        <View style={styles.content}>
-          {isOtpSent ? (
-            <OtpVerificationScreen
-              onSuccess={() => {
-                // Success is handled by the useEffect above
-              }}
-              onBack={handleBackToPhoneInput}
-            />
-          ) : (
-            <PhoneInputScreen
-              onSuccess={() => {
-                // OTP sent successfully, screen will automatically switch
-              }}
+      <View style={styles.modalWrapper}>
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="#fff"
+          translucent={false}
+          hidden={false}
+        />
+        
+        <SafeAreaView style={styles.safeArea}>
+          <ThemedView style={styles.container}>
+          {/* Close overlay - only show on phone input screen */}
+          {!isOtpSent && (
+            <Pressable
+              style={[styles.overlay, { backgroundColor: overlayColor }]}
+              onPress={handleClose}
             />
           )}
-        </View>
-      </ThemedView>
+
+          <View style={styles.content}>
+            {isOtpSent ? (
+              <OtpVerificationScreen
+                onSuccess={() => {
+                  // Success is handled by the useEffect above
+                }}
+                onBack={handleBackToPhoneInput}
+              />
+            ) : (
+              <PhoneInputScreen
+                onSuccess={() => {
+                  // OTP sent successfully, screen will automatically switch
+                }}
+              />
+            )}
+          </View>
+        </ThemedView>
+      </SafeAreaView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  modalWrapper: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+    position: 'relative',
+  },
   container: {
     flex: 1,
   },

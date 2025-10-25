@@ -4,6 +4,8 @@ import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { WaveText } from './wave-text';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -29,14 +31,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // Show loading screen while checking authentication
   if (isLoading || !hasCheckedAuth) {
     return (
-      <ThemedView style={styles.loadingContainer}>
-        <ThemedText type="title" style={styles.loadingText}>
-          Fated
-        </ThemedText>
-        <ThemedText style={styles.loadingSubtext}>
-          Loading...
-        </ThemedText>
-      </ThemedView>
+      <SafeAreaView style={styles.safeArea}>
+        <ThemedView style={styles.loadingContainer}>
+          <WaveText text="fated" />
+        </ThemedView>
+      </SafeAreaView>
     );
   }
 
@@ -47,37 +46,44 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // If not authenticated, show auth modal over a placeholder
   return (
-    <ThemedView style={styles.container}>
-      {/* Placeholder content - this won't be visible due to modal */}
-      <View style={styles.placeholder}>
-        <ThemedText type="title" style={styles.appTitle}>
-          Welcome to Fated
-        </ThemedText>
-        <ThemedText style={styles.appSubtitle}>
-          Please sign in to continue
-        </ThemedText>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ThemedView style={styles.container}>
+        {/* Placeholder content - this won't be visible due to modal */}
+        <View style={styles.placeholder}>
+          <ThemedText type="title" style={styles.appTitle}>
+            Welcome to Fated
+          </ThemedText>
+          <ThemedText style={styles.appSubtitle}>
+            Please sign in to continue
+          </ThemedText>
+        </View>
 
-      {/* Authentication Modal */}
-      <AuthModal
-        isVisible={showAuthModal}
-        onClose={() => {
-          // Only allow closing if user becomes authenticated
-          // Otherwise, prevent closing to force authentication
-          if (isAuthenticated) {
+        {/* Authentication Modal */}
+        <AuthModal
+          isVisible={showAuthModal}
+          onClose={() => {
+            // Only allow closing if user becomes authenticated
+            // Otherwise, prevent closing to force authentication
+            if (isAuthenticated) {
+              setShowAuthModal(false);
+            }
+          }}
+          onAuthSuccess={() => {
             setShowAuthModal(false);
-          }
-        }}
-        onAuthSuccess={() => {
-          setShowAuthModal(false);
-          // User is now authenticated, the useEffect will handle the state change
-        }}
-      />
-    </ThemedView>
+            // User is now authenticated, the useEffect will handle the state change
+          }}
+        />
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#000',
+    position: 'relative',
+  },
   container: {
     flex: 1,
   },
