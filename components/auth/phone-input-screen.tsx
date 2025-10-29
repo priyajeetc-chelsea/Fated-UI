@@ -160,23 +160,23 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   logo: {
-    marginRight: 8,
+    marginRight: 5,
   },
   brandText: {
     fontSize: 42,
-    fontFamily: 'Tempos-Headline',
+    fontFamily: 'tiempos headline',
     lineHeight: 44,
     color: '#9966CC',
     includeFontPadding: false,
   },
   title: {
     textAlign: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   subtitle: {
     textAlign: 'center',
     fontSize: FontSizes.lg,
-    opacity: 0.7,
+    opacity: 0.9,
   },
   form: {
     width: '100%',
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   disclaimer: {
     textAlign: 'center',
     fontSize: FontSizes.xs,
-    opacity: 0.6,
+    opacity: 0.8,
     lineHeight: 18,
   },
 });

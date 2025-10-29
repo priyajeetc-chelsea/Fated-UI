@@ -1,5 +1,4 @@
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import React from 'react';
@@ -64,7 +63,7 @@ export function AuthModal({
           hidden={false}
         />
         
-        <SafeAreaView style={styles.safeArea}>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
           <ThemedView style={styles.container}>
           {/* Close overlay - only show on phone input screen */}
           {!isOtpSent && (
@@ -100,11 +99,9 @@ export function AuthModal({
 const styles = StyleSheet.create({
   modalWrapper: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
     position: 'relative',
   },
   container: {
@@ -121,6 +118,5 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     zIndex: 2,
-    paddingTop: Spacing.xl,
   },
 });

@@ -3,13 +3,13 @@ import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants/theme
 import { useThemeColor } from '@/hooks/use-theme-color';
 import React from 'react';
 import {
-    ActivityIndicator,
-    StyleSheet,
-    TextStyle,
-    TouchableOpacity,
-    TouchableOpacityProps,
-    View,
-    ViewStyle,
+  ActivityIndicator,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  TouchableOpacityProps,
+  View,
+  ViewStyle,
 } from 'react-native';
 
 export interface ThemedButtonProps extends Omit<TouchableOpacityProps, 'style'> {
@@ -37,7 +37,8 @@ export function ThemedButton({
   disabled,
   ...touchableProps
 }: ThemedButtonProps) {
-  const primaryColor = useThemeColor({}, 'primary');
+  const primaryColor = '#9966CC';
+  // || useThemeColor({}, 'primary');
   const primaryDarkColor = useThemeColor({}, 'primaryDark');
   const textColor = useThemeColor({}, 'text');
   const disabledColor = useThemeColor({}, 'disabled');

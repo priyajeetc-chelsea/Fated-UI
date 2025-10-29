@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PotentialMatch {
   id: string;
@@ -223,31 +223,6 @@ export function PotentialMatchModal({
     );
   };
 
-  const ConnectionIndicator = () => {
-    const getConnectionColor = () => {
-      if (isConnected) return '#4CAF50'; // Green - connected
-      if (isReconnecting) return '#FF9800'; // Orange - reconnecting
-      return '#FF5252'; // Red - disconnected
-    };
-
-    const getConnectionText = () => {
-      if (isConnected) return 'Connected';
-      if (isReconnecting) return 'Reconnecting...';
-      return 'Disconnected';
-    };
-
-    return (
-      <View style={[
-        styles.connectionIndicator,
-        { backgroundColor: getConnectionColor() }
-      ]}>
-        <View style={styles.connectionDot} />
-        <Text style={styles.connectionText}>
-          {getConnectionText()}
-        </Text>
-      </View>
-    );
-  };
 
   if (!potentialMatch) return null;
 
@@ -272,9 +247,6 @@ export function PotentialMatchModal({
               <Ionicons name="arrow-back" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{potentialMatch.name}</Text>
-            {/* <View style={styles.headerRight}>
-              {shouldEnableChat && (!isConnected || isReconnecting) && <ConnectionIndicator />}
-            </View> */}
           </View>
 
           {/* Single continuous scrollable content */}
@@ -481,11 +453,6 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 12,
   },
-  matchInfo: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
   opinionCard: {
     backgroundColor: 'white',
     borderRadius: 16,
@@ -497,15 +464,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-  },
-  opinionHeader: {
-    marginBottom: 16,
-  },
-  opinionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#9966CC',
-    textAlign: 'center',
   },
   opinionText: {
     fontSize: 16,
@@ -589,25 +547,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
-  connectionIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  connectionDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#fff',
-    marginRight: 6,
-  },
-  connectionText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '500',
-  },
   loadMoreIndicator: {
     alignItems: 'center',
     paddingVertical: 16,
@@ -616,6 +555,8 @@ const styles = StyleSheet.create({
   // Regular message styles (copied from chat screen)
   messageContainer: {
     marginVertical: 2,
+    paddingHorizontal: 16,
+
   },
   messageSpacing: {
     marginTop: 16,
@@ -724,18 +665,22 @@ const styles = StyleSheet.create({
   },
  unlockSection: {
     alignItems: 'center',
-    height: 60,
+    height: 70,
     backgroundColor: '#f5f0ff',
     borderRadius: 12,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
   },
   unlockText: {
     flex: 1,
     fontSize: 14,
     textAlign: 'center',
+    fontWeight: '500',
     color: '#9966CC',
-    flexWrap: 'wrap',
   }
-
 });

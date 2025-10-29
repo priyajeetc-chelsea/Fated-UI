@@ -51,7 +51,7 @@ export default function BaseLayout({
   }, [isScrolling, stickyHeaderOpacity]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ThemedView style={styles.container}>
         {/* Regular Header - always visible when not scrolling */}
         {!isScrolling && (

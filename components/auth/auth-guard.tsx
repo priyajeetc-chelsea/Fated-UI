@@ -31,7 +31,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // Show loading screen while checking authentication
   if (isLoading || !hasCheckedAuth) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ThemedView style={styles.loadingContainer}>
           <WaveText text="fated" />
         </ThemedView>
@@ -46,7 +46,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // If not authenticated, show auth modal over a placeholder
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ThemedView style={styles.container}>
         {/* Placeholder content - this won't be visible due to modal */}
         <View style={styles.placeholder}>
