@@ -1,18 +1,14 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { FontSizes, Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  StatusBar,
   StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import { ThemedButton } from './themed-button';
-import { ThemedInput } from './themed-input';
 
 interface PhoneInputScreenProps {
   onSuccess?: () => void;
@@ -78,119 +74,130 @@ export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      <View style={styles.content}>
+        {/* Phone Icon and Label */}
+        <View style={styles.headerSection}>
+          <Ionicons name="phone-portrait" size={36} color="#000000" style={styles.phoneIcon} />
+          <Text style={styles.label}>What&apos;s your phone number?</Text>
+        </View>
+
+        {/* Phone Input */}
+        <TextInput
+          style={[
+            styles.phoneInput,
+            (phoneError || error) && styles.phoneInputError
+          ]}
+          placeholder="Enter your phone number"
+          placeholderTextColor="#999999"
+          value={phoneNumber}
+          onChangeText={handlePhoneChange}
+          keyboardType="phone-pad"
+          maxLength={10}
+          autoFocus
+        />
+
+        {/* Error Message */}
+        {(phoneError || error) && (
+          <Text style={styles.errorText}>{phoneError || error}</Text>
+        )}
+
+        {/* Send OTP Button */}
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            (!phoneNumber.trim() || isLoading) && styles.sendButtonDisabled
+          ]}
+          onPress={handleSendOtp}
+          disabled={!phoneNumber.trim() || isLoading}
         >
-          <View style={styles.header}>
-            <View style={styles.brandContainer}>
-              <Ionicons 
-                name="heart" 
-                size={40} 
-                color="#9966CC" 
-                style={styles.logo}
-              />
-              <ThemedText style={styles.brandText}>fated</ThemedText>
-            </View>
-            <ThemedText style={styles.subtitle}>
-              Enter your phone number to get started
-            </ThemedText>
-          </View>
+          <Text style={[
+            styles.sendButtonText,
+            (!phoneNumber.trim() || isLoading) && styles.sendButtonTextDisabled
+          ]}>
+            {isLoading ? 'Sending...' : 'Send OTP'}
+          </Text>
+        </TouchableOpacity>
 
-          <View style={styles.form}>
-            <ThemedInput
-              label="Phone Number"
-              placeholder="Enter your phone number"
-              value={phoneNumber}
-              onChangeText={handlePhoneChange}
-              error={phoneError || error}
-              keyboardType="phone-pad"
-              maxLength={12} // Including spaces: XXX XXX XXXX
-              autoFocus
-              size="large"
-            />
-
-            <ThemedButton
-              title="Send OTP"
-              onPress={handleSendOtp}
-              isLoading={isLoading}
-              disabled={!phoneNumber.trim() || isLoading}
-              fullWidth
-              size="large"
-              variant="primary"
-              buttonStyle={styles.sendButton}
-            />
-
-            <ThemedText style={styles.disclaimer}>
-              By continuing, you agree to receive SMS messages from Fated. 
-              Message and data rates may apply.
-            </ThemedText>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </ThemedView>
+        {/* Description */}
+        <Text style={styles.description}>
+          By continuing, you agree to receive SMS messages from Fated. 
+          Message and data rates may apply.
+        </Text>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  keyboardAvoid: {
+  content: {
     flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 120,
   },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xl,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: Spacing.xxl,
-  },
-  brandContainer: {
+  headerSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: 40,
   },
-  logo: {
-    marginRight: 5,
+  phoneIcon: {
+    marginRight: 12,
   },
-  brandText: {
-    fontSize: 42,
-    fontFamily: 'tiempos headline',
-    lineHeight: 44,
-    color: '#9966CC',
-    includeFontPadding: false,
+  label: {
+    fontSize: 30,
+    fontFamily: 'Times New Roman',
+    fontWeight: 'bold',
+    color: '#000000',
   },
-  title: {
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
+  phoneInput: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#CCCCCC',
+    paddingVertical: 12,
+    fontSize: 18,
+    fontFamily: 'Times New Roman',
+    color: '#000000',
+    marginBottom: 8,
   },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: FontSizes.lg,
-    opacity: 0.9,
+  phoneInputError: {
+    borderBottomColor: '#FF0000',
   },
-  form: {
-    width: '100%',
-    maxWidth: 400,
-    alignSelf: 'center',
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Times New Roman',
+    color: '#FF0000',
+    marginBottom: 20,
   },
   sendButton: {
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
+    backgroundColor: '#000000',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 32,
+    marginBottom: 24,
   },
-  disclaimer: {
+  sendButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+  },
+  sendButtonText: {
+    fontSize: 16,
+    fontFamily: 'Times New Roman',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  sendButtonTextDisabled: {
+    color: '#999999',
+  },
+  description: {
+    fontSize: 14,
+    fontFamily: 'Times New Roman',
+    color: '#666666',
     textAlign: 'center',
-    fontSize: FontSizes.xs,
-    opacity: 0.8,
-    lineHeight: 18,
+    lineHeight: 20,
   },
 });

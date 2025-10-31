@@ -1,20 +1,15 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BorderRadius, FontSizes, FontWeights, Spacing } from '@/constants/theme';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    View,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { ThemedButton } from './themed-button';
 
 interface OtpVerificationScreenProps {
   onSuccess?: () => void;
@@ -36,13 +31,6 @@ export function OtpVerificationScreen({ onSuccess, onBack }: OtpVerificationScre
   } = useAuth();
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
-
-  // Colors for OTP inputs
-  const inputBackgroundColor = useThemeColor({}, 'inputBackground');
-  const inputBorderColor = useThemeColor({}, 'inputBorder');
-  const inputBorderFocusColor = useThemeColor({}, 'inputBorderFocus');
-  const textColor = useThemeColor({}, 'text');
-  const errorColor = useThemeColor({}, 'error');
 
   // Countdown timer for resend OTP
   useEffect(() => {
@@ -124,209 +112,233 @@ export function OtpVerificationScreen({ onSuccess, onBack }: OtpVerificationScre
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      <View style={styles.content}>
+        {/* Header */}
+        <View style={styles.headerSection}>
+          <Ionicons name="shield-checkmark" size={28} color="#000000" style={styles.shieldIcon} />
+          <Text style={styles.title}>Enter verification code</Text>
+        </View>
+
+        {/* Subtitle and phone number */}
+        <View style={styles.subtitleSection}>
+          <Text style={styles.subtitle}>
+            Enter the 6-digit code sent to
+          </Text>
+          <Text style={styles.phoneNumber}>
+            {maskPhoneNumber(phoneNumber)}
+          </Text>
+        </View>
+
+        {/* OTP Input */}
+        <View style={styles.otpContainer}>
+          <View style={styles.otpInputsRow}>
+            {otp.map((digit, index) => (
+              <TextInput
+                key={index}
+                ref={(ref) => {
+                  inputRefs.current[index] = ref;
+                }}
+                style={[
+                  styles.otpInput,
+                  digit && styles.otpInputFilled,
+                  error && styles.otpInputError,
+                ]}
+                value={digit}
+                onChangeText={(text) => handleOtpChange(text, index)}
+                onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
+                keyboardType="number-pad"
+                maxLength={1}
+                textAlign="center"
+                selectTextOnFocus
+                autoFocus={index === 0}
+              />
+            ))}
+          </View>
+
+          {error && (
+            <Text style={styles.errorText}>
+              {error}
+            </Text>
+          )}
+        </View>
+
+        {/* Verify Button */}
+        <TouchableOpacity
+          style={[
+            styles.verifyButton,
+            (otp.some(digit => !digit) || isLoading) && styles.verifyButtonDisabled
+          ]}
+          onPress={() => handleVerifyOtp()}
+          disabled={otp.some(digit => !digit) || isLoading}
         >
-          <View style={styles.header}>
-            <View style={styles.brandContainer}>
-              <Ionicons 
-                name="heart" 
-                size={32} 
-                color="#9966CC" 
-                style={styles.logo}
-              />
-              <ThemedText style={styles.brandText}>fated</ThemedText>
-            </View>
-            <ThemedText style={styles.subtitle}>
-              Enter the 6-digit code sent to
-            </ThemedText>
-            <ThemedText style={styles.phoneNumber}>
-              {maskPhoneNumber(phoneNumber)}
-            </ThemedText>
-          </View>
+          <Text style={[
+            styles.verifyButtonText,
+            (otp.some(digit => !digit) || isLoading) && styles.verifyButtonTextDisabled
+          ]}>
+            {isLoading ? 'Verifying...' : 'Verify & Continue'}
+          </Text>
+        </TouchableOpacity>
 
-          <View style={styles.otpContainer}>
-            <View style={styles.otpInputsRow}>
-              {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={(ref) => {
-                    inputRefs.current[index] = ref;
-                  }}
-                  style={[
-                    styles.otpInput,
-                    {
-                      backgroundColor: inputBackgroundColor,
-                      borderColor: digit ? inputBorderFocusColor : inputBorderColor,
-                      color: textColor,
-                    },
-                    error && styles.otpInputError,
-                  ]}
-                  value={digit}
-                  onChangeText={(text) => handleOtpChange(text, index)}
-                  onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  textAlign="center"
-                  selectTextOnFocus
-                  autoFocus={index === 0}
-                />
-              ))}
-            </View>
+        {/* Resend Section */}
+        <View style={styles.resendContainer}>
+          {canResend ? (
+            <Pressable onPress={handleResendOtp} disabled={isLoading}>
+              <Text style={styles.resendText}>
+                Didn&apos;t receive code? <Text style={styles.resendLink}>Resend OTP</Text>
+              </Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.countdownText}>
+              Resend OTP in {countdown}s
+            </Text>
+          )}
+        </View>
 
-            {error && (
-              <ThemedText style={[styles.errorText, { color: errorColor }]}>
-                {error}
-              </ThemedText>
-            )}
-          </View>
-
-          <View style={styles.actions}>
-            <ThemedButton
-              title="Verify & Continue"
-              onPress={() => handleVerifyOtp()}
-              isLoading={isLoading}
-              disabled={otp.some(digit => !digit) || isLoading}
-              fullWidth
-              size="large"
-              variant="primary"
-              buttonStyle={styles.verifyButton}
-            />
-
-            <View style={styles.resendContainer}>
-              {canResend ? (
-                <Pressable onPress={handleResendOtp} disabled={isLoading}>
-                  <ThemedText style={styles.resendText}>
-                    Didn&apos;t receive code? <ThemedText type="link">Resend OTP</ThemedText>
-                  </ThemedText>
-                </Pressable>
-              ) : (
-                <ThemedText style={styles.countdownText}>
-                  Resend OTP in {countdown}s
-                </ThemedText>
-              )}
-            </View>
-
-            {onBack && (
-              <ThemedButton
-                title="Change Phone Number"
-                onPress={onBack}
-                variant="ghost"
-                size="medium"
-                buttonStyle={styles.backButton}
-              />
-            )}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </ThemedView>
+        {/* Back Button */}
+        {onBack && (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={onBack}
+          >
+            <Text style={styles.backButtonText}>Change Phone Number</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  keyboardAvoid: {
+  content: {
     flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 80,
+    paddingBottom: 40,
   },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xl,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: Spacing.xxl,
-  },
-  brandContainer: {
+  headerSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.lg,
+    marginBottom: 30,
   },
-  logo: {
-    marginRight: 6,
-  },
-  brandText: {
-    fontSize: 36,
-    letterSpacing: -1,
-    fontFamily: 'Tempos-Headline',
-    lineHeight: 38,
-    color: '#9966CC',
-    includeFontPadding: false,
+  shieldIcon: {
+    marginRight: 12,
   },
   title: {
-    textAlign: 'center',
-    marginBottom: Spacing.md,
+    fontSize: 30,
+    fontFamily: 'Times New Roman',
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  subtitleSection: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
   subtitle: {
+    fontSize: 16,
+    fontFamily: 'Times New Roman',
+    color: '#666666',
     textAlign: 'center',
-    fontSize: FontSizes.lg,
-    opacity: 0.7,
-    marginBottom: Spacing.xs,
+    marginBottom: 8,
   },
   phoneNumber: {
+    fontSize: 18,
+    fontFamily: 'Times New Roman',
+    fontWeight: 'bold',
+    color: '#000000',
     textAlign: 'center',
-    fontSize: FontSizes.lg,
-    fontWeight: FontWeights.semibold,
   },
   otpContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    marginBottom: 40,
   },
   otpInputsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     maxWidth: 300,
-    marginBottom: Spacing.md,
+    marginBottom: 16,
   },
   otpInput: {
     width: 45,
     height: 56,
-    borderWidth: 2,
-    borderRadius: BorderRadius.md,
-    fontSize: FontSizes.xl,
-    fontWeight: FontWeights.semibold,
+    borderWidth: 1,
+    borderColor: '#CCCCCC',
+    borderRadius: 8,
+    fontSize: 20,
+    fontFamily: 'Times New Roman',
+    fontWeight: 'bold',
+    color: '#000000',
     textAlign: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  otpInputFilled: {
+    borderColor: '#000000',
+    borderWidth: 2,
   },
   otpInputError: {
+    borderColor: '#FF0000',
     borderWidth: 2,
   },
   errorText: {
-    fontSize: FontSizes.sm,
+    fontSize: 14,
+    fontFamily: 'Times New Roman',
+    color: '#FF0000',
     textAlign: 'center',
-    marginTop: Spacing.xs,
-  },
-  actions: {
-    width: '100%',
-    maxWidth: 400,
-    alignSelf: 'center',
   },
   verifyButton: {
-    marginBottom: Spacing.lg,
+    backgroundColor: '#000000',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  verifyButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+  },
+  verifyButtonText: {
+    fontSize: 16,
+    fontFamily: 'Times New Roman',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  verifyButtonTextDisabled: {
+    color: '#999999',
   },
   resendContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.md,
+    marginBottom: 24,
   },
   resendText: {
-    fontSize: FontSizes.sm,
+    fontSize: 14,
+    fontFamily: 'Times New Roman',
+    color: '#666666',
     textAlign: 'center',
+  },
+  resendLink: {
+    color: '#9966CC',
+    fontWeight: 'bold',
   },
   countdownText: {
-    fontSize: FontSizes.sm,
+    fontSize: 14,
+    fontFamily: 'Times New Roman',
+    color: '#999999',
     textAlign: 'center',
-    opacity: 0.6,
   },
   backButton: {
-    marginTop: Spacing.md,
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontFamily: 'Times New Roman',
+    color: '#666666',
+    textDecorationLine: 'underline',
   },
 });

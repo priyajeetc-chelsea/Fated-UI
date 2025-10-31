@@ -1,9 +1,8 @@
 import { AuthModal } from '@/components/auth';
-import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/auth/AuthContext';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WaveText } from './wave-text';
 
@@ -33,7 +32,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ThemedView style={styles.loadingContainer}>
-          <WaveText text="fated" />
+          <WaveText text="FATED" />
         </ThemedView>
       </SafeAreaView>
     );
@@ -48,16 +47,6 @@ export function AuthGuard({ children }: AuthGuardProps) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ThemedView style={styles.container}>
-        {/* Placeholder content - this won't be visible due to modal */}
-        <View style={styles.placeholder}>
-          <ThemedText type="title" style={styles.appTitle}>
-            Welcome to Fated
-          </ThemedText>
-          <ThemedText style={styles.appSubtitle}>
-            Please sign in to continue
-          </ThemedText>
-        </View>
-
         {/* Authentication Modal */}
         <AuthModal
           isVisible={showAuthModal}
@@ -81,13 +70,15 @@ export function AuthGuard({ children }: AuthGuardProps) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#FFFFFF',
     position: 'relative',
   },
   container: {
+    backgroundColor: '#FFFFFF',
     flex: 1,
   },
   loadingContainer: {
+    backgroundColor: '#FFFFFF',
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

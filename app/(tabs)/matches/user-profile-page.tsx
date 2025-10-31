@@ -10,7 +10,7 @@ import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-nat
 // Fallback user data in case no profile is passed
 const FALLBACK_USER_DATA = {
   userId: 203,
-  firstName: "ccaac",
+  firstName: "dummy user",
   gender: "Female",
   pronouns: "She/Her",
   dob: "1999-02-14",

@@ -16,22 +16,22 @@ export function WaveText({ text, style }: WaveTextProps) {
     const animations = animatedValues.map((animatedValue, index) => {
       return Animated.loop(
         Animated.sequence([
-          Animated.delay(index * 100), // Stagger the animation
+          Animated.delay(index * 50), // Stagger the animation
           Animated.timing(animatedValue, {
             toValue: 1,
-            duration: 600,
+            duration: 300,
             useNativeDriver: true,
           }),
           Animated.timing(animatedValue, {
             toValue: 0,
-            duration: 600,
+            duration: 300,
             useNativeDriver: true,
           }),
         ])
       );
     });
 
-    Animated.stagger(50, animations).start();
+    Animated.stagger(30, animations).start();
 
     return () => {
       animatedValues.forEach(value => value.stopAnimation());
@@ -76,9 +76,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   letter: {
-    fontSize: 35,
-    lineHeight: 40,
-    fontFamily: 'Tempos-Headline',
+    fontSize: 45,
+    lineHeight: 50,
+    fontFamily: 'Times New Roman',
+    fontWeight: 'bold',
     color: '#9966CC',
   },
 });
