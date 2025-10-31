@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,7 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PotentialMatch {
   id: string;
@@ -66,8 +66,6 @@ export function PotentialMatchModal({
 
   const {
     messages,
-    isConnected,
-    isReconnecting,
     isSending,
     isLoadingMore,
     sendMessage,
@@ -230,6 +228,7 @@ export function PotentialMatchModal({
   const isLocked = potentialMatch.type === 'likesYou' && !potentialMatch.waitingForMatchResponse;
 
   return (
+    //If you need to change the deprecated safeAreaView, change modal presentation style
     <Modal
       visible={visible}
       animationType="slide"

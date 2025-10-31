@@ -66,33 +66,29 @@ export default function UserProfilePage() {
   };
 
   const handleCrossPress = async () => {
-    // Call swipe API with false (reject) before going back
-    if (user && user.opinions.length > 0) {
+    if (user) {
       try {
-        // Get the first opinion's takeId for the swipe API call
-        const firstOpinion = user.opinions[0];
-        const takeId = parseInt(firstOpinion.id); // takeId is stored in the id field
+        const swipedId = parseInt(user.id);
         
-        if (takeId && !isNaN(takeId)) {
-          await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
-          console.log('User rejected via swipe API');
-        }
+        await apiService.sendFinalSwipe(swipedId, false);
+        console.log('User crossed via final swipe API');
+
+        // Navigate to matches page and reload data
+        router.push('/matches');
       } catch (error) {
-        console.error('Failed to send reject swipe:', error);
+        console.error('Failed to send final swipe:', error);
+        // Still navigate back on error
+        router.back();
       }
     }
-    
-    router.back();
   };
 
   const handleLikePress = async () => {
     if (user) {
       try {
-        // Use hardcoded swiperId (203) and the user's ID as swipedId
-        const swiperId = 203; // My user ID
         const swipedId = parseInt(user.id);
         
-        await apiService.sendFinalSwipe(swiperId, swipedId, true);
+        await apiService.sendFinalSwipe(swipedId, true);
         console.log('User liked via final swipe API');
         
         // Navigate to matches page and reload data
@@ -274,7 +270,7 @@ export default function UserProfilePage() {
           onPress={handleCrossPress}
           activeOpacity={0.7}
         >
-          <Ionicons name="close" size={32} color="#fff" />
+          <Ionicons name="close" size={38} color="#fff" />
         </TouchableOpacity>
         
         <TouchableOpacity 

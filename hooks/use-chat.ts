@@ -14,7 +14,6 @@ interface UseChatOptions {
 export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialMatch, enabled = true }: UseChatOptions) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [isReconnecting, setIsReconnecting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isSending, setIsSending] = useState(false);
@@ -180,14 +179,11 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
 
     try {
       if (!webSocketService.isConnected()) {
-        setIsReconnecting(true);
         await webSocketService.addConnectionReference(currentUserId);
         setIsConnected(true);
-        setIsReconnecting(false);
       }
     } catch {
       setIsConnected(false);
-      setIsReconnecting(true);
       
       // Retry connection after 2 seconds
       if (connectionRetryRef.current) {
@@ -357,7 +353,6 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
 
     const handleConnectionChange = (connected: boolean) => {
       setIsConnected(connected);
-      setIsReconnecting(!connected && enabled);
     };
 
     webSocketService.addConnectionListener(handleConnectionChange);
@@ -372,7 +367,6 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
         connectionRetryRef.current = null;
       }
       webSocketService.forceDisconnectAndReset();
-      setIsReconnecting(false);
       setIsConnected(false);
     };
   }, [enabled, currentUserId, otherUserId, ensureConnection]);
@@ -451,7 +445,6 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
     } else {
       setMessages([]);
       setIsLoading(false);
-      setIsReconnecting(false);
     }
   }, [enabled, otherUserId, loadChatHistory, markMessagesAsRead]);
 
@@ -480,7 +473,6 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
   return {
     messages,
     isConnected,
-    isReconnecting,
     isLoading,
     hasMoreMessages,
     isSending,

@@ -6,17 +6,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -39,7 +39,6 @@ export default function ChatScreen() {
   const {
     messages,
     isConnected,
-    isReconnecting,
     isLoading,
     hasMoreMessages,
     isSending,
@@ -183,32 +182,6 @@ export default function ChatScreen() {
     );
   };
 
-  const ConnectionIndicator = () => {
-    const getConnectionColor = () => {
-      if (isConnected) return '#4CAF50'; // Green - connected
-      if (isReconnecting) return '#FF9800'; // Orange - reconnecting
-      return '#FF5252'; // Red - disconnected
-    };
-
-    const getConnectionText = () => {
-      if (isConnected) return 'Connected';
-      if (isReconnecting) return 'Reconnecting...';
-      return 'Disconnected';
-    };
-
-    return (
-      <View style={[
-        styles.connectionIndicator,
-        { backgroundColor: getConnectionColor() }
-      ]}>
-        <View style={styles.connectionDot} />
-        <Text style={styles.connectionText}>
-          {getConnectionText()}
-        </Text>
-      </View>
-    );
-  };
-
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -217,7 +190,6 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{otherUserName}</Text>
-          {/* {!isConnected && <ConnectionIndicator />} */}
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#9966CC" />
@@ -240,7 +212,6 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{otherUserName}</Text>
-          {/* {(!isConnected || isReconnecting) && <ConnectionIndicator />} */}
           {__DEV__ && (
             <Text style={{ fontSize: 10, color: '#999' }}>
               {otherUserId}
@@ -301,15 +272,15 @@ export default function ChatScreen() {
               placeholderTextColor="#999"
               multiline
               maxLength={1000}
-              editable={isConnected && !isReconnecting}
+              editable={isConnected}
             />
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                (!inputText.trim() || isSending || !isConnected || isReconnecting) && styles.sendButtonDisabled
+                (!inputText.trim() || isSending || !isConnected) && styles.sendButtonDisabled
               ]}
               onPress={handleSendMessage}
-              disabled={!inputText.trim() || isSending || !isConnected || isReconnecting}
+              disabled={!inputText.trim() || isSending || !isConnected}
             >
               {isSending ? (
                 <ActivityIndicator size="small" color="#fff" />

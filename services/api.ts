@@ -328,10 +328,9 @@ class ApiService {
   }
 
   // Send final swipe action (for like/cross buttons in profile page)
-  async sendFinalSwipe(swiperId: number, swipedId: number, swipeRight: boolean): Promise<any> {
+  async sendFinalSwipe(swipedId: number, swipeRight: boolean): Promise<any> {
     try {
       const finalSwipeData = {
-        swiperId,
         swipedId,
         swipeRight
       };
