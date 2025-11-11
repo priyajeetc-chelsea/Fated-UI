@@ -1,5 +1,6 @@
 import { authApiService } from '@/services/auth/api';
 import { ApiUser, MatchRequest, MatchResponse, SwipeRequest } from '@/types/api';
+import { PhotoSubmissionData, PhotoUploadUrlResponse } from '@/types/onboarding';
 
 // API service with real endpoint and authentication support
 class ApiService {
@@ -251,13 +252,25 @@ class ApiService {
       
       // Check if response has the expected structure
       if (apiResponse.code === 200 && apiResponse.model) {
+        // Check if user is in onboarding state
+        if (apiResponse.model.onboardingStep && apiResponse.model.onboardingStep.step < 5) {
+          console.log('🚧 User in onboarding state:', apiResponse.model.onboardingStep);
+          const onboardingResponse: MatchResponse = {
+            tags: { all: [] },
+            matches: null,
+            hasMore: false,
+            onboardingStep: apiResponse.model.onboardingStep
+          };
+          return onboardingResponse as T;
+        }
+        
         // Convert the actual API response to our expected format
         const convertedResponse: MatchResponse = {
           tags: {
-            all: apiResponse.model.tags.all
+            all: apiResponse.model.tags?.all || []
           },
-          trendingTags: apiResponse.model.tags.trendingTags || [],
-          matches: apiResponse.model.matches.map((match: any) => ({
+          trendingTags: apiResponse.model.tags?.trendingTags || [],
+          matches: apiResponse.model.matches ? apiResponse.model.matches.map((match: any) => ({
             userId: match.userId,
             firstName: match.firstName,
             age: 25, // Default age since not provided in API
@@ -267,12 +280,13 @@ class ApiService {
               question: opinion.question,
               answer: opinion.answer,
               tag: {
-                tagId: this.getTagIdFromName(opinion.tag, apiResponse.model.tags.all),
+                tagId: this.getTagIdFromName(opinion.tag, apiResponse.model.tags?.all || []),
                 tagValue: opinion.tag
               }
             }))
-          })),
-          hasMore: apiResponse.model.hasMore
+          })) : [],
+          hasMore: apiResponse.model.hasMore || false,
+          onboardingStep: apiResponse.model.onboardingStep
         };
         
         console.log('🔄 Converted API Response:', convertedResponse);
@@ -358,6 +372,19 @@ class ApiService {
   async fetchMatches(request: MatchRequest): Promise<MatchResponse> {
     try {
       const response = await this.makeRequest<MatchResponse>('/home', request);
+      
+      // Check if user is in onboarding state
+      if (response.onboardingStep && response.onboardingStep.step < 5) {
+        console.log('🚧 User is in onboarding state, step:', response.onboardingStep.step);
+        // Return empty response to indicate onboarding is needed
+        return {
+          tags: { all: [] },
+          matches: [],
+          hasMore: false,
+          onboardingStep: response.onboardingStep
+        };
+      }
+      
       return response;
     } catch (error) {
       console.error('💥 Failed to fetch matches:', error);
@@ -369,6 +396,11 @@ class ApiService {
 
   // Convert API response to app format
   convertToAppUsers(matches: MatchResponse['matches']): ApiUser[] {
+    // Handle null matches (during onboarding)
+    if (!matches || matches.length === 0) {
+      return [];
+    }
+    
     return matches.map(match => ({
       id: match.userId.toString(),
       name: match.firstName,
@@ -396,6 +428,162 @@ class ApiService {
       age_max: 30,
       limit: 20
     };
+  }
+
+  // Onboarding API methods
+  async submitBasicDetails(basicData: any): Promise<any> {
+    try {
+      console.log('📝 Submitting basic details:', basicData);
+      const response = await this.makeAuthenticatedRequest('/onboarding/basic', {
+        method: 'POST',
+        body: JSON.stringify(basicData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Basic details submitted successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to submit basic details:', error);
+      throw error;
+    }
+  }
+
+  async submitLifestyleDetails(lifestyleData: any): Promise<import('@/types/onboarding').LifestyleResponse> {
+    try {
+      console.log('🏠 Submitting lifestyle details:', lifestyleData);
+      const response = await this.makeAuthenticatedRequest('/onboarding/lifestyle', {
+        method: 'POST',
+        body: JSON.stringify(lifestyleData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Lifestyle details submitted successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to submit lifestyle details:', error);
+      throw error;
+    }
+  }
+
+  async submitTakes(takesData: import('@/types/onboarding').NewTakesFormData): Promise<any> {
+    try {
+      console.log('💭 Submitting takes/opinions:', takesData);
+      const response = await this.makeAuthenticatedRequest('/onboarding/takes', {
+        method: 'POST',
+        body: JSON.stringify(takesData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Takes submitted successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to submit takes:', error);
+      throw error;
+    }
+  }
+
+  // Get pre-signed upload URLs for photos
+  async getPhotoUploadUrls(): Promise<PhotoUploadUrlResponse> {
+    try {
+      console.log('📸 Getting photo upload URLs');
+      const response = await this.makeAuthenticatedRequest('/onboarding/photoUploadUrl', {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Photo upload URLs received');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to get photo upload URLs:', error);
+      throw error;
+    }
+  }
+
+  // Upload image to S3 using pre-signed URL
+  async uploadImageToS3(uploadUrl: string, imageUri: string, contentType: string): Promise<void> {
+    try {
+      console.log('📸 Uploading image to S3');
+      
+      // For React Native, we need to read the image as blob
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType,
+        },
+        body: blob,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`HTTP error! status: ${uploadResponse.status}`);
+      }
+
+      console.log('✅ Image uploaded to S3 successfully');
+    } catch (error) {
+      console.error('❌ Failed to upload image to S3:', error);
+      throw error;
+    }
+  }
+
+  // Submit uploaded photo URLs
+  async submitPhotos(photoSubmissionData: PhotoSubmissionData): Promise<any> {
+    try {
+      console.log('📸 Submitting photo URLs:', photoSubmissionData);
+      const response = await this.makeAuthenticatedRequest('/onboarding/photos', {
+        method: 'POST',
+        body: JSON.stringify(photoSubmissionData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Photos submitted successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to submit photos:', error);
+      throw error;
+    }
+  }
+
+  async getOnboardingStatus(): Promise<any> {
+    try {
+      console.log('📊 Fetching onboarding status');
+      const response = await this.makeAuthenticatedRequest('/home', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Onboarding status fetched successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch onboarding status:', error);
+      throw error;
+    }
   }
 }
 

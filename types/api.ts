@@ -104,7 +104,7 @@ export interface MatchResponse {
   tags: {
     all: Tag[];
   };
-  trendingTags: TrendingTag[];
+  trendingTags?: TrendingTag[];
   matches: {
     userId: number;
     firstName: string;
@@ -119,8 +119,12 @@ export interface MatchResponse {
         tagValue: string;
       };
     }[];
-  }[];
+  }[] | null; // Can be null during onboarding
   hasMore: boolean;
+  onboardingStep?: {
+    step: number;
+    description: string;
+  };
 }
 
 // Converted User type for the app

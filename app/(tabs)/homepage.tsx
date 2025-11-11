@@ -28,6 +28,7 @@ export default function HomeScreen() {
 
   // Initial API call
   useEffect(() => {
+    console.log('🏠 Homepage: Starting initial load...');
     const defaultRequest = apiService.getDefaultRequest();
     setCurrentRequest(defaultRequest);
     loadMatches(defaultRequest);
@@ -45,6 +46,40 @@ export default function HomeScreen() {
     
     try {
       const response = await apiService.fetchMatches(request);
+      
+      // Check if user needs to complete onboarding
+      if (response.onboardingStep && response.onboardingStep.step < 5) {
+        console.log('🚧 Homepage: User needs to complete onboarding, redirecting to step:', response.onboardingStep.step);
+        // Import router dynamically to avoid circular dependency issues
+        const { router } = await import('expo-router');
+        
+        switch (response.onboardingStep.step) {
+          case 1:
+            router.replace('/onboarding/basic');
+            break;
+          case 2:
+            router.replace('/onboarding/lifestyle');
+            break;
+          case 3:
+            router.replace('/onboarding/takes');
+            break;
+          case 4:
+            router.replace('/onboarding/photos');
+            break;
+        }
+        return;
+      }
+
+      // If matches are null or empty and no onboarding needed, something's wrong
+      if (!response.matches || response.matches.length === 0) {
+        console.log('⚠️ No matches available and onboarding complete - this might be an API issue');
+        setUsers([]);
+        if (!appendToExisting) {
+          setTags(response.tags?.all || []);
+        }
+        return;
+      }
+      
       const convertedUsers = apiService.convertToAppUsers(response.matches);
       
       if (appendToExisting) {
