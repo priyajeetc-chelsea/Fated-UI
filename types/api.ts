@@ -135,6 +135,21 @@ export interface ApiUser {
   gender: string;
   photo: string; // We'll generate this
   opinions: ApiOpinion[];
+  profileData?: {
+    fname: string;
+    lname: string;
+    sexuality: string;
+    pronouns: string;
+    homeTown: string;
+    currentCity: string;
+    jobDetails: string;
+    college: string;
+    highestEducationLevel: string;
+    religiousBeliefs: string;
+    drinkOrSmoke: string;
+    height: string;
+    photoUrls: string[];
+  };
 }
 
 export interface ApiOpinion {

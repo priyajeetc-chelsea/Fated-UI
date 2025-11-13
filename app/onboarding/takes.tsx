@@ -151,7 +151,7 @@ export default function TakesForm() {
             <Text style={styles.takeNumber}>{getTagName(allTake.tagId)}</Text>
             
             {allTake.topicTakes.map((topicTake, questionIndex) => (
-              <View key={questionIndex} style={{ marginBottom: 16 }}>
+              <View key={questionIndex} style={{ marginBottom: 10 }}>
                 <Text style={styles.questionText}>{getQuestionText(allTake.tagId, topicTake.questionId)}</Text>
                 
                 <ThemedInput
@@ -228,8 +228,9 @@ const styles = StyleSheet.create({
   },
   takeNumber: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#000',
+    marginBottom: 12,
   },
   questionText: {
     fontSize: 16,

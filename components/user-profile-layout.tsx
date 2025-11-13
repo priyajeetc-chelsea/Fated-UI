@@ -7,23 +7,20 @@ interface UserProfileLayoutProps {
   userData: {
     userId: number;
     firstName: string;
+    lname?: string;
+    age?: number;
     gender: string;
+    sexuality?: string;
     pronouns: string;
-    dob: string;
-    city: string;
-    photoUrl: string;
-    profile: {
-      education: string;
-      profession: string;
-      interestedIn: string;
-      location: string;
-      topicsInterested: string[];
-      personalityTrait: string[];
-      dealBreaker: string[];
-      politicalLeaning: string;
-      languages: string[];
-      shortBio: string;
-    };
+    homeTown?: string;
+    currentCity?: string;
+    jobDetails?: string;
+    college?: string;
+    highestEducationLevel?: string;
+    religiousBeliefs?: string;
+    drinkOrSmoke?: string;
+    height?: string;
+    photoUrls?: string[];
     opinions: {
       id: string;
       question: string;
@@ -48,40 +45,29 @@ export default function UserProfileLayout({
 }: UserProfileLayoutProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const renderPhotoCard = () => (
-    <View style={styles.opinionCard}>
+  const renderPhotoCard = (photoUrl: string, index: number) => (
+    <View key={`photo-${index}`} style={styles.opinionCard}>
       <Image 
-        source={{ uri: /*userData.photoUrl ||*/`https://picsum.photos/200/200?random=${userData.userId}` }} 
+        source={{ uri: photoUrl }} 
         style={styles.profilePhoto}
+        resizeMode="cover"
       />
-    </View>
-  );
-
-  const renderBioCard = () => (
-    <View style={styles.opinionCard}>
-      <ThemedText style={styles.questionText}>Bio</ThemedText>
-      <ThemedText style={styles.opinionText}>
-        {userData.profile.shortBio}
-      </ThemedText>
     </View>
   );
 
   const renderDetailsCard = () => (
     <View style={styles.opinionCard}>
-
       <ThemedText style={styles.questionText}>Profile Details</ThemedText>
       
-      <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Education</ThemedText>
-        <ThemedText style={styles.detailValue}>{userData.profile.education}</ThemedText>
-      </View>
-      <View style={styles.separator} />
-      
-      <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Profession</ThemedText>
-        <ThemedText style={styles.detailValue}>{userData.profile.profession}</ThemedText>
-      </View>
-      <View style={styles.separator} />
+      {userData.age && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Age</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.age}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
       
       <View style={styles.detailRow}>
         <ThemedText style={styles.detailLabel}>Gender & Pronouns</ThemedText>
@@ -89,48 +75,134 @@ export default function UserProfileLayout({
       </View>
       <View style={styles.separator} />
       
-      <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Interested In</ThemedText>
-        <ThemedText style={styles.detailValue}>{userData.profile.interestedIn}</ThemedText>
-      </View>
-      <View style={styles.separator} />
+      {userData.sexuality && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Sexuality</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.sexuality}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
       
-      <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Political Leaning</ThemedText>
-        <ThemedText style={styles.detailValue}>{userData.profile.politicalLeaning}</ThemedText>
-      </View>
-      <View style={styles.separator} />
+      {userData.homeTown && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.homeTown}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
       
-      <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Languages</ThemedText>
-        <ThemedText style={styles.detailValue}>{userData.profile.languages.join(', ')}</ThemedText>
-      </View>
-      <View style={styles.separator} />
+      {userData.currentCity && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Current City</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.currentCity}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
       
-      <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Personality Traits</ThemedText>
-        <ThemedText style={styles.detailValue}>{userData.profile.personalityTrait.join(', ')}</ThemedText>
-      </View>
-      <View style={styles.separator} />
+      {userData.jobDetails && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Job</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.jobDetails}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
       
-      <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Deal Breakers</ThemedText>
-        <ThemedText style={styles.detailValue}>{userData.profile.dealBreaker.join(', ')}</ThemedText>
-      </View>
+      {userData.college && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>College</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.college}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
+      
+      {userData.highestEducationLevel && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Education</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.highestEducationLevel}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
+      
+      {userData.religiousBeliefs && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Religious Beliefs</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.religiousBeliefs}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
+      
+      {userData.drinkOrSmoke && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Drink/Smoke</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.drinkOrSmoke}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
+      
+      {userData.height && (
+        <>
+          <View style={styles.detailRow}>
+            <ThemedText style={styles.detailLabel}>Height</ThemedText>
+            <ThemedText style={styles.detailValue}>{userData.height}</ThemedText>
+          </View>
+        </>
+      )}
     </View>
   );
 
-  const renderOpinionCards = () => (
-    userData.opinions.map((opinion) => (
-      <View key={opinion.id} style={styles.opinionCard}>
-        <View style={styles.themeTag}>
-          <ThemedText style={styles.themeText}>{opinion.theme}</ThemedText>
-        </View>
-        <ThemedText style={styles.questionText}>{opinion.question}</ThemedText>
-        <ThemedText style={styles.opinionText}>{opinion.text}</ThemedText>
+  const renderOpinionCard = (opinion: any, index: number) => (
+    <View key={`opinion-${opinion.id}`} style={styles.opinionCard}>
+      <View style={styles.themeTag}>
+        <ThemedText style={styles.themeText}>{opinion.theme}</ThemedText>
       </View>
-    ))
+      <ThemedText style={styles.questionText}>{opinion.question}</ThemedText>
+      <ThemedText style={styles.opinionText}>{opinion.text}</ThemedText>
+    </View>
   );
+
+  // Interleave photos and opinions: photo, opinion, photo, opinion, etc.
+  const renderInterleavedContent = () => {
+    const photoUrls = userData.photoUrls || [];
+    const opinions = userData.opinions || [];
+    const content: React.ReactElement[] = [];
+    
+    // Start with first photo if available
+    if (photoUrls.length > 0) {
+      content.push(renderPhotoCard(photoUrls[0], 0));
+    }
+    
+    // Interleave opinions and photos
+    const maxLength = Math.max(opinions.length, photoUrls.length - 1);
+    for (let i = 0; i < maxLength; i++) {
+      // Add opinion if available
+      if (i < opinions.length) {
+        content.push(renderOpinionCard(opinions[i], i));
+      }
+      
+      // Add next photo if available (starting from index 1)
+      if (i + 1 < photoUrls.length) {
+        content.push(renderPhotoCard(photoUrls[i + 1], i + 1));
+      }
+    }
+    
+    return content;
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -148,12 +220,12 @@ export default function UserProfileLayout({
           <View style={styles.containerHeader}>
             <View style={styles.userInfoRow}>
               <Image 
-                source={{ uri: /*userData.photoUrl ||*/`https://picsum.photos/200/200?random=${userData.userId}` }} 
+                source={{ uri: userData.photoUrls?.[0] || `https://picsum.photos/200/200?random=${userData.userId}` }} 
                 style={styles.userPhoto}
                 blurRadius={3}
               />
               <ThemedText style={[styles.userName, { color: '#000' }]}>
-                {userData.firstName}
+                {userData.firstName} {userData.lname || ''}
               </ThemedText>
             </View>
           </View>
@@ -176,12 +248,11 @@ export default function UserProfileLayout({
         >
           {layoutType === 'full-profile' && (
             <>
-              {renderPhotoCard()}
-              {renderBioCard()}
               {renderDetailsCard()}
+              {renderInterleavedContent()}
             </>
           )}
-          {renderOpinionCards()}
+          {layoutType === 'opinions-only' && userData.opinions.map((opinion, index) => renderOpinionCard(opinion, index))}
         </ScrollView>
       </View>
 

@@ -81,13 +81,14 @@ export default function ThemedInput({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 5,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: '#000',
     marginBottom: 8,
+    fontStyle:'italic'
   },
   required: {
     color: '#FF4444',
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   multilineInput: {
-    minHeight: 100,
+    minHeight: 250,
     paddingTop: 12,
   },
   inputError: {

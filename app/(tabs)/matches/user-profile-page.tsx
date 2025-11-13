@@ -120,18 +120,34 @@ export default function UserProfilePage() {
               
               // Convert API response to ApiUser format
               const convertedUser: ApiUser = {
-                id: profileData.userId.toString(),
-                name: profileData.firstName,
+                id: profileData.userId?.toString() || userBId.toString(),
+                name: `${profileData.fname || ''} ${profileData.lname || ''}`.trim(),
                 age: profileData.age,
                 gender: profileData.gender,
-                photo: profileData.photoUrl || `https://picsum.photos/200/200?random=${profileData.userId}`,
+                photo: profileData.photoUrls?.[0] || `https://picsum.photos/200/200?random=${userBId}`,
                 opinions: profileData.opinions?.map((opinion: any) => ({
                   id: opinion.takeId?.toString() || Math.random().toString(),
                   question: opinion.question || 'Question not available',
-                  text: opinion.answer || opinion.text || 'No answer provided',
-                  theme: opinion.tag?.tagValue || opinion.theme || 'General',
+                  text: opinion.answer || 'No answer provided',
+                  theme: opinion.tag?.name || 'General',
                   liked: false
-                })) || []
+                })) || [],
+                // Store additional data for profile display
+                profileData: {
+                  fname: profileData.fname,
+                  lname: profileData.lname,
+                  sexuality: profileData.sexuality,
+                  pronouns: profileData.pronouns,
+                  homeTown: profileData.homeTown,
+                  currentCity: profileData.currentCity,
+                  jobDetails: profileData.jobDetails,
+                  college: profileData.colllege, // Note: API has typo "colllege"
+                  highestEducationLevel: profileData.highestEducationLevel,
+                  religiousBeliefs: profileData.religiousBeliefs,
+                  drinkOrSmoke: profileData.drinkOrSmoke,
+                  height: profileData.height,
+                  photoUrls: profileData.photoUrls || []
+                }
               };
               
               setUser(convertedUser);
@@ -220,20 +236,6 @@ export default function UserProfilePage() {
     );
   }
 
-  // Extract profile details for the UserProfileLayout
-  const profileDetails = {
-    education: 'B.A. Sociology',
-    profession: 'Content Strategist',
-    interestedIn: 'Male',
-    location: 'Mumbai',
-    topicsInterested: ['Feminism', 'Mental Health'],
-    personalityTrait: ['Empathetic', 'Creative', 'Curious'],
-    dealBreaker: ['Dishonesty'],
-    politicalLeaning: 'Progressive',
-    languages: ['English', 'Hindi', 'Marathi'],
-    shortBio: 'Passionate about storytelling and social causes. I love deep conversations over coffee.'
-  };
-
   return (
     <BaseLayout 
       showBackButton={true}
@@ -243,13 +245,21 @@ export default function UserProfilePage() {
       <UserProfileLayout 
         userData={{
           userId: parseInt(user.id),
-          firstName: user.name,
+          firstName: user.profileData?.fname || user.name.split(' ')[0] || user.name,
+          lname: user.profileData?.lname || user.name.split(' ')[1] || '',
+          age: user.age,
           gender: user.gender,
-          pronouns: 'She/Her',
-          dob: '1999-02-14',
-          city: 'Mumbai',
-          photoUrl: user.photo,
-          profile: profileDetails,
+          sexuality: user.profileData?.sexuality || '',
+          pronouns: user.profileData?.pronouns || '',
+          homeTown: user.profileData?.homeTown || '',
+          currentCity: user.profileData?.currentCity || '',
+          jobDetails: user.profileData?.jobDetails || '',
+          college: user.profileData?.college || '',
+          highestEducationLevel: user.profileData?.highestEducationLevel || '',
+          religiousBeliefs: user.profileData?.religiousBeliefs || '',
+          drinkOrSmoke: user.profileData?.drinkOrSmoke || '',
+          height: user.profileData?.height || '',
+          photoUrls: user.profileData?.photoUrls || [user.photo],
           opinions: user.opinions.map(opinion => ({
             id: opinion.id,
             question: opinion.question,

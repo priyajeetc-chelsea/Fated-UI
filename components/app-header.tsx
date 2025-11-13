@@ -18,7 +18,7 @@ export default function AppHeader() {
           numberOfLines={1}
           allowFontScaling={false}
         >
-          fated
+          Fated
         </ThemedText>
       </View>
     </View>
