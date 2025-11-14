@@ -23,7 +23,7 @@ export const AuthConfig = {
   /**
    * API endpoints
    */
-  API_BASE_URL: 'https://vzr1rz8idc.execute-api.ap-south-1.amazonaws.com/staging',
+  API_BASE_URL: 'https://xfcy5ocgsl.execute-api.ap-south-1.amazonaws.com/staging',
   FIREBASE_API_KEY: 'AIzaSyCuyHSwvzJFoZihnUjjrxfyt6U45ZYAOd4',
 
   /**

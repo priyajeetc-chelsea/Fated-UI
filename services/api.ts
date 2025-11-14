@@ -4,7 +4,7 @@ import { PhotoSubmissionData, PhotoUploadUrlResponse } from '@/types/onboarding'
 
 // API service with real endpoint and authentication support
 class ApiService {
-  private readonly API_BASE_URL = 'https://vzr1rz8idc.execute-api.ap-south-1.amazonaws.com/staging';
+  private readonly API_BASE_URL = 'https://xfcy5ocgsl.execute-api.ap-south-1.amazonaws.com/staging';
 
   /**
    * Make an authenticated API request
@@ -420,12 +420,7 @@ class ApiService {
   // Get default request for initial load  
   getDefaultRequest(): MatchRequest {
     return {
-      userId: 101,
       tagIds: [1, 2, 3], // Default selected tags
-      gender: "Female",
-      intentions: ["date", "bff"],
-      age_min: 21,
-      age_max: 30,
       limit: 20
     };
   }

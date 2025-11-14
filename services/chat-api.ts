@@ -1,3 +1,5 @@
+import { authApiService } from './auth/api';
+
 export interface ChatMessage {
   id: number;
   content: string;
@@ -48,7 +50,7 @@ export interface MatchesResponse {
 }
 
 class ChatApiService {
-  private readonly API_BASE_URL = 'https://vzr1rz8idc.execute-api.ap-south-1.amazonaws.com/staging';
+  private readonly API_BASE_URL = 'https://xfcy5ocgsl.execute-api.ap-south-1.amazonaws.com/staging';
 
   /**
    * Fetch chat history with pagination support
@@ -69,12 +71,12 @@ class ChatApiService {
         lastMessageId: lastMessageId,
       });
 
-      const response = await fetch(`${this.API_BASE_URL}/messages/history?${params}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authApiService.createAuthenticatedRequest(
+        `${this.API_BASE_URL}/messages/history?${params}`,
+        {
+          method: 'GET',
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -97,16 +99,16 @@ class ChatApiService {
    */
   async markMessagesAsRead(senderId: number, lastReadMessageId: number): Promise<void> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/messages/read`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          senderId,
-          lastReadMessageId,
-        }),
-      });
+      const response = await authApiService.createAuthenticatedRequest(
+        `${this.API_BASE_URL}/messages/read`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            senderId,
+            lastReadMessageId,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -124,12 +126,12 @@ class ChatApiService {
    */
   async getAllMatches(): Promise<MatchesResponse> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/matches/all`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authApiService.createAuthenticatedRequest(
+        `${this.API_BASE_URL}/matches/all`,
+        {
+          method: 'GET',
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

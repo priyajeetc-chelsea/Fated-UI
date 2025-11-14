@@ -137,12 +137,16 @@ export interface PickerOption {
   label: string;
   value: string;
 }
+export interface IntPickerOption {
+  label: string;
+  value: number;
+}
 
-export const GENDER_OPTIONS: PickerOption[] = [
-  { label: 'Male', value: 'Male' },
-  { label: 'Female', value: 'Female' },
-  { label: 'Non-binary', value: 'Non-binary' },
-  { label: 'Not Listed', value: 'Not Listed' },
+export const GENDER_OPTIONS: IntPickerOption[] = [
+  { label: 'Male', value: 1 },
+  { label: 'Female', value: 2 },
+  { label: 'Non-binary', value: 3 },
+  { label: 'Not Listed', value: 4 },
 ];
 
 export const SEXUALITY_OPTIONS: PickerOption[] = [
@@ -181,10 +185,10 @@ export const PRONOUNS_OPTIONS: PickerOption[] = [
   { label: 'Not Listed', value: 'Not Listed' },
 ];
 
-export const INTERESTED_IN_OPTIONS: PickerOption[] = [
-  { label: 'Men', value: 'Men' },
-  { label: 'Women', value: 'Women' },
-  { label: 'Non-binary', value: 'Non-binary' },
+export const INTERESTED_IN_OPTIONS: IntPickerOption[] = [
+  { label: 'Men', value: 1 },
+  { label: 'Women', value: 2 },
+  { label: 'Non-binary', value: 3 },
 ];
 
 export const EDUCATION_LEVELS: PickerOption[] = [
@@ -241,63 +245,4 @@ export const HEIGHT_OPTIONS: PickerOption[] = [
   { label: '6\'4"', value: '6\'4"' },
   { label: '6\'5"', value: '6\'5"' },
   { label: '6\'6"', value: '6\'6"' },
-];
-
-export const CITY_OPTIONS: PickerOption[] = [
-  { label: 'Mumbai', value: 'Mumbai' },
-  { label: 'Delhi', value: 'Delhi' },
-  { label: 'Bangalore', value: 'Bangalore' },
-  { label: 'Hyderabad', value: 'Hyderabad' },
-  { label: 'Chennai', value: 'Chennai' },
-  { label: 'Kolkata', value: 'Kolkata' },
-  { label: 'Pune', value: 'Pune' },
-  { label: 'Ahmedabad', value: 'Ahmedabad' },
-  { label: 'Jaipur', value: 'Jaipur' },
-  { label: 'Surat', value: 'Surat' },
-  { label: 'Lucknow', value: 'Lucknow' },
-  { label: 'Kanpur', value: 'Kanpur' },
-  { label: 'Nagpur', value: 'Nagpur' },
-  { label: 'Indore', value: 'Indore' },
-  { label: 'Thane', value: 'Thane' },
-  { label: 'Bhopal', value: 'Bhopal' },
-  { label: 'Visakhapatnam', value: 'Visakhapatnam' },
-  { label: 'Vadodara', value: 'Vadodara' },
-  { label: 'Ghaziabad', value: 'Ghaziabad' },
-  { label: 'Ludhiana', value: 'Ludhiana' },
-  { label: 'Kochi', value: 'Kochi' },
-  { label: 'Agra', value: 'Agra' },
-  { label: 'Nashik', value: 'Nashik' },
-  { label: 'Coimbatore', value: 'Coimbatore' },
-  { label: 'Chandigarh', value: 'Chandigarh' },
-  { label: 'Gurgaon', value: 'Gurgaon' },
-  { label: 'Noida', value: 'Noida' },
-  { label: 'Other', value: 'Other' },
-];
-
-export const JOB_CATEGORIES: PickerOption[] = [
-  { label: 'Technology & Software', value: 'Technology & Software' },
-  { label: 'Healthcare & Medicine', value: 'Healthcare & Medicine' },
-  { label: 'Finance & Banking', value: 'Finance & Banking' },
-  { label: 'Marketing & Advertising', value: 'Marketing & Advertising' },
-  { label: 'Design & Creative', value: 'Design & Creative' },
-  { label: 'Education & Training', value: 'Education & Training' },
-  { label: 'Sales & Business Development', value: 'Sales & Business Development' },
-  { label: 'Engineering', value: 'Engineering' },
-  { label: 'Law & Legal', value: 'Law & Legal' },
-  { label: 'Consulting', value: 'Consulting' },
-  { label: 'Media & Entertainment', value: 'Media & Entertainment' },
-  { label: 'Government & Public Service', value: 'Government & Public Service' },
-  { label: 'Non-profit & Social Work', value: 'Non-profit & Social Work' },
-  { label: 'Research & Development', value: 'Research & Development' },
-  { label: 'Hospitality & Tourism', value: 'Hospitality & Tourism' },
-  { label: 'Retail & E-commerce', value: 'Retail & E-commerce' },
-  { label: 'Real Estate', value: 'Real Estate' },
-  { label: 'Manufacturing', value: 'Manufacturing' },
-  { label: 'Logistics & Supply Chain', value: 'Logistics & Supply Chain' },
-  { label: 'Agriculture', value: 'Agriculture' },
-  { label: 'Sports & Fitness', value: 'Sports & Fitness' },
-  { label: 'Student', value: 'Student' },
-  { label: 'Entrepreneur', value: 'Entrepreneur' },
-  { label: 'Freelancer', value: 'Freelancer' },
-  { label: 'Other', value: 'Other' },
 ];

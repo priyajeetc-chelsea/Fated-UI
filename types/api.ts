@@ -1,11 +1,6 @@
 // API Request Types
 export interface MatchRequest {
-  userId: number;
   tagIds: number[];
-  gender: string;
-  intentions: string[];
-  age_min: number;
-  age_max: number;
   limit: number;
 }
 

@@ -39,7 +39,7 @@ export class WebSocketService {
   private reconnectTimer: any = null;
   private currentUserId: number | null = null;
 
-  private readonly WS_URL = 'wss://n9y3lzni9k.execute-api.ap-south-1.amazonaws.com/staging';
+  private readonly WS_URL = 'wss://05adxe9l4h.execute-api.ap-south-1.amazonaws.com/staging';
 
   connect(userId?: number): Promise<void> {
     return new Promise((resolve, reject) => {
