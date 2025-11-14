@@ -344,8 +344,8 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   questionText: {
-    fontSize: 22,
-    lineHeight: 22,
+    fontSize: 25,
+    lineHeight: 26,
     color: 'black',
     fontWeight: 'bold',
     fontFamily: 'Times New Roman',
