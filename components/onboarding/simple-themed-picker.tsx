@@ -1,4 +1,4 @@
-import { PickerOption } from '@/types/onboarding';
+import { IntPickerOption, PickerOption } from '@/types/onboarding';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Keyboard, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -7,7 +7,7 @@ interface SimpleThemedPickerProps {
   label: string;
   value: string;
   onValueChange: (value: string) => void;
-  options: PickerOption[];
+  options: PickerOption[] | IntPickerOption[];
   placeholder?: string;
   error?: string;
   required?: boolean;
@@ -24,13 +24,13 @@ export default function SimpleThemedPicker({
 }: SimpleThemedPickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleSelect = (optionValue: string) => {
-    onValueChange(optionValue);
+  const handleSelect = (optionValue: string | number) => {
+    onValueChange(String(optionValue));
     setModalVisible(false);
   };
 
   const getDisplayText = () => {
-    const selectedOption = options.find(option => option.value === value);
+    const selectedOption = options.find(option => String(option.value) === value);
     return selectedOption ? selectedOption.label : placeholder;
   };
 
@@ -80,20 +80,20 @@ export default function SimpleThemedPicker({
           <ScrollView style={styles.optionsList}>
             {options.map((option) => (
               <TouchableOpacity
-                key={option.value}
+                key={String(option.value)}
                 style={[
                   styles.option,
-                  value === option.value && styles.selectedOption
+                  value === String(option.value) && styles.selectedOption
                 ]}
                 onPress={() => handleSelect(option.value)}
               >
                 <Text style={[
                   styles.optionText,
-                  value === option.value && styles.selectedOptionText
+                  value === String(option.value) && styles.selectedOptionText
                 ]}>
                   {option.label}
                 </Text>
-                {value === option.value && (
+                {value === String(option.value) && (
                   <Ionicons name="checkmark" size={20} color="#000" />
                 )}
               </TouchableOpacity>

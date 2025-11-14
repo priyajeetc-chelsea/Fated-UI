@@ -1,4 +1,4 @@
-import { PickerOption } from '@/types/onboarding';
+import { IntPickerOption, PickerOption } from '@/types/onboarding';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Keyboard, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -7,7 +7,7 @@ interface ThemedPickerProps {
   label: string;
   value: string;
   onValueChange: (value: string) => void;
-  options: PickerOption[];
+  options: PickerOption[]|IntPickerOption[];
   placeholder?: string;
   error?: string;
   required?: boolean;
@@ -32,20 +32,21 @@ export default function ThemedPicker({
 }: ThemedPickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleSingleSelect = (optionValue: string) => {
-    onValueChange(optionValue);
+  const handleSingleSelect = (optionValue: string | number) => {
+    onValueChange(String(optionValue));
     setModalVisible(false);
   };
 
-  const handleMultiSelect = (optionValue: string) => {
+  const handleMultiSelect = (optionValue: string | number) => {
     if (!onMultiValueChange) return;
     
-    const isSelected = selectedValues.includes(optionValue);
+    const optionValueStr = String(optionValue);
+    const isSelected = selectedValues.includes(optionValueStr);
     const newValues = isSelected
-      ? selectedValues.filter(v => v !== optionValue)
+      ? selectedValues.filter(v => v !== optionValueStr)
       : maxSelections && selectedValues.length >= maxSelections
       ? selectedValues // Don't add if at max limit
-      : [...selectedValues, optionValue];
+      : [...selectedValues, optionValueStr];
     
     onMultiValueChange(newValues);
   };
@@ -54,13 +55,13 @@ export default function ThemedPicker({
     if (multiple) {
       if (selectedValues.length === 0) return placeholder;
       if (selectedValues.length === 1) {
-        const option = options.find(opt => opt.value === selectedValues[0]);
+        const option = options.find(opt => String(opt.value) === selectedValues[0]);
         return option?.label || selectedValues[0];
       }
       return `${selectedValues.length} selected`;
     } else {
       if (!value) return placeholder;
-      const option = options.find(opt => opt.value === value);
+      const option = options.find(opt => String(opt.value) === value);
       return option?.label || value;
     }
   };
@@ -112,27 +113,27 @@ export default function ThemedPicker({
           <ScrollView style={styles.optionsList}>
             {options.map((option) => (
               <TouchableOpacity
-                key={option.value}
+                key={String(option.value)}
                 style={[
                   styles.option,
                   multiple 
-                    ? (selectedValues.includes(option.value) && styles.selectedOption)
-                    : (value === option.value && styles.selectedOption)
+                    ? (selectedValues.includes(String(option.value)) && styles.selectedOption)
+                    : (value === String(option.value) && styles.selectedOption)
                 ]}
                 onPress={() => multiple ? handleMultiSelect(option.value) : handleSingleSelect(option.value)}
               >
                 <Text style={[
                   styles.optionText,
                   multiple
-                    ? (selectedValues.includes(option.value) && styles.selectedOptionText)
-                    : (value === option.value && styles.selectedOptionText)
+                    ? (selectedValues.includes(String(option.value)) && styles.selectedOptionText)
+                    : (value === String(option.value) && styles.selectedOptionText)
                 ]}>
                   {option.label}
                 </Text>
-                {multiple && selectedValues.includes(option.value) && (
+                {multiple && selectedValues.includes(String(option.value)) && (
                   <Ionicons name="checkmark" size={20} color="#000" />
                 )}
-                {!multiple && value === option.value && (
+                {!multiple && value === String(option.value) && (
                   <Ionicons name="checkmark" size={20} color="#000" />
                 )}
               </TouchableOpacity>
