@@ -100,7 +100,7 @@ export default function ThemedPicker({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{label}</Text>
             <TouchableOpacity
-              style={styles.doneButton}
+              style={styles.closeButton}
               onPress={() => {
                 setModalVisible(false);
               }}

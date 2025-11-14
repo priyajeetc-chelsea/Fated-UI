@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 interface ThemedInputProps {
   label: string;
@@ -54,19 +54,7 @@ export default function ThemedInput({
           autoCapitalize={autoCapitalize}
           textAlignVertical={multiline ? 'top' : 'center'}
           maxLength={maxLength}
-          onEndEditing={() => {
-            // Auto-dismiss keyboard when user finishes editing (mobile only)
-            if (!multiline && Platform.OS !== 'web') {
-              Keyboard.dismiss();
-            }
-          }}
           returnKeyType={multiline ? 'default' : 'done'}
-          onSubmitEditing={() => {
-            // Dismiss keyboard when user presses done/return (mobile only)
-            if (Platform.OS !== 'web') {
-              Keyboard.dismiss();
-            }
-          }}
         />
         {showCharacterCount && maxLength && (
           <Text style={styles.characterCounter}>
@@ -84,11 +72,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#000',
     marginBottom: 8,
-    fontStyle:'italic'
   },
   required: {
     color: '#FF4444',
