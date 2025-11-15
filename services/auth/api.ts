@@ -16,12 +16,6 @@ export class AuthApiService {
   // Storage keys
   private readonly BEARER_TOKEN_KEY = 'bearerToken';
   private readonly USER_DATA_KEY = 'userData';
-  private readonly LOGIN_TIMESTAMP_KEY = 'loginTimestamp';
-  private readonly LAST_ACTIVITY_TIMESTAMP_KEY = 'lastActivityTimestamp';
-  
-  // Session configuration
-  private readonly SESSION_TIMEOUT_MS = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
-
 
   /**
    * Send OTP to the provided phone number
@@ -156,8 +150,6 @@ export class AuthApiService {
       console.log('🔐 Storing authentication data...');
       await Promise.all([
         AsyncStorage.setItem(this.BEARER_TOKEN_KEY, bearerToken),
-        AsyncStorage.setItem(this.LOGIN_TIMESTAMP_KEY, timestamp),
-        AsyncStorage.setItem(this.LAST_ACTIVITY_TIMESTAMP_KEY, timestamp),
       ]);
       
       console.log(`✅ Bearer token stored successfully`);
@@ -219,8 +211,6 @@ export class AuthApiService {
       await AsyncStorage.multiRemove([
         this.BEARER_TOKEN_KEY, 
         this.USER_DATA_KEY,
-        this.LOGIN_TIMESTAMP_KEY,
-        this.LAST_ACTIVITY_TIMESTAMP_KEY,
       ]);
     } catch (error) {
       console.error('❌ Failed to clear auth data:', error);
@@ -228,61 +218,6 @@ export class AuthApiService {
     }
   }
 
-  /**
-   * Update last activity timestamp
-   */
-  async updateLastActivity(): Promise<void> {
-    try {
-      const timestamp = Date.now().toString();
-      await AsyncStorage.setItem(this.LAST_ACTIVITY_TIMESTAMP_KEY, timestamp);
-      console.log(`🔄 Last activity updated: ${new Date(parseInt(timestamp)).toLocaleString()}`);
-    } catch (error) {
-      console.error('❌ Failed to update last activity:', error);
-      // Don't throw - this is not critical
-    }
-  }
-
-  /**
-   * Check if authentication has expired (48 hours of inactivity)
-   * Returns true if session is still valid, false if expired
-   * Note: Should only be called when tokens already exist
-   */
-  async checkAuthExpiration(): Promise<boolean> {
-    try {
-      const lastActivityStr = await AsyncStorage.getItem(this.LAST_ACTIVITY_TIMESTAMP_KEY);
-      
-      if (!lastActivityStr) {
-        // No timestamp found - this shouldn't happen if tokens exist
-        // Create one now and consider session valid
-        console.log('⚠️ No activity timestamp found, creating new one');
-        await this.updateLastActivity();
-        return true;
-      }
-
-      const lastActivity = parseInt(lastActivityStr);
-      const now = Date.now();
-      const timeSinceLastActivity = now - lastActivity;
-
-      if (timeSinceLastActivity > this.SESSION_TIMEOUT_MS) {
-        console.log('⏰ Session expired due to 48 hours of inactivity');
-        const hoursSinceActivity = Math.floor(timeSinceLastActivity / (60 * 60 * 1000));
-        console.log(`   Last activity was ${hoursSinceActivity} hours ago`);
-        return false;
-      }
-
-      // Session is still valid, update activity timestamp
-      await this.updateLastActivity();
-      
-      const hoursRemaining = Math.floor((this.SESSION_TIMEOUT_MS - timeSinceLastActivity) / (60 * 60 * 1000));
-      console.log(`✅ Session valid. Expires in ~${hoursRemaining} hours`);
-      
-      return true;
-    } catch (error) {
-      console.error('❌ Failed to check auth expiration:', error);
-      // On error, assume session is valid to avoid logging out unnecessarily
-      return true;
-    }
-  }
 
   /**
    * Create authenticated HTTP interceptor
@@ -310,12 +245,6 @@ export class AuthApiService {
       await this.clearAuthData();
       throw new Error('Authentication expired. Please login again.');
     }
-
-    // Update last activity on successful authenticated requests
-    if (response.ok) {
-      await this.updateLastActivity();
-    }
-
     return response;
   }
 }

@@ -47,33 +47,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authApiService.getUserData(),
       ]);
 
-      // If no tokens exist, user needs to login
-      if (!bearerToken || !userData) {
-        console.log('🔒 No stored credentials found - user needs to login');
+       if (bearerToken && userData) {
+        setState(prev => ({
+          ...prev,
+          bearerToken,
+          user: userData,
+          isAuthenticated: true,
+          isLoading: false,
+        }));
+      } else {
         setState(prev => ({ ...prev, isLoading: false }));
-        return;
       }
-
-      // Tokens exist, now check if the session has expired (48 hours of inactivity)
-      const isSessionValid = await authApiService.checkAuthExpiration();
-      
-      if (!isSessionValid) {
-        // Session expired, clear everything and show login
-        console.log('⏰ Session expired - user needs to login again');
-        await authApiService.clearAuthData();
-        setState(prev => ({ ...prev, isLoading: false }));
-        return;
-      }
-      
-      // Session is valid, restore authenticated state
-      console.log('✅ Valid session found - restoring authentication');
-      setState(prev => ({
-        ...prev,
-        bearerToken,
-        user: userData,
-        isAuthenticated: true,
-        isLoading: false,
-      }));
     } catch (error) {
       console.error('Failed to initialize auth:', error);
       setState(prev => ({ 

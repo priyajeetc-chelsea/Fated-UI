@@ -8,7 +8,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components/auth';
 import { UserProvider } from '@/contexts/UserContext';
 import { AuthProvider } from '@/contexts/auth/AuthContext';
-import { useAppStateActivity } from '@/hooks/use-app-state-activity';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useWebSocketManager } from '@/hooks/use-websocket-manager';
 
@@ -22,9 +21,6 @@ export default function RootLayout() {
   // Initialize WebSocket manager
   useWebSocketManager();
   
-  // Track app state to update last activity timestamp
-  useAppStateActivity();
-
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
       <SafeAreaProvider>
