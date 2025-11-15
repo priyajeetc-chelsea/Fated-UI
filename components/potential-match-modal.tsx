@@ -53,9 +53,14 @@ export function PotentialMatchModal({
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
   const mainScrollRef = useRef<ScrollView>(null);
 
+  // Use currentUser.id directly - will be set from homepage response
+  if (!currentUser?.id) {
+    throw new Error('Current user ID is not available');
+  }
+
   // Initialize chat when modal opens and potentialMatch is available
   const chatConfig = {
-    currentUserId: currentUser?.id || 101,
+    currentUserId: currentUser.id,
     otherUserId: potentialMatch?.id ? parseInt(potentialMatch.id) : 0,
     isFinalMatch: false,
     isPotentialMatch: true,

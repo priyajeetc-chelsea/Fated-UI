@@ -31,7 +31,12 @@ export default function ChatScreen() {
   const otherUserName = params.userName as string;
   const isFinalMatch = params.isFinalMatch === 'true';
   const isPotentialMatch = params.isPotentialMatch === 'true';
-  const currentUserId = currentUser?.id || 101;
+  
+  // Use currentUser.id directly - will be set from homepage response
+  if (!currentUser?.id) {
+    throw new Error('Current user ID is not available');
+  }
+  const currentUserId = currentUser.id;
 
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);

@@ -96,6 +96,7 @@ export interface ApiAllMatchesResponse {
 
 // Legacy interface for backward compatibility
 export interface MatchResponse {
+  userId?: number; // Current user's ID from the API response
   tags: {
     all: Tag[];
   };

@@ -31,13 +31,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize with a mock user for now
-    // In a real app, this would come from authentication
-    setCurrentUser({
-      id: 101,
-      name: 'Current User',
-      email: 'user@example.com',
-    });
+    // User will be set dynamically from the homepage API response
+    // No hardcoded initialization needed
     setIsLoading(false);
   }, []);
 

@@ -1,3 +1,5 @@
+import { authApiService } from "./auth/api";
+
 interface WebSocketMessage {
   action: "sendMessage";
   senderId: number;
@@ -38,14 +40,26 @@ export class WebSocketService {
   private activeConnections = 0; // Reference counting for active chat screens
   private reconnectTimer: any = null;
   private currentUserId: number | null = null;
+  private bearerToken: string | null = null;
 
   private readonly WS_URL = 'wss://05adxe9l4h.execute-api.ap-south-1.amazonaws.com/staging';
 
-  connect(userId?: number): Promise<void> {
-    return new Promise((resolve, reject) => {
+  async connect(userId?: number): Promise<void> {
+    return new Promise(async (resolve, reject) => {
       // Store current user ID for connection lifecycle
       if (userId) {
         this.currentUserId = userId;
+      }
+
+      // Get bearer token from AsyncStorage
+      try {
+        this.bearerToken = await authApiService.getBearerToken();
+        
+        if (!this.bearerToken) {
+          console.warn('⚠️ No bearer token found for WebSocket connection');
+        }
+      } catch (error) {
+        console.error('Failed to get bearer token:', error);
       }
 
       if (this.ws?.readyState === WebSocket.OPEN) {
@@ -72,7 +86,14 @@ export class WebSocketService {
       this.isConnecting = true;
 
       try {
-        this.ws = new WebSocket(this.WS_URL);
+        // Construct WebSocket URL with bearer token as query parameter
+        const wsUrl = this.bearerToken 
+          ? `${this.WS_URL}?Authorization=${encodeURIComponent(this.bearerToken)}`
+          : this.WS_URL;
+        
+        console.log('🔌 Connecting to WebSocket:', wsUrl.substring(0, 50) + '...');
+        
+        this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
           this.isConnecting = false;

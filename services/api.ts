@@ -256,6 +256,7 @@ class ApiService {
         if (apiResponse.model.onboardingStep && apiResponse.model.onboardingStep.step < 5) {
           console.log('🚧 User in onboarding state:', apiResponse.model.onboardingStep);
           const onboardingResponse: MatchResponse = {
+            userId: apiResponse.model.userId, // Include current user's ID
             tags: { all: [] },
             matches: null,
             hasMore: false,
@@ -266,6 +267,7 @@ class ApiService {
         
         // Convert the actual API response to our expected format
         const convertedResponse: MatchResponse = {
+          userId: apiResponse.model.userId, // Include current user's ID
           tags: {
             all: apiResponse.model.tags?.all || []
           },

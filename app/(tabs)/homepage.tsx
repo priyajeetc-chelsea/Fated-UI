@@ -2,12 +2,14 @@ import BaseLayout from '@/components/base-layout';
 import OpinionModal from '@/components/opinion-modal';
 import ThemeFilterBubbles from '@/components/theme-filter-bubbles';
 import UserProfile from '@/components/user-profile';
+import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
 import { ApiOpinion, ApiUser, MatchRequest, Tag } from '@/types/api';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
+  const { setCurrentUser } = useUser();
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -32,6 +34,7 @@ export default function HomeScreen() {
     const defaultRequest = apiService.getDefaultRequest();
     setCurrentRequest(defaultRequest);
     loadMatches(defaultRequest);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // Reset scrolling state when currentUserIndex changes
@@ -46,6 +49,14 @@ export default function HomeScreen() {
     
     try {
       const response = await apiService.fetchMatches(request);
+      
+      // Store current user's ID from the response
+      if (response.userId) {
+        setCurrentUser({
+          id: response.userId,
+          name: 'Current User', // You can update this with actual name if provided by API
+        });
+      }
       
       // Check if user needs to complete onboarding
       if (response.onboardingStep && response.onboardingStep.step < 5) {
