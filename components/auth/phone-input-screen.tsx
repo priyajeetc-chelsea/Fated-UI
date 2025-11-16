@@ -2,12 +2,12 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 interface PhoneInputScreenProps {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 30,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#000000',
   },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#CCCCCC',
     paddingVertical: 12,
     fontSize: 18,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#000000',
     marginBottom: 8,
   },
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#FF0000',
     marginBottom: 20,
   },
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   },
   sendButtonText: {
     fontSize: 16,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#666666',
     textAlign: 'center',
     lineHeight: 20,

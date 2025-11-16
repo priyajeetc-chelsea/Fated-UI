@@ -2,13 +2,13 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Pressable,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 interface OtpVerificationScreenProps {
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#000000',
   },
@@ -242,14 +242,14 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#666666',
     textAlign: 'center',
     marginBottom: 8,
   },
   phoneNumber: {
     fontSize: 18,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#000000',
     textAlign: 'center',
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     borderColor: '#CCCCCC',
     borderRadius: 8,
     fontSize: 20,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#000000',
     textAlign: 'center',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#FF0000',
     textAlign: 'center',
   },
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   verifyButtonText: {
     fontSize: 16,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 14,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#666666',
     textAlign: 'center',
   },
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   },
   countdownText: {
     fontSize: 14,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#999999',
     textAlign: 'center',
   },
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     color: '#666666',
     textDecorationLine: 'underline',
   },

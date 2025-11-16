@@ -74,7 +74,8 @@ export default function UserProfilePage() {
         console.log('User crossed via final swipe API');
 
         // Navigate to matches page and reload data
-        router.push('/matches');
+        router.back();
+
       } catch (error) {
         console.error('Failed to send final swipe:', error);
         // Still navigate back on error
@@ -92,7 +93,7 @@ export default function UserProfilePage() {
         console.log('User liked via final swipe API');
         
         // Navigate to matches page and reload data
-        router.push('/matches');
+        router.back();
       } catch (error) {
         console.error('Failed to send final swipe:', error);
         // Still navigate back on error

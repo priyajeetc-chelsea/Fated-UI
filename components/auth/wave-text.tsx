@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   letter: {
     fontSize: 45,
     lineHeight: 50,
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#9966CC',
   },

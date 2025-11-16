@@ -277,9 +277,10 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 25,
     lineHeight: 26,
+    letterSpacing: -0.5,
     color: 'black',
     fontWeight: 'bold',
-    fontFamily: 'Times New Roman',
+    fontFamily: 'Playfair Display',
     marginBottom: 10,
   },
   opinionText: {

@@ -1,6 +1,7 @@
 import BaseLayout from '@/components/base-layout';
 import OpinionModal from '@/components/opinion-modal';
 import ThemeFilterBubbles from '@/components/theme-filter-bubbles';
+import { ThemedText } from '@/components/themed-text';
 import UserProfile from '@/components/user-profile';
 import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
@@ -274,6 +275,12 @@ export default function HomeScreen() {
               onThemeChange={handleThemeChange}
             />
           )}
+          <View style={styles.emptyMessageContainer}>
+            <ThemedText style={styles.emptyMessageTitle}>That&apos;s all for today! ✨</ThemedText>
+            <ThemedText style={styles.emptyMessageSubtitle}>
+              Come back after 72 hours to discover new opinions and matches.
+            </ThemedText>
+          </View>
         </View>
       </BaseLayout>
     );
@@ -328,5 +335,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
+  },
+  emptyMessageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 30,
+    marginTop: 40,
+  },
+  emptyMessageTitle: {
+    fontSize: 25,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 16,
+    letterSpacing: -0.5,
+  },
+  emptyMessageSubtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
