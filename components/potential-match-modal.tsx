@@ -54,20 +54,21 @@ export function PotentialMatchModal({
   const mainScrollRef = useRef<ScrollView>(null);
 
   // Use currentUser.id directly - will be set from homepage response
-  if (!currentUser?.id) {
-    throw new Error('Current user ID is not available');
-  }
+  // Default to 0 if not available yet (chat will be disabled)
+  const currentUserId = currentUser?.id || 0;
+
+  console.log('🔔 PotentialMatchModal: currentUserId =', currentUserId);
 
   // Initialize chat when modal opens and potentialMatch is available
   const chatConfig = {
-    currentUserId: currentUser.id,
+    currentUserId: currentUserId,
     otherUserId: potentialMatch?.id ? parseInt(potentialMatch.id) : 0,
     isFinalMatch: false,
     isPotentialMatch: true,
   };
 
-  // Only initialize chat when modal is visible and we have a valid otherUserId
-  const shouldEnableChat = visible && potentialMatch && chatConfig.otherUserId > 0;
+  // Only initialize chat when modal is visible, we have a valid otherUserId, AND currentUserId is available
+  const shouldEnableChat = visible && potentialMatch && chatConfig.otherUserId > 0 && currentUserId > 0;
 
   const {
     messages,

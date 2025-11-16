@@ -19,6 +19,8 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
   const [isSending, setIsSending] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  console.log('💬 useChat: Initialized with currentUserId =', currentUserId, 'otherUserId =', otherUserId, 'enabled =', enabled);
+
   const messagesRef = useRef<ChatMessage[]>([]);
   const lastReadMessageIdRef = useRef<number | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -36,7 +38,7 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
    * Load chat history with pagination support
    */
   const loadChatHistory = useCallback(async (isInitial = true) => {
-    if (!enabled || !otherUserId) {
+    if (!enabled || !otherUserId || !currentUserId) {
       setIsLoading(false);
       return;
     }
@@ -107,7 +109,7 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
    * Poll for new messages every 3 seconds
    */
   const pollForNewMessages = useCallback(async () => {
-    if (!enabled || !otherUserId || !hasInitializedRef.current) {
+    if (!enabled || !otherUserId || !hasInitializedRef.current || !currentUserId) {
       return;
     }
 
@@ -199,7 +201,7 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
    * Send message via WebSocket with fallback
    */
   const sendMessage = useCallback(async (content: string): Promise<boolean> => {
-    if (!enabled || !otherUserId || !content.trim() || isSending) {
+    if (!enabled || !otherUserId || !content.trim() || isSending || !currentUserId) {
       return false;
     }
 

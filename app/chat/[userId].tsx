@@ -33,13 +33,17 @@ export default function ChatScreen() {
   const isPotentialMatch = params.isPotentialMatch === 'true';
   
   // Use currentUser.id directly - will be set from homepage response
-  if (!currentUser?.id) {
-    throw new Error('Current user ID is not available');
-  }
-  const currentUserId = currentUser.id;
+  // Show loading screen if user is not yet loaded
+  const currentUserId = currentUser?.id || 0;
 
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Wait for currentUser to be loaded before initializing chat
+  // This prevents issues when navigating to chat before homepage loads
+  const chatEnabled = currentUserId > 0;
+
+  console.log('💬 ChatScreen: currentUserId =', currentUserId, 'chatEnabled =', chatEnabled);
 
   const {
     messages,
@@ -57,7 +61,7 @@ export default function ChatScreen() {
     otherUserId,
     isFinalMatch,
     isPotentialMatch,
-    enabled: true, // Always enabled for direct chat screen
+    enabled: chatEnabled, // Only enable chat when we have a valid currentUserId
   });
 
   // Auto-scroll to bottom when new messages arrive
@@ -187,7 +191,7 @@ export default function ChatScreen() {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || !chatEnabled) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -198,7 +202,9 @@ export default function ChatScreen() {
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#9966CC" />
-          <Text style={styles.loadingText}>Loading chat...</Text>
+          <Text style={styles.loadingText}>
+            {!chatEnabled ? 'Setting up chat...' : 'Loading chat...'}
+          </Text>
         </View>
       </SafeAreaView>
     );

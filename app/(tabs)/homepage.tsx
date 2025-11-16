@@ -52,10 +52,13 @@ export default function HomeScreen() {
       
       // Store current user's ID from the response
       if (response.userId) {
+        console.log('🏠 Homepage: Setting currentUser with userId =', response.userId);
         setCurrentUser({
           id: response.userId,
           name: 'Current User', // You can update this with actual name if provided by API
         });
+      } else {
+        console.warn('⚠️ Homepage: API response missing userId!', response);
       }
       
       // Check if user needs to complete onboarding

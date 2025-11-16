@@ -36,11 +36,19 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
+  // Wrap setCurrentUser to add logging
+  const setCurrentUserWithLogging = (user: User | null) => {
+    console.log('👤 UserContext: setCurrentUser called with:', user);
+    setCurrentUser(user);
+  };
+
   const value: UserContextType = {
     currentUser,
-    setCurrentUser,
+    setCurrentUser: setCurrentUserWithLogging,
     isLoading,
   };
+
+  console.log('👤 UserContext: Rendering with currentUser =', currentUser);
 
   return (
     <UserContext.Provider value={value}>
