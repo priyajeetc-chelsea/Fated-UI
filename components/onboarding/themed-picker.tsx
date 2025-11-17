@@ -12,8 +12,8 @@ interface ThemedPickerProps {
   error?: string;
   required?: boolean;
   multiple?: boolean;
-  selectedValues?: string[];
-  onMultiValueChange?: (values: string[]) => void;
+  selectedValues?: (string | number)[];
+  onMultiValueChange?: (values: (string | number)[]) => void;
   maxSelections?: number;
 }
 
@@ -40,13 +40,13 @@ export default function ThemedPicker({
   const handleMultiSelect = (optionValue: string | number) => {
     if (!onMultiValueChange) return;
     
-    const optionValueStr = String(optionValue);
-    const isSelected = selectedValues.includes(optionValueStr);
+    // Preserve the type - don't convert to string
+    const isSelected = selectedValues.some(v => v === optionValue || String(v) === String(optionValue));
     const newValues = isSelected
-      ? selectedValues.filter(v => v !== optionValueStr)
+      ? selectedValues.filter(v => v !== optionValue && String(v) !== String(optionValue))
       : maxSelections && selectedValues.length >= maxSelections
       ? selectedValues // Don't add if at max limit
-      : [...selectedValues, optionValueStr];
+      : [...selectedValues, optionValue];
     
     onMultiValueChange(newValues);
   };
@@ -55,8 +55,8 @@ export default function ThemedPicker({
     if (multiple) {
       if (selectedValues.length === 0) return placeholder;
       if (selectedValues.length === 1) {
-        const option = options.find(opt => String(opt.value) === selectedValues[0]);
-        return option?.label || selectedValues[0];
+        const option = options.find(opt => opt.value === selectedValues[0] || String(opt.value) === String(selectedValues[0]));
+        return option?.label || String(selectedValues[0]);
       }
       return `${selectedValues.length} selected`;
     } else {
@@ -117,7 +117,7 @@ export default function ThemedPicker({
                 style={[
                   styles.option,
                   multiple 
-                    ? (selectedValues.includes(String(option.value)) && styles.selectedOption)
+                    ? (selectedValues.some(v => v === option.value || String(v) === String(option.value)) && styles.selectedOption)
                     : (value === String(option.value) && styles.selectedOption)
                 ]}
                 onPress={() => multiple ? handleMultiSelect(option.value) : handleSingleSelect(option.value)}
@@ -125,12 +125,12 @@ export default function ThemedPicker({
                 <Text style={[
                   styles.optionText,
                   multiple
-                    ? (selectedValues.includes(String(option.value)) && styles.selectedOptionText)
+                    ? (selectedValues.some(v => v === option.value || String(v) === String(option.value)) && styles.selectedOptionText)
                     : (value === String(option.value) && styles.selectedOptionText)
                 ]}>
                   {option.label}
                 </Text>
-                {multiple && selectedValues.includes(String(option.value)) && (
+                {multiple && selectedValues.some(v => v === option.value || String(v) === String(option.value)) && (
                   <Ionicons name="checkmark" size={20} color="#000" />
                 )}
                 {!multiple && value === String(option.value) && (

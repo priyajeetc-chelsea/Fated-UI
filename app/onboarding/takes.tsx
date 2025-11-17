@@ -143,7 +143,7 @@ export default function TakesForm() {
 
         <Text style={styles.title}>Share Your Takes</Text>
         <Text style={styles.subtitle}>
-          Express your opinions on topics that matter to you. This helps others understand your perspective and values.
+          Express yourelf through your opinions. This helps others understand your perspective and values !
         </Text>
 
         {formData.allTakes.map((allTake, tagIndex) => (
@@ -152,10 +152,10 @@ export default function TakesForm() {
             
             {allTake.topicTakes.map((topicTake, questionIndex) => (
               <View key={questionIndex} style={{ marginBottom: 10 }}>
-                <Text style={styles.questionText}>{getQuestionText(allTake.tagId, topicTake.questionId)}</Text>
+                <Text style={styles.questionText}>Q. {getQuestionText(allTake.tagId, topicTake.questionId)}</Text>
                 
                 <ThemedInput
-                  label="Your Take"
+                  label="your take"
                   value={topicTake.take}
                   onChangeText={(value) => updateTake(tagIndex, questionIndex, value)}
                   placeholder="Share your honest thoughts and perspective..."
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   takeContainer: {
     backgroundColor: '#FAFAFA',
     borderRadius: 16,
-    padding: 20,
+    padding: 18,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -228,12 +228,12 @@ const styles = StyleSheet.create({
   },
   takeNumber: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#000',
+    fontWeight: '600',
+    color: '#9966CC',
     marginBottom: 12,
   },
   questionText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '500',
     color: '#333',
     marginBottom: 8,

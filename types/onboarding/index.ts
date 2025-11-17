@@ -9,7 +9,7 @@ export interface BasicDetailsFormData {
   email: string;
   dob: string;
   gender: {
-    value: string;
+    value: number | string; // Support both for compatibility during transition
     visibleOnProfile: boolean;
   };
   sexuality: {
@@ -20,7 +20,7 @@ export interface BasicDetailsFormData {
     value: string;
     visibleOnProfile: boolean;
   };
-  interestedIn: string[];
+  interestedIn: (number | string)[]; // Support both for compatibility during transition
 }
 
 export interface LifestyleFormData {
@@ -142,11 +142,11 @@ export interface IntPickerOption {
   value: number;
 }
 
-export const GENDER_OPTIONS: PickerOption[] = [
-  { label: 'Male', value: '1' },
-  { label: 'Female', value: '2' },
-  { label: 'Non-binary', value: '3' },
-  { label: 'Not Listed', value: '4' },
+export const GENDER_OPTIONS: IntPickerOption[] = [
+  { label: 'Male', value: 1 },
+  { label: 'Female', value: 2 },
+  { label: 'Non-binary', value: 3 },
+  { label: 'Not Listed', value: 4 },
 ];
 
 export const SEXUALITY_OPTIONS: PickerOption[] = [
@@ -185,10 +185,10 @@ export const PRONOUNS_OPTIONS: PickerOption[] = [
   { label: 'Not Listed', value: 'Not Listed' },
 ];
 
-export const INTERESTED_IN_OPTIONS: PickerOption[] = [
-  { label: 'Men', value: '1' },
-  { label: 'Women', value: '2' },
-  { label: 'Non-binary', value: '3' },
+export const INTERESTED_IN_OPTIONS: IntPickerOption[] = [
+  { label: 'Men', value: 1 },
+  { label: 'Women', value: 2 },
+  { label: 'Non-binary', value: 3 },
 ];
 
 export const EDUCATION_LEVELS: PickerOption[] = [

@@ -25,7 +25,7 @@ export default function BasicDetailsForm() {
     email: '',
     dob: '',
     gender: {
-      value: '',
+      value: 0, // Initialize as number
       visibleOnProfile: true,
     },
     sexuality: {
@@ -36,7 +36,7 @@ export default function BasicDetailsForm() {
       value: '',
       visibleOnProfile: true,
     },
-    interestedIn: [],
+    interestedIn: [], // Will contain numbers
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof BasicDetailsFormData, string>>>({});
@@ -77,7 +77,7 @@ export default function BasicDetailsForm() {
       }
     }
 
-    if (!formData.gender.value) {
+    if (!formData.gender.value || formData.gender.value === 0) {
       newErrors.gender = 'Gender is required';
     }
 
@@ -104,7 +104,22 @@ export default function BasicDetailsForm() {
 
     setLoading(true);
     try {
-      const response = await apiService.submitBasicDetails(formData);
+      // Ensure gender and interestedIn are numbers before sending
+      const payload = {
+        ...formData,
+        gender: {
+          ...formData.gender,
+          value: typeof formData.gender.value === 'string' 
+            ? parseInt(formData.gender.value) 
+            : formData.gender.value
+        },
+        interestedIn: formData.interestedIn.map(item => 
+          typeof item === 'string' ? parseInt(item) : item
+        )
+      };
+      
+      console.log('📤 Submitting payload:', payload);
+      const response = await apiService.submitBasicDetails(payload);
       
       if (response.code === 200) {
         // Navigate to next step based on response
@@ -160,9 +175,10 @@ export default function BasicDetailsForm() {
     }));
   };
 
-  const handlePronounsChange = (values: string[]) => {
-    // Limit to maximum 4 selections
-    const limitedValues = values.slice(0, 4);
+  const handlePronounsChange = (values: (string | number)[]) => {
+    // Limit to maximum 4 selections and convert to strings for pronouns
+    const stringValues = values.map(v => String(v));
+    const limitedValues = stringValues.slice(0, 4);
     // Join the values with "/" separator
     const joinedValue = limitedValues.join('/');
     

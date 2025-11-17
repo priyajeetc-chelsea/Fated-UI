@@ -2,13 +2,13 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Pressable,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface OtpVerificationScreenProps {
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontFamily: 'Playfair Display',
     fontWeight: 'bold',
     color: '#000000',

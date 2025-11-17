@@ -275,11 +275,11 @@ const styles = StyleSheet.create({
     flexShrink: 1, // Allow text to shrink if needed
   },
   questionText: {
-    fontSize: 25,
+    fontSize: 23,
     lineHeight: 26,
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
     color: 'black',
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontFamily: 'Playfair Display',
     marginBottom: 10,
   },

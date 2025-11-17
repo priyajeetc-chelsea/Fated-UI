@@ -5,8 +5,8 @@ import { Keyboard, Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpaci
 
 interface SimpleThemedPickerProps {
   label: string;
-  value: string;
-  onValueChange: (value: string) => void;
+  value: string | number;
+  onValueChange: (value: string | number) => void;
   options: PickerOption[] | IntPickerOption[];
   placeholder?: string;
   error?: string;
@@ -25,12 +25,13 @@ export default function SimpleThemedPicker({
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleSelect = (optionValue: string | number) => {
-    onValueChange(String(optionValue));
+    // Preserve the numeric type if it's a number
+    onValueChange(optionValue);
     setModalVisible(false);
   };
 
   const getDisplayText = () => {
-    const selectedOption = options.find(option => String(option.value) === value);
+    const selectedOption = options.find(option => option.value === value || String(option.value) === String(value));
     return selectedOption ? selectedOption.label : placeholder;
   };
 
@@ -83,17 +84,17 @@ export default function SimpleThemedPicker({
                 key={String(option.value)}
                 style={[
                   styles.option,
-                  value === String(option.value) && styles.selectedOption
+                  (option.value === value || String(option.value) === String(value)) && styles.selectedOption
                 ]}
                 onPress={() => handleSelect(option.value)}
               >
                 <Text style={[
                   styles.optionText,
-                  value === String(option.value) && styles.selectedOptionText
+                  (option.value === value || String(option.value) === String(value)) && styles.selectedOptionText
                 ]}>
                   {option.label}
                 </Text>
-                {value === String(option.value) && (
+                {(option.value === value || String(option.value) === String(value)) && (
                   <Ionicons name="checkmark" size={20} color="#000" />
                 )}
               </TouchableOpacity>
