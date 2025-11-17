@@ -75,7 +75,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ThemedView style={styles.loadingContainer}>
-          <WaveText text="FATED" />
+          <WaveText text="Fated" />
         </ThemedView>
       </SafeAreaView>
     );

@@ -231,6 +231,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: '500',
     color: '#000',
+    fontFamily: 'Playfair Display',
   },
    userGender: {
     fontSize: 12,
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 23,
-    lineHeight: 26,
+    lineHeight: 30,
     letterSpacing: -0.3,
     color: 'black',
     fontWeight: '600',

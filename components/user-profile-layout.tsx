@@ -305,6 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
+    fontFamily: 'Playfair Display',
   },
   opinionsContainer: {
     flex: 1,
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 23,
-    lineHeight: 26,
+    lineHeight: 30,
     letterSpacing: -0.3,
     color: 'black',
     fontWeight: '600',

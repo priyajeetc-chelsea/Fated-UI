@@ -42,9 +42,9 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   title: {
-    fontSize: 35,
+    fontSize: 33,
     letterSpacing: -1,
-    fontFamily: 'Tempos-Headline',
+    fontFamily: 'Playfair Display',
     lineHeight: 36, // Increased lineHeight to be larger than fontSize (28 * 1.3 ≈ 36)
     color: '#9966CC',
     includeFontPadding: false, // Removes extra padding that Android adds to text

@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000',
   },
   tabContainer: {
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
   lockedText: {
     color: '#ffffff',
     fontSize: 8,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   lockHint: {
     fontSize: 12,
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   mutualText: {
     color: '#ffffff',
     fontSize: 8,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   mutualHint: {
     fontSize: 12,
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
   mutualInlineText: {
     color: '#ffffff',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   chatTime: {
     fontSize: 12,
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
   lockedInlineText: {
     color: '#ffffff',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   potentialMatchInfo: {
     flex: 1,

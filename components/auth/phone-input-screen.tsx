@@ -2,12 +2,12 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface PhoneInputScreenProps {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 30,
     fontFamily: 'Playfair Display',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000000',
   },
   phoneInput: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   sendButtonText: {
     fontSize: 16,
     fontFamily: 'Playfair Display',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#FFFFFF',
   },
   sendButtonTextDisabled: {

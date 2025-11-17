@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 48,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000',
     marginBottom: 32,
     textAlign: 'center',

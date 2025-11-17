@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: 'Playfair Display',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000000',
   },
   subtitleSection: {
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   phoneNumber: {
     fontSize: 18,
     fontFamily: 'Playfair Display',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000000',
     textAlign: 'center',
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     fontSize: 20,
     fontFamily: 'Playfair Display',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000000',
     textAlign: 'center',
     backgroundColor: '#FFFFFF',
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   verifyButtonText: {
     fontSize: 16,
     fontFamily: 'Playfair Display',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#FFFFFF',
   },
   verifyButtonTextDisabled: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     color: '#9966CC',
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   countdownText: {
     fontSize: 14,

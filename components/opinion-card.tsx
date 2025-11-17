@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from 'react-native-reanimated';
 import { ThemedText } from './themed-text';
 
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   overlayText: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginTop: 10,
   },
   userPhotoContainer: {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 12,
   },
   opinion: {

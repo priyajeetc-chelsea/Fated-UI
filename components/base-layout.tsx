@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
+    fontFamily: 'Playfair Display',
   },
   placeholder: {
     width: 34,
@@ -214,6 +215,6 @@ const styles = StyleSheet.create({
   crossIcon: {
     color: '#000',
     fontSize: 40,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
 });

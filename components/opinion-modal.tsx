@@ -230,9 +230,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', 
   },
   userName: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '600',
     color: '#000',
+    fontFamily: 'Playfair Display',
   },
   opinionTextContainer: {
     height: 280, // Fixed height for scrollable area (300 - header - tags - padding)

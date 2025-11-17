@@ -5,11 +5,11 @@ import ThemedInput from '@/components/onboarding/themed-input';
 import ThemedPicker from '@/components/onboarding/themed-picker';
 import { apiService } from '@/services/api';
 import {
-    DRINK_SMOKE_OPTIONS,
-    EDUCATION_LEVELS,
-    HEIGHT_OPTIONS,
-    LifestyleFormData,
-    RELIGIOUS_BELIEFS
+  DRINK_SMOKE_OPTIONS,
+  EDUCATION_LEVELS,
+  HEIGHT_OPTIONS,
+  LifestyleFormData,
+  RELIGIOUS_BELIEFS
 } from '@/types/onboarding';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#000',
     marginBottom: 8,
     textAlign: 'center',

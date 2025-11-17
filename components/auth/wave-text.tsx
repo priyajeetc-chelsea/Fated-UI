@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     fontSize: 45,
     lineHeight: 50,
     fontFamily: 'Playfair Display',
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#9966CC',
   },
 });
