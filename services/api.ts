@@ -77,7 +77,7 @@ class ApiService {
   async fetchUserProfile(matchUserId: number): Promise<any> {
     try {
       const response = await this.makeAuthenticatedRequest(
-        `/user/profile?matchUserId=${matchUserId}`, 
+        `/user/matchedProfile?matchUserId=${matchUserId}`, 
         { method: 'GET' }
       );
       
