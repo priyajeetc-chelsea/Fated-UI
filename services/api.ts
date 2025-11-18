@@ -582,6 +582,26 @@ class ApiService {
       throw error;
     }
   }
+
+  async getCurrentUserProfile(): Promise<import('@/types/api').CurrentUserProfileResponse> {
+    try {
+      console.log('👤 Fetching current user profile');
+      const response = await this.makeAuthenticatedRequest('/user/profile', {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Current user profile fetched successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch current user profile:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();

@@ -62,7 +62,10 @@ export default function UserProfileLayout({
       {userData.age && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Age</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="calendar" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Age</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.age}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -70,7 +73,10 @@ export default function UserProfileLayout({
       )}
       
       <View style={styles.detailRow}>
-        <ThemedText style={styles.detailLabel}>Gender & Pronouns</ThemedText>
+        <View style={styles.detailLabelContainer}>
+          <Ionicons name="person" size={16} color="#666" style={styles.detailIcon} />
+          <ThemedText style={styles.detailLabel}>Gender & Pronouns</ThemedText>
+        </View>
         <ThemedText style={styles.detailValue}>{userData.gender} • {userData.pronouns}</ThemedText>
       </View>
       <View style={styles.separator} />
@@ -78,7 +84,10 @@ export default function UserProfileLayout({
       {userData.sexuality && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Sexuality</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="heart" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Sexuality</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.sexuality}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -88,7 +97,10 @@ export default function UserProfileLayout({
       {userData.homeTown && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.homeTown}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -98,7 +110,10 @@ export default function UserProfileLayout({
       {userData.currentCity && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Current City</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="location" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Current City</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.currentCity}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -108,7 +123,10 @@ export default function UserProfileLayout({
       {userData.jobDetails && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Job</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="briefcase" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Job</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.jobDetails}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -118,7 +136,10 @@ export default function UserProfileLayout({
       {userData.college && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>College</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="school" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>College</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.college}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -128,7 +149,10 @@ export default function UserProfileLayout({
       {userData.highestEducationLevel && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Education</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="ribbon" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Education</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.highestEducationLevel}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -138,7 +162,10 @@ export default function UserProfileLayout({
       {userData.religiousBeliefs && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Religious Beliefs</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="book" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Religious Beliefs</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.religiousBeliefs}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -148,7 +175,10 @@ export default function UserProfileLayout({
       {userData.drinkOrSmoke && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Drink/Smoke</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="wine" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Drink/Smoke</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.drinkOrSmoke}</ThemedText>
           </View>
           <View style={styles.separator} />
@@ -158,7 +188,10 @@ export default function UserProfileLayout({
       {userData.height && (
         <>
           <View style={styles.detailRow}>
-            <ThemedText style={styles.detailLabel}>Height</ThemedText>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="resize" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Height</ThemedText>
+            </View>
             <ThemedText style={styles.detailValue}>{userData.height}</ThemedText>
           </View>
         </>
@@ -370,11 +403,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingVertical: 8,
   },
+  detailLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  detailIcon: {
+    marginRight: 8,
+  },
   detailLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: '#666',
-    flex: 1,
   },
   detailValue: {
     fontSize: 14,

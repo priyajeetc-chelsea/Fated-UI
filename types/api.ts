@@ -155,3 +155,46 @@ export interface ApiOpinion {
   theme: string;
   liked?: boolean;
 }
+
+// Current User Profile Types
+export interface CurrentUserOpinion {
+  takeId: number;
+  question: string;
+  answer: string;
+  tag: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface CurrentUserProfile {
+  fname: string;
+  lname: string;
+  age: number;
+  gender: string;
+  showGender: boolean;
+  sexuality: string;
+  showSexuality: boolean;
+  pronouns: string;
+  showPronouns: boolean;
+  homeTown: string;
+  currentCity: string;
+  jobDetails: string;
+  colllege: string;
+  highestEducationLevel: string;
+  showEducationLevel: boolean;
+  religiousBeliefs: string;
+  showReligiousBeliefs: boolean;
+  drinkOrSmoke: string;
+  showDrinkOrSmoke: boolean;
+  height: string;
+  showHeight: boolean;
+  opinions: CurrentUserOpinion[];
+  photoUrls: string[];
+}
+
+export interface CurrentUserProfileResponse {
+  code: number;
+  msg: string;
+  model: CurrentUserProfile;
+}
