@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     flex: 1,
-    backgroundColor: '#9966CC',
+    backgroundColor: '#333',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   profileButtonText: {
-    color: '#9966CC',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   sentMessage: {
-    backgroundColor: '#9966CC',
+    backgroundColor: '#333',
     borderBottomRightRadius: 4,
   },
   receivedMessage: {

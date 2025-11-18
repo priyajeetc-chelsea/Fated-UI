@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   sentMessage: {
-    backgroundColor: '#9966CC',
+    backgroundColor: '#333',
     borderBottomRightRadius: 4,
   },
   receivedMessage: {
