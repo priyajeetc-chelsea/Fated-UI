@@ -95,9 +95,9 @@ export default function LifestyleForm() {
         const nextStep = response.model.step;
         switch (nextStep) {
           case 3:
-            // Pass tagAndQuestion data to takes form
+            // Pass tagAndQuestion data to topic selection page
             router.push({
-              pathname: '/onboarding/takes',
+              pathname: '/onboarding/topic-selection',
               params: {
                 tagAndQuestionData: JSON.stringify(response.model.tagAndQuestion || [])
               }
@@ -110,7 +110,7 @@ export default function LifestyleForm() {
             router.replace('/(tabs)/homepage');
             break;
           default:
-            router.push('/onboarding/takes');
+            router.push('/onboarding/topic-selection');
         }
       } else {
         Alert.alert('Error', response.msg || 'Failed to save lifestyle details');
