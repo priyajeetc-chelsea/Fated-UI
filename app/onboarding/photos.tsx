@@ -39,6 +39,7 @@ export default function PhotosForm() {
         allowsEditing: true,
         aspect: [3, 4],
         quality: 0.8,
+        allowsMultipleSelection: false,
       });
 
       if (!result.canceled && result.assets[0]) {

@@ -154,6 +154,7 @@ export function OtpVerificationScreen({ onSuccess, onBack }: OtpVerificationScre
                 textAlign="center"
                 selectTextOnFocus
                 autoFocus={index === 0}
+                secureTextEntry={index < 2}
               />
             ))}
           </View>
