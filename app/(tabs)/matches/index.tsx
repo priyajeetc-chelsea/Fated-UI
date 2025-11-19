@@ -265,7 +265,12 @@ export default function MatchesScreen() {
     setRefreshing(false);
   }, [fetchMatches]);
 
-  const renderMatchItem = (match: Match) => (
+  const renderMatchItem = (match: Match) => {
+    const displayPhoto = match.photo && match.photo.trim() !== ''
+      ? match.photo
+      : `https://picsum.photos/200/200?random=${match.id}`;
+
+    return (
     <TouchableOpacity 
       key={match.id} 
       style={styles.whatsappChatItem}
@@ -275,6 +280,7 @@ export default function MatchesScreen() {
           params: {
             userId: match.id,
             userName: match.name,
+            userPhoto: displayPhoto,
             isFinalMatch: 'true',
             isPotentialMatch: 'false',
           },
@@ -282,7 +288,7 @@ export default function MatchesScreen() {
       }}
     >
       <View style={styles.chatPhotoContainer}>
-        <Image source={{ uri:`https://picsum.photos/200/200?random=${match.id}` }} style={styles.chatPhoto} />
+        <Image source={{ uri: displayPhoto }} style={styles.chatPhoto} />
       </View>
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
@@ -302,6 +308,7 @@ export default function MatchesScreen() {
       </View>
     </TouchableOpacity>
   );
+  };
 
   const renderPotentialMatchItem = (pm: PotentialMatchDisplay) => {
     if (pm.type === 'likesYou') {
@@ -360,6 +367,10 @@ export default function MatchesScreen() {
         </TouchableOpacity>
       );
     } else {
+      const displayPhoto = pm.data.photoUrl && pm.data.photoUrl.trim() !== ''
+        ? pm.data.photoUrl
+        : `https://picsum.photos/200/200?random=${pm.data.userId}`;
+
       return (
         <TouchableOpacity
           key={`mutualLike-${pm.data.userId}`}
@@ -369,7 +380,7 @@ export default function MatchesScreen() {
             setSelectedPotentialMatch({
               id: pm.data.userId.toString(),
               name: pm.data.firstName,
-              photo: `https://picsum.photos/200/200?random=${pm.data.userId}` || pm.data.photoUrl,
+              photo: displayPhoto,
               type: 'mutualLike',
               likedOpinion: {
                 id: pm.data.likedOpinion.id.toString(),
@@ -383,7 +394,7 @@ export default function MatchesScreen() {
           <View style={styles.chatPhotoContainer}>
             {pm.data.photoUrl && pm.data.photoUrl.trim() !== '' ? (
               <Image 
-                source={{ uri:`https://picsum.photos/200/200?random=${pm.data.userId}` || pm.data.photoUrl }} 
+                source={{ uri: displayPhoto }} 
                 style={styles.chatPhoto}
                 onError={() => {
                   console.log('Photo failed to load for user:', pm.data.userId);

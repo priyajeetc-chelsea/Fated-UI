@@ -251,7 +251,25 @@ export function PotentialMatchModal({
             <TouchableOpacity onPress={onClose} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color="#333" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{potentialMatch.name}</Text>
+            <View style={styles.headerUserInfo}>
+              {potentialMatch.photo ? (
+                <Image
+                  source={{ uri: potentialMatch.photo }}
+                  style={styles.headerPhoto}
+                />
+              ) : (
+                <View style={styles.headerPhotoPlaceholder}>
+                  <Ionicons
+                    name={potentialMatch.type === 'likesYou' ? 'lock-closed' : 'person'}
+                    size={18}
+                    color="#666"
+                  />
+                </View>
+              )}
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                {potentialMatch.name}
+              </Text>
+            </View>
           </View>
 
           {/* Single continuous scrollable content */}
@@ -410,7 +428,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -420,10 +438,32 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 16,
   },
+  headerUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  headerPhoto: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 12,
+    backgroundColor: '#e0e0e0',
+  },
+  headerPhotoPlaceholder: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
     flex: 1,
+    minWidth: 0,
   },
   headerRight: {
     flexDirection: 'row',
