@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   sentMessage: {
-    backgroundColor: '#333',
+    backgroundColor: '#004242',
     borderBottomRightRadius: 4,
   },
   receivedMessage: {

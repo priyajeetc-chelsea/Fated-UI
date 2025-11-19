@@ -41,6 +41,7 @@ export default function ChatScreen() {
 
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
 
   // Wait for currentUser to be loaded before initializing chat
   // This prevents issues when navigating to chat before homepage loads
@@ -69,17 +70,18 @@ export default function ChatScreen() {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && !isUserScrolledUp) {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
-  }, [messages]);
+  }, [messages, isUserScrolledUp]);
 
   // Auto-scroll to bottom when chat screen first loads (to show latest messages)
   const hasMessages = messages.length > 0;
   useEffect(() => {
     if (hasMessages) {
+      setIsUserScrolledUp(false);
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
       }, 300);
@@ -88,6 +90,7 @@ export default function ChatScreen() {
 
   // Auto-scroll when starting to type (focus on input)
   const handleInputFocus = () => {
+    setIsUserScrolledUp(false);
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
@@ -138,6 +141,7 @@ export default function ChatScreen() {
     setInputText('');
     
     // Auto-scroll to bottom when sending a message
+    setIsUserScrolledUp(false);
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
@@ -148,6 +152,7 @@ export default function ChatScreen() {
     }
     
     // Ensure scroll to bottom after message is sent
+    setIsUserScrolledUp(false);
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 200);
@@ -294,9 +299,16 @@ export default function ChatScreen() {
             />
           }
           onScroll={(event) => {
-            const { contentOffset } = event.nativeEvent;
-            const isAtTop = contentOffset.y === 0;
-            
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            const isAtTop = contentOffset.y <= 0;
+            const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 50, 0);
+            const isAtBottom = contentOffset.y >= bottomThreshold;
+
+            setIsUserScrolledUp((prev) => {
+              const next = !isAtBottom;
+              return prev === next ? prev : next;
+            });
+
             if (isAtTop && hasMoreMessages && !isLoadingMore) {
               loadMoreMessages();
             }
@@ -457,7 +469,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   sentMessage: {
-    backgroundColor: '#333',
+    backgroundColor: '#004242',
     borderBottomRightRadius: 4,
   },
   receivedMessage: {
