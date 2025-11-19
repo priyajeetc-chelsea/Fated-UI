@@ -39,6 +39,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
       console.log('🔍 Checking onboarding status for authenticated user...');
       const response = await apiService.getOnboardingStatus();
       
+      console.log('📊 Onboarding response:', response);
+      
       if (response.model?.onboardingStep) {
         const step = response.model.onboardingStep.step;
         
@@ -46,6 +48,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
         
         // Only redirect if user is not on step 5 (completed)
         if (step < 5) {
+          console.log(`📍 Redirecting to onboarding step ${step}`);
           switch (step) {
             case 1:
               router.replace('/onboarding/basic');
@@ -61,11 +64,16 @@ export function AuthGuard({ children }: AuthGuardProps) {
               break;
           }
         } else {
+          console.log('✅ Onboarding complete, showing main app');
           setIsCheckingOnboarding(false);
         }
+      } else {
+        console.log('⚠️ No onboarding step in response, showing main app');
+        setIsCheckingOnboarding(false);
       }
     } catch (error) {
-      console.error('Error checking onboarding status for authenticated user:', error);
+      console.error('❌ Error checking onboarding status for authenticated user:', error);
+      // On error, just show the main app - don't redirect
       setIsCheckingOnboarding(false);
     }
   };

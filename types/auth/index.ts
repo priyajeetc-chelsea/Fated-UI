@@ -68,4 +68,5 @@ export interface AuthContextType extends AuthState {
   signOut: () => Promise<void>;
   clearError: () => void;
   resetAuthFlow: () => void;
+  handleAuthError: (error: Error) => Promise<void>;
 }

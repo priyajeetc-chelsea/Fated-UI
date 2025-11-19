@@ -39,27 +39,70 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const initializeAuth = async () => {
     try {
+      console.log('🔐 Initializing authentication...');
       setState(prev => ({ ...prev, isLoading: true }));
       
       // First, check if we have stored tokens and user data
-      const [bearerToken, userData] = await Promise.all([
+      const [bearerToken, refreshToken, userData, isExpired] = await Promise.all([
         authApiService.getBearerToken(),
+        authApiService.getRefreshToken(),
         authApiService.getUserData(),
+        authApiService.isTokenExpired(),
       ]);
 
-       if (bearerToken && userData) {
-        setState(prev => ({
-          ...prev,
-          bearerToken,
-          user: userData,
-          isAuthenticated: true,
-          isLoading: false,
-        }));
+      console.log('📊 Auth check results:', {
+        hasToken: !!bearerToken,
+        hasRefreshToken: !!refreshToken,
+        hasUserData: !!userData,
+        isExpired,
+      });
+
+      if (bearerToken) {
+        // We have a token - user should be authenticated
+        // User data is optional (may not have been stored in older versions)
+        
+        // If token is expired or about to expire AND we have a refresh token, refresh it
+        if (isExpired && refreshToken) {
+          console.log('🔄 Token expired on startup, refreshing...');
+          try {
+            const newToken = await authApiService.refreshIdToken();
+            console.log('✅ Token refreshed successfully on startup');
+            setState(prev => ({
+              ...prev,
+              bearerToken: newToken,
+              user: userData || undefined,
+              isAuthenticated: true,
+              isLoading: false,
+            }));
+          } catch (error) {
+            // If refresh fails, clear auth and show login
+            console.error('❌ Failed to refresh token on startup:', error);
+            await authApiService.clearAuthData();
+            setState(prev => ({ ...prev, isLoading: false, isAuthenticated: false }));
+          }
+        } else {
+          // Token is still valid OR it's a legacy token without refresh capability
+          if (!userData) {
+            console.log('⚠️ Token found but no user data - keeping user logged in anyway');
+          } else if (!refreshToken) {
+            console.log('⚠️ Legacy token detected (no refresh token) - keeping user logged in');
+          } else {
+            console.log('✅ Valid token found, user authenticated');
+          }
+          setState(prev => ({
+            ...prev,
+            bearerToken,
+            user: userData || undefined,
+            isAuthenticated: true,
+            isLoading: false,
+          }));
+        }
       } else {
+        console.log('ℹ️ No stored tokens found, user needs to login');
         setState(prev => ({ ...prev, isLoading: false }));
       }
     } catch (error) {
-      console.error('Failed to initialize auth:', error);
+      console.error('❌ Failed to initialize auth:', error);
       setState(prev => ({ 
         ...prev, 
         isLoading: false,
@@ -126,7 +169,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Step 3: Store tokens and user data
       await Promise.all([
-        authApiService.storeBearerToken(exchangeResponse.idToken),
+        authApiService.storeBearerToken(
+          exchangeResponse.idToken,
+          exchangeResponse.refreshToken,
+          exchangeResponse.expiresIn
+        ),
         verifyResponse.model.user ? 
           authApiService.storeUserData(verifyResponse.model.user) : 
           Promise.resolve(),
@@ -190,6 +237,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }));
   }, []);
 
+  const handleAuthError = useCallback(async (error: Error) => {
+    console.error('🔐 Authentication error detected:', error.message);
+    
+    // Check if it's an auth-related error
+    if (
+      error.message.includes('Authentication expired') ||
+      error.message.includes('Session expired') ||
+      error.message.includes('No authentication token')
+    ) {
+      // Sign out and clear all auth data
+      await authApiService.clearAuthData();
+      setState(prev => ({
+        ...initialState,
+        isLoading: false,
+        error: error.message,
+      }));
+    }
+  }, []);
+
   const value: AuthContextType = {
     ...state,
     sendOtp,
@@ -198,6 +264,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     clearError,
     resetAuthFlow,
+    handleAuthError,
   };
 
   return (
