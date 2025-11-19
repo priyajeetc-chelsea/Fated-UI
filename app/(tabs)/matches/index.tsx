@@ -275,8 +275,6 @@ export default function MatchesScreen() {
           params: {
             userId: match.id,
             userName: match.name,
-            userPhoto: match.photo,
-            matchUserId: match.id, // For profile navigation
             isFinalMatch: 'true',
             isPotentialMatch: 'false',
           },
