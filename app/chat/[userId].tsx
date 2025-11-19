@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
@@ -29,6 +30,8 @@ export default function ChatScreen() {
   
   const otherUserId = parseInt(params.userId as string);
   const otherUserName = params.userName as string;
+  const otherUserPhoto = params.userPhoto as string;
+  const matchUserId = params.matchUserId ? parseInt(params.matchUserId as string) : otherUserId;
   const isFinalMatch = params.isFinalMatch === 'true';
   const isPotentialMatch = params.isPotentialMatch === 'true';
   
@@ -112,6 +115,20 @@ export default function ChatScreen() {
     console.log('📱 Back button pressed - forcing WebSocket cleanup');
     webSocketService.forceDisconnectAndReset();
     router.back();
+  };
+
+  // Navigate to user profile
+  const handleProfilePress = () => {
+    if (isFinalMatch) {
+      // For confirmed matches, navigate to their profile
+      router.push({
+        pathname: '/matches/user-profile-page',
+        params: {
+          userBId: matchUserId.toString(),
+          isConfirmedMatch: 'true', // Flag to hide action buttons
+        },
+      });
+    }
   };
 
   const handleSendMessage = async () => {
@@ -198,7 +215,18 @@ export default function ChatScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{otherUserName}</Text>
+          
+          <View style={styles.headerUserInfo}>
+            {otherUserPhoto && (
+              <Image 
+                source={{ uri: otherUserPhoto }} 
+                style={styles.headerPhoto}
+              />
+            )}
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.headerTitle}>{otherUserName}</Text>
+            </View>
+          </View>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#9966CC" />
@@ -222,7 +250,28 @@ export default function ChatScreen() {
           <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{otherUserName}</Text>
+          
+          {/* User Photo and Name - Clickable for confirmed matches */}
+          <TouchableOpacity 
+            style={styles.headerUserInfo}
+            onPress={handleProfilePress}
+            disabled={!isFinalMatch}
+            activeOpacity={isFinalMatch ? 0.6 : 1}
+          >
+            {otherUserPhoto && (
+              <Image 
+                source={{ uri: otherUserPhoto }} 
+                style={styles.headerPhoto}
+              />
+            )}
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.headerTitle}>{otherUserName}</Text>
+              {isFinalMatch && (
+                <Text style={styles.headerSubtitle}>Tap to view profile</Text>
+              )}
+            </View>
+          </TouchableOpacity>
+          
           {__DEV__ && (
             <Text style={{ fontSize: 10, color: '#999' }}>
               {otherUserId}
@@ -323,10 +372,29 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 16,
   },
+  headerUserInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerPhoto: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+    backgroundColor: '#e0e0e0',
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    flex: 1,
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    color: '#666',
+    marginTop: 2,
   },
   connectionIndicator: {
     flexDirection: 'row',

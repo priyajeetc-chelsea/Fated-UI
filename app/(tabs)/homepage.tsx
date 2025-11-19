@@ -270,10 +270,12 @@ export default function HomeScreen() {
       <BaseLayout>
         <View style={styles.emptyContainer}>
           {!isScrolling && (
-            <ThemeFilterBubbles 
-              tags={tags}
-              onThemeChange={handleThemeChange}
-            />
+            <View style={styles.emptyThemeContainer}>
+              <ThemeFilterBubbles 
+                tags={tags}
+                onThemeChange={handleThemeChange}
+              />
+            </View>
           )}
           <View style={styles.emptyMessageContainer}>
             <ThemedText style={styles.emptyMessageTitle}>That&apos;s all for today! ✨</ThemedText>
@@ -332,15 +334,20 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingTop: 20,
+  },
+  emptyThemeContainer: {
+    width: '100%',
+    marginBottom: 20,
   },
   emptyMessageContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 30,
-    marginTop: 40,
+    marginTop: -60, // Offset to center better on mobile
   },
   emptyMessageTitle: {
     fontSize: 25,
@@ -348,6 +355,7 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 16,
     letterSpacing: -0.5,
+    textAlign: 'center',
   },
   emptyMessageSubtitle: {
     fontSize: 16,

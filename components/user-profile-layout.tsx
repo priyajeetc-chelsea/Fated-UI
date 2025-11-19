@@ -45,10 +45,16 @@ export default function UserProfileLayout({
 }: UserProfileLayoutProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const getS3Url = (key: string) => {
+
+    // Otherwise, prepend the S3 bucket URL
+    return `https://fated-user-uploads-main.s3.ap-south-1.amazonaws.com/${key}`;
+  };
+
   const renderPhotoCard = (photoUrl: string, index: number) => (
     <View key={`photo-${index}`} style={styles.opinionCard}>
       <Image 
-        source={{ uri: photoUrl }} 
+        source={{ uri: getS3Url(photoUrl) }} 
         style={styles.profilePhoto}
         resizeMode="cover"
       />
@@ -253,7 +259,7 @@ export default function UserProfileLayout({
           <View style={styles.containerHeader}>
             <View style={styles.userInfoRow}>
               <Image 
-                source={{ uri: userData.photoUrls?.[0] || `https://picsum.photos/200/200?random=${userData.userId}` }} 
+                source={{ uri: userData.photoUrls?.[0] ? getS3Url(userData.photoUrls[0]) : `https://picsum.photos/200/200?random=${userData.userId}` }} 
                 style={styles.userPhoto}
                 blurRadius={3}
               />

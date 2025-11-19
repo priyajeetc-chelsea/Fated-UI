@@ -59,6 +59,9 @@ export default function UserProfilePage() {
   const [user, setUser] = useState<ApiUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
+  
+  // Check if this is a confirmed match (to hide action buttons)
+  const isConfirmedMatch = params.isConfirmedMatch === 'true';
 
   const handleScroll = (event: any) => {
     const scrollY = event.nativeEvent.contentOffset.y;
@@ -74,7 +77,7 @@ export default function UserProfilePage() {
         console.log('User crossed via final swipe API');
 
         // Navigate to matches page and reload data
-        router.back();
+         router.push('/matches');
 
       } catch (error) {
         console.error('Failed to send final swipe:', error);
@@ -93,7 +96,7 @@ export default function UserProfilePage() {
         console.log('User liked via final swipe API');
         
         // Navigate to matches page and reload data
-        router.back();
+        router.push('/matches');
       } catch (error) {
         console.error('Failed to send final swipe:', error);
         // Still navigate back on error
@@ -274,24 +277,26 @@ export default function UserProfilePage() {
         showCrossButton={false}
       />
       
-      {/* Bottom Action Buttons */}
-      <View style={styles.bottomButtonsContainer}>
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.crossButton]} 
-          onPress={handleCrossPress}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="close" size={38} color="#fff" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.likeButton]} 
-          onPress={handleLikePress}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="heart" size={32} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      {/* Bottom Action Buttons - Only show for potential matches, not confirmed matches */}
+      {!isConfirmedMatch && (
+        <View style={styles.bottomButtonsContainer}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.crossButton]} 
+            onPress={handleCrossPress}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="close" size={38} color="#fff" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.likeButton]} 
+            onPress={handleLikePress}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="heart" size={32} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
     </BaseLayout>
   );
 }

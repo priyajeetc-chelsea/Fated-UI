@@ -32,7 +32,7 @@ export default function ProfilePage() {
   };
 
   const getS3Url = (key: string) => {
-    return `https://fated-profile-pictures.s3.ap-south-1.amazonaws.com/${key}`;
+    return `https://fated-user-uploads-main.s3.ap-south-1.amazonaws.com/${key}`;
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
