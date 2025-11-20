@@ -18,6 +18,7 @@ interface BaseLayoutProps {
   showBackButton?: boolean;
   onBackPress?: () => void;
   showLogoutButton?: boolean;
+  showAppHeader?: boolean;
 }
 
 export default function BaseLayout({
@@ -31,13 +32,14 @@ export default function BaseLayout({
   showBackButton = false,
   onBackPress,
   showLogoutButton = false,
+  showAppHeader,
 }: BaseLayoutProps) {
   const [stickyHeaderOpacity] = useState(new Animated.Value(0));
   const router = useRouter();
   const pathname = usePathname();
-  const isHomePath = pathname === '/homepage' || pathname === '/(tabs)/homepage';
-  const shouldShowAppHeader = isHomePath;
-  const shouldShowLogoutButton = showLogoutButton && shouldShowAppHeader;
+  const isHomePath = Boolean(pathname && pathname.includes('homepage'));
+  const resolvedShowAppHeader = showAppHeader ?? isHomePath;
+  const shouldShowLogoutButton = showLogoutButton && resolvedShowAppHeader;
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -67,7 +69,7 @@ export default function BaseLayout({
                 <Ionicons name="arrow-back" size={26} color="#333" />
               </TouchableOpacity>
             )}
-            {shouldShowAppHeader && <AppHeader />}
+            {resolvedShowAppHeader && <AppHeader />}
             {shouldShowLogoutButton && (
               <View style={styles.logoutButtonWrapper}>
                 <LogoutButton />
