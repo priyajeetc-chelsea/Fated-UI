@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { useUser } from '@/contexts/UserContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 type LogoutButtonProps = {
   variant?: 'text' | 'icon';
@@ -53,6 +53,16 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ variant = 'text' }) 
 
   const confirmLogout = useCallback(() => {
     if (isLoggingOut) {
+      return;
+    }
+
+    if (Platform.OS === 'web') {
+      const shouldLogout = typeof window !== 'undefined'
+        ? window.confirm('Are you sure you want to logout?')
+        : true;
+      if (shouldLogout) {
+        void handleLogout();
+      }
       return;
     }
 

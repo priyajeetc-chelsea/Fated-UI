@@ -350,6 +350,32 @@ export class AuthApiService {
     }
   }
 
+  /**
+   * Inform backend to revoke refresh tokens for this session.
+   * Fire-and-forget: we deliberately do not await the network response.
+   */
+  async revokeSession(): Promise<void> {
+    try {
+      const bearerToken = await this.getBearerToken();
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+      };
+
+      if (bearerToken) {
+        headers.Authorization = bearerToken;
+      }
+
+      fetch(`${this.API_BASE_URL}/signout`, {
+        method: 'GET',
+        headers,
+      }).catch(error => {
+        console.error('❌ Failed to revoke session on backend:', error);
+      });
+    } catch (error) {
+      console.error('❌ Failed to initiate session revocation:', error);
+    }
+  }
+
 
   /**
    * Create authenticated HTTP interceptor with automatic token refresh

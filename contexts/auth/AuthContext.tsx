@@ -208,6 +208,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
+      void authApiService.revokeSession();
       await authApiService.clearAuthData();
       
       setState({
