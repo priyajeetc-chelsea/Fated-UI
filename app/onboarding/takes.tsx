@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
     borderRadius: 4,
   },
   topicChipsContainer: {
@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   topicChipActive: {
-    backgroundColor: '#9966CC',
-    borderColor: '#9966CC',
+    backgroundColor: '#004242',
+    borderColor: '#004242',
   },
   topicChipDisabled: {
     opacity: 0.5,
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   topicChipBadgeText: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#9966CC',
+    color: '#004242',
   },
   title: {
     fontSize: 28,
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   questionNumber: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#9966CC',
+    color: '#004242',
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

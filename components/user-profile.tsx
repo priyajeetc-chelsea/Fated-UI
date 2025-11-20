@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
    userGender: {
     fontSize: 12,
-    color: '#9966CC',
+    color: '#004242',
   },
   opinionsContainer: {
     flex: 1,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     fontSize: 14,
-    color: '#9966CC',
+    color: '#004242',
     fontWeight: '600',
     marginTop: 8,
     marginBottom: 16,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   likedButton: {
-    borderColor: '#9966CC',
+    borderColor: '#004242',
     backgroundColor: '#FFF5F5',
   },
   crossButton: {

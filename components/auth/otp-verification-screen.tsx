@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   resendLink: {
-    color: '#9966CC',
+    color: '#004242',
     fontWeight: '600',
   },
   countdownText: {

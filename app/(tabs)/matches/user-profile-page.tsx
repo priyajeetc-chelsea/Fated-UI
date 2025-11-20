@@ -344,6 +344,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#666',
   },
   likeButton: {
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
   },
 });

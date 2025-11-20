@@ -56,7 +56,7 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
         lastMessageId
       );
 
-      if (!response.model.messageContents || response.model.messageContents === null) {
+      if (!response?.model?.messageContents || response?.model?.messageContents === null) {
         setMessages(isInitial ? [] : messagesRef.current);
         setHasMoreMessages(false);
         setIsLoading(false);

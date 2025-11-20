@@ -234,7 +234,7 @@ export default function ChatScreen() {
           </View>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#9966CC" />
+          <ActivityIndicator size="large" color="#004242" />
           <Text style={styles.loadingText}>
             {!chatEnabled ? 'Setting up chat...' : 'Loading chat...'}
           </Text>
@@ -294,8 +294,8 @@ export default function ChatScreen() {
               refreshing={isLoadingMore}
               onRefresh={loadMoreMessages}
               enabled={hasMoreMessages}
-              colors={['#9966CC']}
-              tintColor="#9966CC"
+              colors={['#004242']}
+              tintColor="#004242"
             />
           }
           onScroll={(event) => {
@@ -317,7 +317,7 @@ export default function ChatScreen() {
         >
           {isLoadingMore && (
             <View style={styles.loadMoreIndicator}>
-              <ActivityIndicator size="small" color="#9966CC" />
+              <ActivityIndicator size="small" color="#004242" />
             </View>
           )}
           
@@ -545,7 +545,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   sendButton: {
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
     borderRadius: 20,
     width: 40,
     height: 40,

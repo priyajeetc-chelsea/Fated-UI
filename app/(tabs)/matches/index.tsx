@@ -489,8 +489,8 @@ export default function MatchesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#9966CC']} // Android
-              tintColor="#9966CC" // iOS
+              colors={['#004242']} // Android
+              tintColor="#004242" // iOS
             />
           }
         >
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 15,
@@ -730,7 +730,7 @@ const styles = StyleSheet.create({
     bottom: -8,
     left: 0,
     right: 0,
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
     borderRadius: 8,
     paddingHorizontal: 4,
     paddingVertical: 2,
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
   },
   lockHint: {
     fontSize: 12,
-    color: '#9966CC',
+    color: '#004242',
     fontWeight: '500',
     marginTop: 2,
   },
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   mutualInlineBadge: {
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   chatBadge: {
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: '#f5f5f5f5',
     borderWidth: 1,
-    borderColor: '#9966CC',
+    borderColor: '#004242',
     alignItems: 'center',
     justifyContent: 'center',
   },

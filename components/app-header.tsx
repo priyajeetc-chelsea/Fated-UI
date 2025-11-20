@@ -10,7 +10,7 @@ export default function AppHeader() {
         <Ionicons 
           name="heart" 
           size={30} 
-          color="#9966CC" 
+          color="#004242" 
           style={styles.logo}
         />
         <ThemedText 
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     fontFamily: 'Playfair Display',
     lineHeight: 36, // Increased lineHeight to be larger than fontSize (28 * 1.3 ≈ 36)
-    color: '#9966CC',
+    color: '#004242',
     includeFontPadding: false, // Removes extra padding that Android adds to text
   },
 });

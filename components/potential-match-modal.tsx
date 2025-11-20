@@ -60,11 +60,13 @@ export function PotentialMatchModal({
   console.log('🔔 PotentialMatchModal: currentUserId =', currentUserId);
 
   // Initialize chat when modal opens and potentialMatch is available
+  const isLikesYouMatch = potentialMatch?.type === 'likesYou';
+
   const chatConfig = {
     currentUserId: currentUserId,
     otherUserId: potentialMatch?.id ? parseInt(potentialMatch.id) : 0,
     isFinalMatch: false,
-    isPotentialMatch: true,
+    isPotentialMatch: !isLikesYouMatch,
   };
 
   // Only initialize chat when modal is visible, we have a valid otherUserId, AND currentUserId is available
@@ -324,7 +326,7 @@ export function PotentialMatchModal({
             {/* Action Buttons or Waiting Message */}
             {potentialMatch.waitingForMatchResponse ? (
               <View style={styles.waitingSection}>
-                <Ionicons name="hourglass-outline" size={24} color="#9966CC" />
+                <Ionicons name="hourglass-outline" size={24} color="#004242" />
                 <Text style={styles.waitingText}>Waiting for them to like you back...</Text>
               </View>
             ) : (
@@ -363,7 +365,7 @@ export function PotentialMatchModal({
                 
                 {isLoadingMore && (
                   <View style={styles.loadMoreIndicator}>
-                    <ActivityIndicator size="small" color="#9966CC" />
+                    <ActivityIndicator size="small" color="#004242" />
                   </View>
                 )}
                 
@@ -542,7 +544,7 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     flex: 1,
-    backgroundColor: '#333',
+    backgroundColor: '#004242',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
@@ -570,7 +572,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f0ff',
+    backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
     marginHorizontal: 20,
@@ -578,7 +580,7 @@ const styles = StyleSheet.create({
   },
   waitingText: {
     fontSize: 16,
-    color: '#9966CC',
+    color: '#000',
     fontWeight: '500',
     marginLeft: 12,
   },
@@ -697,7 +699,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   sendButton: {
-    backgroundColor: '#9966CC',
+    backgroundColor: '#004242',
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -711,7 +713,7 @@ const styles = StyleSheet.create({
  unlockSection: {
     alignItems: 'center',
     height: 70,
-    backgroundColor: '#f5f0ff',
+    backgroundColor: '#f5f5f5f',
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
@@ -726,6 +728,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     fontWeight: '500',
-    color: '#9966CC',
+    color: '#000',
   }
 });

@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   likeProfileButton: {
     flex: 1,
-    backgroundColor: '#9966CC', // Purple color
+    backgroundColor: '#004242', // Purple color
     paddingVertical: 10,
     borderRadius: 30,
     alignItems: 'center',

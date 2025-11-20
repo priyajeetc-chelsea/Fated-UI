@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
     lineHeight: 50,
     fontFamily: 'Playfair Display',
     fontWeight: '600',
-    color: '#9966CC',
+    color: '#004242',
   },
 });
