@@ -210,7 +210,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await authApiService.clearAuthData();
       
-      setState(initialState);
+      setState({
+        ...initialState,
+        isLoading: false,
+      });
     } catch (error) {
       console.error('Failed to sign out:', error);
       setState(prev => ({

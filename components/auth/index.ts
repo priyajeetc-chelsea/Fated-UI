@@ -1,5 +1,6 @@
 export { AuthGuard } from './auth-guard';
 export { AuthModal } from './auth-modal';
+export { LogoutButton } from './logout-button';
 export { OtpVerificationScreen } from './otp-verification-screen';
 export { PhoneInputScreen } from './phone-input-screen';
 export { ProtectedRoute } from './protected-route';

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from './app-header';
+import { LogoutButton } from './auth';
 
 interface BaseLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ interface BaseLayoutProps {
   scaleAnim?: Animated.Value;
   showBackButton?: boolean;
   onBackPress?: () => void;
+  showLogoutButton?: boolean;
 }
 
 export default function BaseLayout({
@@ -27,11 +29,15 @@ export default function BaseLayout({
   fadeAnim,
   scaleAnim,
   showBackButton = false,
-  onBackPress
+  onBackPress,
+  showLogoutButton = false,
 }: BaseLayoutProps) {
   const [stickyHeaderOpacity] = useState(new Animated.Value(0));
   const router = useRouter();
   const pathname = usePathname();
+  const isHomePath = pathname === '/homepage' || pathname === '/(tabs)/homepage';
+  const shouldShowAppHeader = isHomePath;
+  const shouldShowLogoutButton = showLogoutButton && shouldShowAppHeader;
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -61,7 +67,12 @@ export default function BaseLayout({
                 <Ionicons name="arrow-back" size={26} color="#333" />
               </TouchableOpacity>
             )}
-            {pathname === '/homepage' && <AppHeader />}
+            {shouldShowAppHeader && <AppHeader />}
+            {shouldShowLogoutButton && (
+              <View style={styles.logoutButtonWrapper}>
+                <LogoutButton />
+              </View>
+            )}
           </View>
         )}
         
@@ -79,7 +90,13 @@ export default function BaseLayout({
               <Text style={styles.stickyHeaderText} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
                 {userName}
               </Text>
-              <View style={styles.placeholder} />
+              {shouldShowLogoutButton ? (
+                <View style={styles.stickyLogoutWrapper}>
+                  <LogoutButton variant="icon" />
+                </View>
+              ) : (
+                <View style={styles.placeholder} />
+              )}
             </View>
           </Animated.View>
         )}
@@ -133,6 +150,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingLeft: 20,
+    position: 'relative',
   },
   headerBackButton: {
     marginTop: 15,
@@ -177,6 +195,15 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 34,
+  },
+  logoutButtonWrapper: {
+    position: 'absolute',
+    right: 0,
+    top: 10,
+  },
+  stickyLogoutWrapper: {
+    width: 34,
+    alignItems: 'flex-end',
   },
   feedbackOverlay: {
     position: 'absolute',

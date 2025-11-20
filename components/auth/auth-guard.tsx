@@ -33,6 +33,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [isLoading, isAuthenticated, hasCheckedAuth]);
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setShowAuthModal(true);
+    }
+  }, [isLoading, isAuthenticated]);
+
   const checkOnboardingStatusForAuthenticatedUser = async () => {
     try {
       setIsCheckingOnboarding(true);
