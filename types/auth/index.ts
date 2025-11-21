@@ -38,6 +38,8 @@ export interface VerifyOtpRequest {
   phone: string;
   reason: 'loginOrRegister';
   isOtpAutoFilled: boolean;
+  isGoogleLogin:false;
+  idToken?:string;
 }
 
 export interface VerifyOtpResponse {

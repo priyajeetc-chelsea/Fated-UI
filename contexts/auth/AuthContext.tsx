@@ -156,6 +156,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         phone: state.phoneNumber,
         reason: 'loginOrRegister',
         isOtpAutoFilled: false,
+        isGoogleLogin:false,
+        idToken: undefined,
       });
 
       if (verifyResponse.msg !== 'success') {
