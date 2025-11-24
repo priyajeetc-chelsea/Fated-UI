@@ -45,12 +45,6 @@ export default function UserProfileLayout({
 }: UserProfileLayoutProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const getS3Url = (key: string) => {
-
-    // Otherwise, prepend the S3 bucket URL
-    return `https://fated-user-uploads-main.s3.ap-south-1.amazonaws.com/${key}`;
-  };
-
   const renderPhotoCard = (photoUrl: string, index: number) => (
     <View key={`photo-${index}`} style={styles.opinionCard}>
       <Image 

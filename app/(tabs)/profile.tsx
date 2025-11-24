@@ -30,11 +30,7 @@ export default function ProfilePage() {
       setIsLoading(false);
     }
   };
-
-  const getS3Url = (key: string) => {
-    return `https://fated-user-uploads-main.s3.ap-south-1.amazonaws.com/${key}`;
-  };
-
+  
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollY = event.nativeEvent.contentOffset.y;
     const shouldShowSticky = scrollY > 20;
