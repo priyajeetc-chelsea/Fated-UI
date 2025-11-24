@@ -49,7 +49,7 @@ export default function ProfilePage() {
   const renderPhotoCard = (photoUrl: string, index: number) => (
     <View key={`photo-${index}`} style={styles.opinionCard}>
       <Image 
-        source={{ uri: getS3Url(photoUrl) }} 
+        source={{ uri: photoUrl }} 
         style={styles.profilePhoto}
         resizeMode="cover"
       />
@@ -290,7 +290,7 @@ export default function ProfilePage() {
             <View style={styles.containerHeader}>
               <View style={styles.userInfoRow}>
                 <Image 
-                  source={{ uri: profile.photoUrls?.[0] ? getS3Url(profile.photoUrls[0]) : `https://picsum.photos/200/200?random=${profile.fname}` }} 
+                  source={{ uri: profile.photoUrls?.[0] }} 
                   style={styles.userPhoto}
                   blurRadius={3}
                 />
