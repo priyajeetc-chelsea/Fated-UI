@@ -1,8 +1,6 @@
 import { AuthModal } from '@/components/auth';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/auth/AuthContext';
-import { apiService } from '@/services/api';
-import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +14,6 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
-  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(false);
 
   useEffect(() => {
     // Once loading is complete and we've checked authentication status
@@ -26,10 +23,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
       // If user is not authenticated, show the auth modal
       if (!isAuthenticated) {
         setShowAuthModal(true);
-      } else {
-        // User is already authenticated, check onboarding status
-        checkOnboardingStatusForAuthenticatedUser();
       }
+      // Removed onboarding check - index.tsx handles that
     }
   }, [isLoading, isAuthenticated, hasCheckedAuth]);
 
@@ -39,53 +34,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [isLoading, isAuthenticated]);
 
-  const checkOnboardingStatusForAuthenticatedUser = async () => {
-    try {
-      setIsCheckingOnboarding(true);
-      console.log('🔍 Checking onboarding status for authenticated user...');
-      const response = await apiService.getOnboardingStatus();
-      
-      console.log('📊 Onboarding response:', response);
-      
-      if (response.model?.onboardingStep) {
-        const step = response.model.onboardingStep.step;
-        
-        console.log('🔍 Current onboarding step:', step);
-        
-        // Only redirect if user is not on step 5 (completed)
-        if (step < 5) {
-          console.log(`📍 Redirecting to onboarding step ${step}`);
-          switch (step) {
-            case 1:
-              router.replace('/onboarding/basic');
-              break;
-            case 2:
-              router.replace('/onboarding/lifestyle');
-              break;
-            case 3:
-              router.replace('/onboarding/takes');
-              break;
-            case 4:
-              router.replace('/onboarding/photos');
-              break;
-          }
-        } else {
-          console.log('✅ Onboarding complete, showing main app');
-          setIsCheckingOnboarding(false);
-        }
-      } else {
-        console.log('⚠️ No onboarding step in response, showing main app');
-        setIsCheckingOnboarding(false);
-      }
-    } catch (error) {
-      console.error('❌ Error checking onboarding status for authenticated user:', error);
-      // On error, just show the main app - don't redirect
-      setIsCheckingOnboarding(false);
-    }
-  };
-
-  // Show loading screen while checking authentication or onboarding
-  if (isLoading || !hasCheckedAuth || isCheckingOnboarding) {
+  // Show loading screen while checking authentication
+  if (isLoading || !hasCheckedAuth) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ThemedView style={styles.loadingContainer}>
@@ -114,50 +64,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
               setShowAuthModal(false);
             }
           }}
-          onAuthSuccess={async () => {
+          onAuthSuccess={() => {
             setShowAuthModal(false);
-            setIsCheckingOnboarding(true);
-            // After successful auth, check onboarding status
-            try {
-              const response = await apiService.getOnboardingStatus();
-              
-              if (response.model?.onboardingStep) {
-                const step = response.model.onboardingStep.step;
-                
-                console.log('🔍 Checking onboarding status after auth:', step);
-                
-                // Navigate based on step
-                switch (step) {
-                  case 1:
-                    router.replace('/onboarding/basic');
-                    break;
-                  case 2:
-                    router.replace('/onboarding/lifestyle');
-                    break;
-                  case 3:
-                    router.replace('/onboarding/takes');
-                    break;
-                  case 4:
-                    router.replace('/onboarding/photos');
-                    break;
-                  case 5:
-                    // Profile complete, stay on current page (home will load)
-                    console.log('✅ Profile complete, staying on home page');
-                    setIsCheckingOnboarding(false);
-                    break;
-                  default:
-                    router.replace('/onboarding/basic');
-                }
-              } else {
-                // No onboarding step found, start onboarding
-                console.log('🆕 New user, starting onboarding');
-                router.replace('/onboarding/basic');
-              }
-            } catch (error) {
-              console.error('Error checking onboarding status:', error);
-              // On error, start onboarding
-              router.replace('/onboarding/basic');
-            }
+            // After successful auth, index.tsx will handle onboarding routing
+            console.log('✅ Auth successful, index.tsx will handle onboarding routing');
           }}
         />
       </ThemedView>

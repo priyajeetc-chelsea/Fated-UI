@@ -6,11 +6,13 @@ import UserProfile from '@/components/user-profile';
 import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
 import { ApiOpinion, ApiUser, MatchRequest, Tag } from '@/types/api';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, AppState, AppStateStatus, StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
   const { setCurrentUser } = useUser();
+  const router = useRouter();
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -29,14 +31,81 @@ export default function HomeScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0));
 
-  // Initial API call
+  // Track if we've redirected to onboarding to prevent infinite loops
+  const hasInitiallyLoaded = React.useRef(false);
+  const isRedirecting = React.useRef(false);
+  const hasCheckedOnboarding = React.useRef(false);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
+  // Listen for app state changes (when user reopens the app)
   useEffect(() => {
-    console.log('🏠 Homepage: Starting initial load...');
-    const defaultRequest = apiService.getDefaultRequest();
-    setCurrentRequest(defaultRequest);
-    loadMatches(defaultRequest);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      // When app comes back to foreground, check onboarding status
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('🔄 App came to foreground, checking onboarding status...');
+        
+        try {
+          const response = await apiService.getOnboardingStatus();
+          
+          if (response.model?.onboardingStep && response.model.onboardingStep.step < 5) {
+            console.log('🚧 User needs to complete onboarding, redirecting to step:', response.model.onboardingStep.step);
+            
+            const { router } = await import('expo-router');
+            
+            switch (response.model.onboardingStep.step) {
+              case 1:
+                router.replace('/onboarding/basic');
+                break;
+              case 2:
+                router.replace('/onboarding/lifestyle');
+                break;
+              case 3:
+                router.replace('/onboarding/takes');
+                break;
+              case 4:
+                router.replace('/onboarding/photos');
+                break;
+            }
+          } else {
+            console.log('✅ Onboarding complete, staying on homepage');
+          }
+        } catch (error) {
+          console.error('❌ Failed to check onboarding status on app resume:', error);
+        }
+      }
+      
+      appStateRef.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
   }, []);
+
+  // Initial API call - use useFocusEffect to handle tab navigation
+  useFocusEffect(
+    useCallback(() => {
+      // Prevent any action if we're currently redirecting to onboarding
+      if (isRedirecting.current) {
+        console.log('🏠 Homepage: Redirect in progress, skipping focus handler');
+        return;
+      }
+      
+      // Only load on the first focus, not every time user navigates back
+      if (!hasInitiallyLoaded.current) {
+        console.log('🏠 Homepage: Starting initial load...');
+        hasInitiallyLoaded.current = true;
+        
+        const defaultRequest = apiService.getDefaultRequest();
+        setCurrentRequest(defaultRequest);
+        
+        // Load matches
+        loadMatches(defaultRequest);
+      } else {
+        console.log('🏠 Homepage: Focused again, skipping reload to prevent infinite loop');
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+  );
   
   // Reset scrolling state when currentUserIndex changes
   useEffect(() => {
@@ -44,54 +113,70 @@ export default function HomeScreen() {
   }, [currentUserIndex]);
 
   const loadMatches = async (request: MatchRequest, isThemeChange = false, appendToExisting = false) => {
+    // Don't load if we're redirecting
+    if (isRedirecting.current) {
+      console.log('⚠️ loadMatches: Redirecting in progress, skipping API call');
+      return;
+    }
+    
     if (!appendToExisting) {
       setIsLoading(true);
     }
     
     try {
+      console.log('📡 loadMatches: Calling /home API with request:', request);
       const response = await apiService.fetchMatches(request);
+      console.log('📡 loadMatches: Received response:', { 
+        userId: response.userId, 
+        onboardingStep: response.onboardingStep,
+        matchesCount: response.matches?.length 
+      });
       
       // Store current user's ID from the response
       if (response.userId) {
         console.log('🏠 Homepage: Setting currentUser with userId =', response.userId);
         setCurrentUser({
           id: response.userId,
-          name: 'Current User', // You can update this with actual name if provided by API
+          name: 'Current User',
         });
       } else {
         console.warn('⚠️ Homepage: API response missing userId!', response);
       }
-      
+
       // Check if user needs to complete onboarding
       if (response.onboardingStep && response.onboardingStep.step < 5) {
-        console.log('🚧 Homepage: User needs to complete onboarding, redirecting to step:', response.onboardingStep.step);
-        // Import router dynamically to avoid circular dependency issues
-        const { router } = await import('expo-router');
-        
-        switch (response.onboardingStep.step) {
-          case 1:
-            router.replace('/onboarding/basic');
-            break;
-          case 2:
-            router.replace('/onboarding/lifestyle');
-            break;
-          case 3:
-            router.replace('/onboarding/takes');
-            break;
-          case 4:
-            router.replace('/onboarding/photos');
-            break;
+        // Only redirect once
+        if (hasCheckedOnboarding.current) {
+          console.log('⚠️ Homepage (loadMatches): Already checked onboarding, not redirecting again');
+          setIsLoading(false);
+          return;
         }
+        
+        console.log('⚠️ Homepage (loadMatches): User in onboarding step', response.onboardingStep.step, '- redirecting');
+        hasCheckedOnboarding.current = true;
+        isRedirecting.current = true; // Mark that we're redirecting
+        const step = response.onboardingStep.step;
+        
+        // Route to the appropriate onboarding screen
+        const onboardingRoutes: Record<number, string> = {
+          1: '/onboarding/basic',
+          2: '/onboarding/lifestyle', 
+          3: '/onboarding/photos',
+          4: '/onboarding/topic-selection',
+        };
+        
+        router.replace(onboardingRoutes[step] as any || '/onboarding/basic');
+        setIsLoading(false);
         return;
       }
 
-      // If matches are null or empty and no onboarding needed, something's wrong
       if (!response.matches || response.matches.length === 0) {
-        console.log('⚠️ No matches available and onboarding complete - this might be an API issue');
+        console.log('⚠️ No matches available');
         setUsers([]);
         if (!appendToExisting) {
           setTags(response.tags?.all || []);
         }
+        setIsLoading(false);
         return;
       }
       
