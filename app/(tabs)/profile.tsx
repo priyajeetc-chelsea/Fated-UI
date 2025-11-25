@@ -288,7 +288,6 @@ export default function ProfilePage() {
                 <Image 
                   source={{ uri: profile.photoUrls?.[0] }} 
                   style={styles.userPhoto}
-                  blurRadius={3}
                 />
                 <Text style={styles.userName}>
                   {profile.fname} {profile.lname || ''}

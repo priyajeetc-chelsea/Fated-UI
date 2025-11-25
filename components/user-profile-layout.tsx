@@ -255,7 +255,6 @@ export default function UserProfileLayout({
               <Image 
                 source={{ uri: userData.photoUrls?.[0]  }} 
                 style={styles.userPhoto}
-                blurRadius={3}
               />
               <ThemedText style={[styles.userName, { color: '#000' }]}>
                 {userData.firstName} {userData.lname || ''}
