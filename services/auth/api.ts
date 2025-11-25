@@ -98,6 +98,44 @@ export class AuthApiService {
   }
 
   /**
+   * Verify Google ID token with backend
+   */
+  async verifyGoogleToken(idToken: string): Promise<VerifyOtpResponse> {
+    try {
+      console.log('🔐 Verifying Google ID token with backend...');
+
+      const response = await fetch(`${this.API_BASE_URL}/otp/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          token: '',
+          otp: '',
+          phone: '',
+          reason: 'loginOrRegister',
+          isOtpAutoFilled: false,
+          isGoogleLogin: true,
+          idToken: idToken,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data: VerifyOtpResponse = await response.json();
+      console.log('✅ Google token verified successfully!');
+      return data;
+    } catch (error) {
+      console.error('❌ Failed to verify Google token:', error);
+      throw new Error(error instanceof Error ? error.message : 'Failed to verify Google login');
+    }
+  }
+
+  /**
    * Exchange custom token for Firebase ID token
    */
   async exchangeCustomTokenForBearer(customToken: string): Promise<ExchangeTokenResponse> {

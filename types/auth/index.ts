@@ -67,6 +67,7 @@ export interface AuthContextType extends AuthState {
   sendOtp: (phoneNumber: string) => Promise<void>;
   verifyOtp: (otp: string) => Promise<void>;
   resendOtp: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
   resetAuthFlow: () => void;

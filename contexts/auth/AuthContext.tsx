@@ -1,4 +1,5 @@
 import { authApiService } from '@/services/auth/api';
+import { GoogleAuthService } from '@/services/auth/google-auth';
 import { AuthContextType, AuthState } from '@/types/auth';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -206,12 +207,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await sendOtp(state.phoneNumber);
   }, [state.phoneNumber, sendOtp]);
 
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: '' }));
+
+      // Step 1: Get Google ID token
+      const googleIdToken = await GoogleAuthService.signIn();
+
+      // Step 2: Verify Google token with backend
+      const verifyResponse = await authApiService.verifyGoogleToken(googleIdToken);
+
+      if (verifyResponse.msg !== 'success') {
+        throw new Error(verifyResponse.msg || 'Failed to verify Google login');
+      }
+
+      // Step 3: Exchange custom token for Firebase ID token
+      const exchangeResponse = await authApiService.exchangeCustomTokenForBearer(
+        verifyResponse.model.customToken
+      );
+
+      // Step 4: Store tokens and user data
+      await Promise.all([
+        authApiService.storeBearerToken(
+          exchangeResponse.idToken,
+          exchangeResponse.refreshToken,
+          exchangeResponse.expiresIn
+        ),
+        verifyResponse.model.user ? 
+          authApiService.storeUserData(verifyResponse.model.user) : 
+          Promise.resolve(),
+      ]);
+
+      setState(prev => ({
+        ...prev,
+        customToken: verifyResponse.model.customToken,
+        bearerToken: `Bearer ${exchangeResponse.idToken}`,
+        user: verifyResponse.model.user,
+        isAuthenticated: true,
+        isLoading: false,
+      }));
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to sign in with Google',
+      }));
+      throw error;
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
       void authApiService.revokeSession();
-      await authApiService.clearAuthData();
+      await Promise.all([
+        authApiService.clearAuthData(),
+        GoogleAuthService.signOut(),
+      ]);
       
       setState({
         ...initialState,
@@ -267,6 +320,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     sendOtp,
     verifyOtp,
     resendOtp,
+    signInWithGoogle,
     signOut,
     clearError,
     resetAuthFlow,

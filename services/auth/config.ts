@@ -27,6 +27,22 @@ export const AuthConfig = {
   FIREBASE_API_KEY: 'AIzaSyCuyHSwvzJFoZihnUjjrxfyt6U45ZYAOd4',
 
   /**
+   * Google OAuth Configuration
+   * Get these from Google Cloud Console: https://console.cloud.google.com/
+   * 
+   * IMPORTANT: Replace these placeholder values with your actual OAuth client IDs
+   */
+  GOOGLE_WEB_CLIENT_ID: '186874701766-oa5kkuclbkbpnqv9n1cuf05fje9ibcvd.apps.googleusercontent.com',
+  GOOGLE_IOS_CLIENT_ID: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com', 
+  GOOGLE_ANDROID_CLIENT_ID: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
+  
+  /**
+   * Expo Client ID (for development)
+   * This is used during Expo Go development
+   */
+  GOOGLE_EXPO_CLIENT_ID: 'YOUR_EXPO_CLIENT_ID.apps.googleusercontent.com',
+
+  /**
    * Development settings
    */
   ENABLE_DEBUG_LOGS: true, // Always show debug logs for real API testing

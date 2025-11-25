@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { GoogleSignInButton } from './google-signin-button';
 
 interface PhoneInputScreenProps {
   onSuccess?: () => void;
@@ -17,8 +18,9 @@ interface PhoneInputScreenProps {
 export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [showPhoneInput, setShowPhoneInput] = useState(false);
   
-  const { sendOtp, isLoading, error, clearError } = useAuth();
+  const { sendOtp, signInWithGoogle, isLoading, error, clearError } = useAuth();
 
   // Validate phone number format
   const validatePhoneNumber = (phone: string): boolean => {
@@ -47,6 +49,15 @@ export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
     if (error) clearError();
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      onSuccess?.();
+    } catch (err) {
+      console.error('Failed to sign in with Google:', err);
+    }
+  };
+
   const handleSendOtp = async () => {
     try {
       // Validate phone number
@@ -73,11 +84,75 @@ export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
     }
   };
 
+  // Show choice screen if user hasn't selected a method yet
+  if (!showPhoneInput) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        
+        <View style={styles.content}>
+          {/* Header */}
+          <View style={styles.choiceHeaderSection}>
+            <Text style={styles.choiceLabel}>Welcome to Fated</Text>
+            <Text style={styles.choiceSubtitle}>Choose how you&apos;d like to continue</Text>
+          </View>
+
+          {/* Google Sign In Button */}
+          <GoogleSignInButton 
+            onPress={handleGoogleSignIn}
+            isLoading={isLoading}
+          />
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Phone Number Button */}
+          <TouchableOpacity
+            style={styles.phoneButton}
+            onPress={() => setShowPhoneInput(true)}
+            disabled={isLoading}
+          >
+            <Ionicons name="phone-portrait" size={20} color="#FFFFFF" style={styles.icon} />
+            <Text style={styles.phoneButtonText}>Continue with Phone Number</Text>
+          </TouchableOpacity>
+
+          {/* Error Message */}
+          {error && (
+            <Text style={styles.errorText}>{error}</Text>
+          )}
+
+          {/* Description */}
+          <Text style={styles.description}>
+            By continuing, you agree to our Terms of Service and Privacy Policy.
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Show phone input screen
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
       <View style={styles.content}>
+        {/* Back button */}
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => {
+            setShowPhoneInput(false);
+            setPhoneNumber('');
+            setPhoneError('');
+            clearError();
+          }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#000000" />
+        </TouchableOpacity>
+
         {/* Phone Icon and Label */}
         <View style={styles.headerSection}>
           <Ionicons name="phone-portrait" size={36} color="#000000" style={styles.phoneIcon} />
@@ -141,6 +216,63 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 120,
   },
+  choiceHeaderSection: {
+    marginBottom: 48,
+    alignItems: 'center',
+  },
+  choiceLabel: {
+    fontSize: 32,
+    fontFamily: 'Playfair Display',
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  choiceSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Playfair Display',
+    color: '#666666',
+    textAlign: 'center',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#CCCCCC',
+  },
+  dividerText: {
+    fontSize: 14,
+    fontFamily: 'Playfair Display',
+    color: '#666666',
+    marginHorizontal: 16,
+  },
+  phoneButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  phoneButtonText: {
+    fontSize: 16,
+    fontFamily: 'Playfair Display',
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  icon: {
+    marginRight: 12,
+  },
+  backButton: {
+    marginBottom: 20,
+    padding: 8,
+    alignSelf: 'flex-start',
+  },
   headerSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -171,7 +303,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Playfair Display',
     color: '#FF0000',
-    marginBottom: 20,
+    marginTop: 20,
+    textAlign: 'center',
   },
   sendButton: {
     backgroundColor: '#000000',
