@@ -13,15 +13,19 @@ import {
   PRONOUNS_OPTIONS,
   SEXUALITY_OPTIONS
 } from '@/types/onboarding';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+
+const BASIC_FORM_STORAGE_KEY = '@fated_onboarding_basic_form';
 
 export default function BasicDetailsForm() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<BasicDetailsFormData>({
     fname: '',
     lname: '',
+    phone: '',
     email: '',
     dob: '',
     gender: {
@@ -41,6 +45,35 @@ export default function BasicDetailsForm() {
 
   const [errors, setErrors] = useState<Partial<Record<keyof BasicDetailsFormData, string>>>({});
 
+  // Load saved form data on mount
+  useEffect(() => {
+    const loadSavedData = async () => {
+      try {
+        const savedData = await AsyncStorage.getItem(BASIC_FORM_STORAGE_KEY);
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          console.log('📝 Basic Form: Loaded saved data from storage');
+          setFormData(parsedData);
+        }
+      } catch (error) {
+        console.error('📝 Basic Form: Failed to load saved data:', error);
+      }
+    };
+    loadSavedData();
+  }, []);
+
+  // Save form data whenever it changes
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await AsyncStorage.setItem(BASIC_FORM_STORAGE_KEY, JSON.stringify(formData));
+      } catch (error) {
+        console.error('📝 Basic Form: Failed to save data:', error);
+      }
+    };
+    saveData();
+  }, [formData]);
+
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof BasicDetailsFormData, string>> = {};
 
@@ -50,9 +83,15 @@ export default function BasicDetailsForm() {
 
     // Last name is optional - no validation needed
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    // Phone number validation
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    // Email is optional - only validate format if provided
+    if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
 
@@ -122,6 +161,10 @@ export default function BasicDetailsForm() {
       const response = await apiService.submitBasicDetails(payload);
       
       if (response.code === 200) {
+        // Clear saved form data after successful submission
+        await AsyncStorage.removeItem(BASIC_FORM_STORAGE_KEY);
+        console.log('📝 Basic Form: Cleared saved data after successful submission');
+        
         // Navigate to next step based on response
         const nextStep = response.model.step;
         switch (nextStep) {
@@ -233,17 +276,30 @@ export default function BasicDetailsForm() {
           placeholder="Enter your last name"
           error={errors.lname}
         />
-
         <ThemedInput
+          label="Phone Number"
+          value={formData.phone}
+          onChangeText={(value) => {
+            // Remove non-digits and limit to 10 characters
+            const digits = value.replace(/\D/g, '').slice(0, 10);
+            updateFormData('phone', digits);
+          }}
+          placeholder="Enter your phone number"
+          keyboardType="numeric"
+          autoCapitalize="none"
+          error={errors.phone}
+          required
+        />
+
+        {/* <ThemedInput
           label="Email"
           value={formData.email}
           onChangeText={(value) => updateFormData('email', value)}
-          placeholder="Enter your email"
+          placeholder="Enter your email (optional)"
           keyboardType="email-address"
           autoCapitalize="none"
           error={errors.email}
-          required
-        />
+        /> */}
 
         <DatePicker
           label="Date of Birth"

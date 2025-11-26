@@ -470,6 +470,27 @@ class ApiService {
     }
   }
 
+  // Get current onboarding step and related data (for step 3, includes tagAndQuestion)
+  async getOnboardingStep(): Promise<any> {
+    try {
+      console.log('📋 Fetching current onboarding step');
+      const response = await this.makeAuthenticatedRequest('/onboarding/step', {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Onboarding step data received:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch onboarding step:', error);
+      throw error;
+    }
+  }
+
   async submitTakes(takesData: import('@/types/onboarding').NewTakesFormData): Promise<any> {
     try {
       console.log('💭 Submitting takes/opinions:', takesData);

@@ -6,6 +6,7 @@ export interface OnboardingStep {
 export interface BasicDetailsFormData {
   fname: string;
   lname: string;
+  phone: string;
   email: string;
   dob: string;
   gender: {

@@ -139,16 +139,25 @@ export default function DatePicker({
                 <Text style={styles.webDateLabel}>Enter your date of birth (YYYY-MM-DD):</Text>
                 <TextInput
                   style={styles.webDateInput}
-                  value={value || selectedDate.toISOString().split('T')[0]}
+                  value={value}
                   onChangeText={(text) => {
+                    // Allow dashes and numbers only
+                    const filtered = text.replace(/[^\d-]/g, '');
+                    
+                    // Limit length to 10 characters (YYYY-MM-DD)
+                    if (filtered.length > 10) return;
+                    
                     // Auto-format as user types
-                    let formatted = text.replace(/\D/g, ''); // Remove non-digits
+                    let formatted = filtered.replace(/-/g, ''); // Remove existing dashes
                     if (formatted.length >= 4) {
                       formatted = formatted.slice(0, 4) + '-' + formatted.slice(4);
                     }
                     if (formatted.length >= 7) {
                       formatted = formatted.slice(0, 7) + '-' + formatted.slice(7, 9);
                     }
+                    
+                    // Update the value immediately for better UX
+                    onDateChange(formatted);
                     
                     // Validate complete date
                     if (formatted.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -158,13 +167,8 @@ export default function DatePicker({
                       
                       if (!isNaN(date.getTime()) && date >= minDate && date <= maxDate) {
                         setSelectedDate(date);
-                        onDateChange(formatted);
-                        // Auto-close modal after a short delay for better UX
-                        setTimeout(() => setShowPicker(false), 1000);
+                        // Don't auto-close - let user click Done button
                       }
-                    } else if (formatted.length <= 10) {
-                      // Allow partial input for better UX
-                      onDateChange(formatted);
                     }
                   }}
                   placeholder="1999-01-15"

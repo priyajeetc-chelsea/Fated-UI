@@ -3,10 +3,13 @@ import ProgressIndicator from '@/components/onboarding/progress-indicator';
 import { apiService } from '@/services/api';
 import { PhotosFormData } from '@/types/onboarding';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+
+const PHOTOS_FORM_STORAGE_KEY = '@fated_onboarding_photos_form';
 
 export default function PhotosForm() {
   const [loading, setLoading] = useState(false);
@@ -17,6 +20,45 @@ export default function PhotosForm() {
     mainPhotoIndex: 0,
   });
   const [uploadedPhotoUrls, setUploadedPhotoUrls] = useState<string[]>([]);
+
+  // Load saved form data on mount
+  useEffect(() => {
+    const loadSavedData = async () => {
+      try {
+        const savedData = await AsyncStorage.getItem(PHOTOS_FORM_STORAGE_KEY);
+        if (savedData) {
+          console.log('Loaded saved photos form data');
+          const parsed = JSON.parse(savedData);
+          if (parsed.formData) {
+            setFormData(parsed.formData);
+          }
+          if (parsed.uploadedPhotoUrls) {
+            setUploadedPhotoUrls(parsed.uploadedPhotoUrls);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved photos form data:', error);
+      }
+    };
+    loadSavedData();
+  }, []);
+
+  // Save form data whenever formData or uploadedPhotoUrls change
+  useEffect(() => {
+    const saveFormData = async () => {
+      try {
+        const dataToSave = {
+          formData,
+          uploadedPhotoUrls,
+        };
+        await AsyncStorage.setItem(PHOTOS_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
+        console.log('Saved photos form data to storage');
+      } catch (error) {
+        console.error('Error saving photos form data:', error);
+      }
+    };
+    saveFormData();
+  }, [formData, uploadedPhotoUrls]);
 
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -152,6 +194,10 @@ export default function PhotosForm() {
       const response = await apiService.submitPhotos({ urls });
       
       if (response.code === 200) {
+        // Clear saved form data after successful submission
+        await AsyncStorage.removeItem(PHOTOS_FORM_STORAGE_KEY);
+        console.log('Cleared photos form data from storage');
+        
         // Profile complete, navigate to home
         router.replace('/(tabs)/homepage');
       } else {

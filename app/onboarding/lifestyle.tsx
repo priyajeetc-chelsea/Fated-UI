@@ -5,15 +5,18 @@ import ThemedInput from '@/components/onboarding/themed-input';
 import ThemedPicker from '@/components/onboarding/themed-picker';
 import { apiService } from '@/services/api';
 import {
-  DRINK_SMOKE_OPTIONS,
-  EDUCATION_LEVELS,
-  HEIGHT_OPTIONS,
-  LifestyleFormData,
-  RELIGIOUS_BELIEFS
+    DRINK_SMOKE_OPTIONS,
+    EDUCATION_LEVELS,
+    HEIGHT_OPTIONS,
+    LifestyleFormData,
+    RELIGIOUS_BELIEFS
 } from '@/types/onboarding';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+
+const LIFESTYLE_FORM_STORAGE_KEY = '@fated_onboarding_lifestyle_form';
 
 export default function LifestyleForm() {
   const [loading, setLoading] = useState(false);
@@ -41,6 +44,35 @@ export default function LifestyleForm() {
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof LifestyleFormData, string>>>({});
+
+  // Load saved form data on mount
+  useEffect(() => {
+    const loadSavedData = async () => {
+      try {
+        const savedData = await AsyncStorage.getItem(LIFESTYLE_FORM_STORAGE_KEY);
+        if (savedData) {
+          console.log('Loaded saved lifestyle form data');
+          setFormData(JSON.parse(savedData));
+        }
+      } catch (error) {
+        console.error('Error loading saved lifestyle form data:', error);
+      }
+    };
+    loadSavedData();
+  }, []);
+
+  // Save form data whenever it changes
+  useEffect(() => {
+    const saveFormData = async () => {
+      try {
+        await AsyncStorage.setItem(LIFESTYLE_FORM_STORAGE_KEY, JSON.stringify(formData));
+        console.log('Saved lifestyle form data to storage');
+      } catch (error) {
+        console.error('Error saving lifestyle form data:', error);
+      }
+    };
+    saveFormData();
+  }, [formData]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof LifestyleFormData, string>> = {};
@@ -91,6 +123,10 @@ export default function LifestyleForm() {
       const response = await apiService.submitLifestyleDetails(formData);
       
       if (response.code === 200) {
+        // Clear saved form data after successful submission
+        await AsyncStorage.removeItem(LIFESTYLE_FORM_STORAGE_KEY);
+        console.log('Cleared lifestyle form data from storage');
+        
         // Navigate to next step based on response
         const nextStep = response.model.step;
         switch (nextStep) {

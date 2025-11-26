@@ -3,12 +3,16 @@ import ProgressIndicator from '@/components/onboarding/progress-indicator';
 import ThemedInput from '@/components/onboarding/themed-input';
 import { apiService } from '@/services/api';
 import { AllTake, NewTakesFormData, TagAndQuestion, TopicTake } from '@/types/onboarding';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
+const TAKES_FORM_STORAGE_KEY = '@fated_onboarding_takes_form';
+
 export default function TakesForm() {
   const [loading, setLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [tagAndQuestions, setTagAndQuestions] = useState<TagAndQuestion[]>([]);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
@@ -17,17 +21,80 @@ export default function TakesForm() {
   const params = useLocalSearchParams();
   const MINIMUM_ANSWERS_REQUIRED = 3;
 
+  // Load saved form data on mount
   useEffect(() => {
-    if (params.tagAndQuestionData && typeof params.tagAndQuestionData === 'string') {
+    const loadSavedData = async () => {
       try {
-        const parsedData: TagAndQuestion[] = JSON.parse(params.tagAndQuestionData);
-        setTagAndQuestions(parsedData);
+        const savedData = await AsyncStorage.getItem(TAKES_FORM_STORAGE_KEY);
+        if (savedData) {
+          console.log('Loaded saved takes form data');
+          const parsed = JSON.parse(savedData);
+          // Convert array back to Map
+          if (parsed.answers) {
+            setAnswers(new Map(parsed.answers));
+          }
+          if (parsed.currentTopicIndex !== undefined) {
+            setCurrentTopicIndex(parsed.currentTopicIndex);
+          }
+          if (parsed.visitedTopics) {
+            setVisitedTopics(new Set(parsed.visitedTopics));
+          }
+        }
       } catch (error) {
-        console.error('Error parsing tagAndQuestion data:', error);
+        console.error('Error loading saved takes form data:', error);
+      }
+    };
+    loadSavedData();
+  }, []);
+
+  // Save form data whenever answers, currentTopicIndex, or visitedTopics change
+  useEffect(() => {
+    const saveFormData = async () => {
+      try {
+        const dataToSave = {
+          answers: Array.from(answers.entries()), // Convert Map to array for JSON
+          currentTopicIndex,
+          visitedTopics: Array.from(visitedTopics), // Convert Set to array for JSON
+        };
+        await AsyncStorage.setItem(TAKES_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
+        console.log('Saved takes form data to storage');
+      } catch (error) {
+        console.error('Error saving takes form data:', error);
+      }
+    };
+    saveFormData();
+  }, [answers, currentTopicIndex, visitedTopics]);
+
+  // Fetch tagAndQuestions from route params OR from API
+  useEffect(() => {
+    const loadTagAndQuestions = async () => {
+      try {
+        // First, try to get from route params
+        if (params.tagAndQuestionData && typeof params.tagAndQuestionData === 'string') {
+          const parsedData: TagAndQuestion[] = JSON.parse(params.tagAndQuestionData);
+          setTagAndQuestions(parsedData);
+          setIsInitializing(false);
+          return;
+        }
+
+        // If no params, fetch from API
+        console.log('No route params, fetching from API...');
+        const response = await apiService.getOnboardingStep();
+        if (response.code === 200 && response.model?.tagAndQuestion) {
+          setTagAndQuestions(response.model.tagAndQuestion);
+          setIsInitializing(false);
+        } else {
+          Alert.alert('Error', 'Failed to load topics. Please try again.');
+          router.back();
+        }
+      } catch (error) {
+        console.error('Error loading tagAndQuestion data:', error);
         Alert.alert('Error', 'Failed to load topics. Please try again.');
         router.back();
       }
-    }
+    };
+
+    loadTagAndQuestions();
   }, [params.tagAndQuestionData]);
 
   const currentTopic = tagAndQuestions[currentTopicIndex];
@@ -116,6 +183,10 @@ export default function TakesForm() {
       const response = await apiService.submitTakes(formData);
       
       if (response.code === 200) {
+        // Clear saved form data after successful submission
+        await AsyncStorage.removeItem(TAKES_FORM_STORAGE_KEY);
+        console.log('Cleared takes form data from storage');
+        
         const nextStep = response.model.step;
         switch (nextStep) {
           case 4:
@@ -144,7 +215,7 @@ export default function TakesForm() {
     }
   };
 
-  if (!currentTopic) {
+  if (isInitializing || !currentTopic) {
     return (
       <View style={styles.container}>
         <Text style={styles.loadingText}>Loading questions...</Text>
