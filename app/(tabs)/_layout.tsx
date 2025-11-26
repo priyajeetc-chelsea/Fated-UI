@@ -3,7 +3,6 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
@@ -12,7 +11,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: 'white',
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
@@ -27,18 +26,18 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="matches"
+        <Tabs.Screen
+        name="potential-matches"
         options={{
-          title: 'Matches',
+          title: 'Potential',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="potential-matches"
+        name="matches"
         options={{
-          title: 'Potential',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="star.fill" color={color} />,
+          title: 'Matches',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="message.badge.filled.fill" color={color} />,
         }}
       />
       <Tabs.Screen

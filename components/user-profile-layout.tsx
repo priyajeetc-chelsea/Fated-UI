@@ -58,65 +58,112 @@ export default function UserProfileLayout({
   const renderDetailsCard = () => (
     <View style={styles.opinionCard}>
       
-      {/* Horizontal grid for first 4 fields */}
-      <View style={styles.gridContainer}>
+      {/* Horizontal scrollable grid for short fields */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.gridScrollContainer}
+        contentContainerStyle={styles.gridContentContainer}
+      >
         {(() => {
           const gridFields = [];
           
-          if (userData.age) {
+          // Helper function to check if value is short enough (less than 10 characters)
+          const isShortValue = (value: any) => {
+            return value && String(value).length < 20;
+          };
+          
+          if (isShortValue(userData.age)) {
             gridFields.push(
-              <View key="age" style={styles.gridItem}>
-                <Ionicons name="calendar" size={16} color="#666" style={styles.gridIcon} />
-                <ThemedText style={styles.gridLabel}>Age</ThemedText>
-                <ThemedText style={styles.gridValue}>{userData.age}</ThemedText>
-              </View>
+              <React.Fragment key="age">
+                <View style={styles.gridItem}>
+                  <Ionicons name="calendar" size={16} color="#666" style={styles.gridIcon} />
+                  <ThemedText style={styles.gridLabel}>Age</ThemedText>
+                  <ThemedText style={styles.gridValue}>{userData.age}</ThemedText>
+                </View>
+              </React.Fragment>
             );
           }
           
-          gridFields.push(
-            <View key="gender" style={styles.gridItem}>
-              <Ionicons name="person" size={16} color="#666" style={styles.gridIcon} />
-              <ThemedText style={styles.gridLabel}>Gender</ThemedText>
-              <ThemedText style={styles.gridValue}>{userData.gender}</ThemedText>
-            </View>
-          );
-          
-          if (userData.sexuality) {
+          if (isShortValue(userData.gender)) {
+            if (gridFields.length > 0) {
+              gridFields.push(<View key="sep-gender" style={styles.verticalSeparator} />);
+            }
             gridFields.push(
-              <View key="sexuality" style={styles.gridItem}>
-                <Ionicons name="heart" size={16} color="#666" style={styles.gridIcon} />
-                <ThemedText style={styles.gridLabel}>Sexuality</ThemedText>
-                <ThemedText style={styles.gridValue}>{userData.sexuality}</ThemedText>
-              </View>
+              <React.Fragment key="gender">
+                <View style={styles.gridItem}>
+                  <Ionicons name="person" size={16} color="#666" style={styles.gridIcon} />
+                  <ThemedText style={styles.gridLabel}>Gender</ThemedText>
+                  <ThemedText style={styles.gridValue}>{userData.gender}</ThemedText>
+                </View>
+              </React.Fragment>
             );
           }
           
-          if (userData.homeTown) {
+          if (isShortValue(userData.sexuality)) {
+            if (gridFields.length > 0) {
+              gridFields.push(<View key="sep-sexuality" style={styles.verticalSeparator} />);
+            }
             gridFields.push(
-              <View key="hometown" style={styles.gridItem}>
-                <Ionicons name="home" size={16} color="#666" style={styles.gridIcon} />
-                <ThemedText style={styles.gridLabel}>Home</ThemedText>
-                <ThemedText style={styles.gridValue} numberOfLines={1}>{userData.homeTown}</ThemedText>
-              </View>
+              <React.Fragment key="sexuality">
+                <View style={styles.gridItem}>
+                  <Ionicons name="heart" size={16} color="#666" style={styles.gridIcon} />
+                  <ThemedText style={styles.gridLabel}>Sexuality</ThemedText>
+                  <ThemedText style={styles.gridValue}>{userData.sexuality}</ThemedText>
+                </View>
+              </React.Fragment>
             );
           }
           
-          if (userData.height) {
+          if (isShortValue(userData.height)) {
+            if (gridFields.length > 0) {
+              gridFields.push(<View key="sep-height" style={styles.verticalSeparator} />);
+            }
             gridFields.push(
-              <View key="height" style={styles.gridItem}>
-                <Ionicons name="resize" size={16} color="#666" style={styles.gridIcon} />
-                <ThemedText style={styles.gridLabel}>Height</ThemedText>
-                <ThemedText style={styles.gridValue}>{userData.height}</ThemedText>
-              </View>
+              <React.Fragment key="height">
+                <View style={styles.gridItem}>
+                  <Ionicons name="resize" size={16} color="#666" style={styles.gridIcon} />
+                  <ThemedText style={styles.gridLabel}>Height</ThemedText>
+                  <ThemedText style={styles.gridValue}>{userData.height}</ThemedText>
+                </View>
+              </React.Fragment>
             );
           }
           
-          // Only return the first 4 fields
-          return gridFields.slice(0, 4);
+          if (isShortValue(userData.pronouns)) {
+            if (gridFields.length > 0) {
+              gridFields.push(<View key="sep-pronouns" style={styles.verticalSeparator} />);
+            }
+            gridFields.push(
+              <React.Fragment key="pronouns">
+                <View style={styles.gridItem}>
+                  <Ionicons name="chatbubble" size={16} color="#666" style={styles.gridIcon} />
+                  <ThemedText style={styles.gridLabel}>Pronouns</ThemedText>
+                  <ThemedText style={styles.gridValue}>{userData.pronouns}</ThemedText>
+                </View>
+              </React.Fragment>
+            );
+          }
+          
+          return gridFields;
         })()}
-      </View>
+      </ScrollView>
       
       <View style={styles.separator} />
+      
+      {/* Longer fields displayed vertically */}
+      {userData.homeTown && (
+        <>
+          <View style={styles.detailRow}>
+            <View style={styles.detailLabelContainer}>
+              <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
+              <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
+            </View>
+            <ThemedText style={styles.detailValue}>{userData.homeTown}</ThemedText>
+          </View>
+          <View style={styles.separator} />
+        </>
+      )}
       
       {userData.currentCity && (
         <>
@@ -441,6 +488,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
     marginVertical: 4,
   },
+  gridScrollContainer: {
+    maxHeight: 100,
+    width: '100%',
+    marginVertical: 4,
+  },
+  gridContentContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -448,9 +504,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   gridItem: {
-    width: '23%',
+    minWidth: 80,
     alignItems: 'center',
     paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   gridIcon: {
     marginBottom: 6,
@@ -467,6 +524,12 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  verticalSeparator: {
+    width: 1,
+    backgroundColor: '#e0e0e0',
+    marginHorizontal: 8,
+    alignSelf: 'stretch',
   },
   crossButton: {
     position: 'absolute',

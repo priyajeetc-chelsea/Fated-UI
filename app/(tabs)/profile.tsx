@@ -58,67 +58,97 @@ export default function ProfilePage() {
     return (
       <View style={styles.opinionCard}>
         
-        {/* Horizontal grid for first 4 fields */}
-        <View style={styles.gridContainer}>
+        {/* Horizontal scrollable grid for short fields */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.gridScrollContainer}
+          contentContainerStyle={styles.gridContentContainer}
+        >
           {(() => {
             const gridFields = [];
             
-            if (profile.showGender) {
+            // Helper function to check if value is short enough (less than 10 characters)
+            const isShortValue = (value: any) => {
+              return value && String(value).length < 10;
+            };
+            
+            if (profile.showGender && isShortValue(profile.gender)) {
               gridFields.push(
-                <View key="gender" style={styles.gridItem}>
-                  <Ionicons name="person" size={16} color="#666" style={styles.gridIcon} />
-                  <Text style={styles.gridLabel}>Gender</Text>
-                  <Text style={styles.gridValue}>{profile.gender}</Text>
-                </View>
+                <React.Fragment key="gender">
+                  <View style={styles.gridItem}>
+                    <Ionicons name="person" size={16} color="#666" style={styles.gridIcon} />
+                    <Text style={styles.gridLabel}>Gender</Text>
+                    <Text style={styles.gridValue}>{profile.gender}</Text>
+                  </View>
+                </React.Fragment>
               );
             }
             
-            if (profile.showSexuality && profile.sexuality) {
+            if (profile.showSexuality && isShortValue(profile.sexuality)) {
+              if (gridFields.length > 0) {
+                gridFields.push(<View key="sep-sexuality" style={styles.verticalSeparator} />);
+              }
               gridFields.push(
-                <View key="sexuality" style={styles.gridItem}>
-                  <Ionicons name="heart" size={16} color="#666" style={styles.gridIcon} />
-                  <Text style={styles.gridLabel}>Sexuality</Text>
-                  <Text style={styles.gridValue}>{profile.sexuality}</Text>
-                </View>
+                <React.Fragment key="sexuality">
+                  <View style={styles.gridItem}>
+                    <Ionicons name="heart" size={16} color="#666" style={styles.gridIcon} />
+                    <Text style={styles.gridLabel}>Sexuality</Text>
+                    <Text style={styles.gridValue}>{profile.sexuality}</Text>
+                  </View>
+                </React.Fragment>
               );
             }
             
-            if (profile.showPronouns) {
+            if (profile.showPronouns && isShortValue(profile.pronouns)) {
+              if (gridFields.length > 0) {
+                gridFields.push(<View key="sep-pronouns" style={styles.verticalSeparator} />);
+              }
               gridFields.push(
-                <View key="pronouns" style={styles.gridItem}>
-                  <Ionicons name="chatbubble" size={16} color="#666" style={styles.gridIcon} />
-                  <Text style={styles.gridLabel}>Pronouns</Text>
-                  <Text style={styles.gridValue}>{profile.pronouns}</Text>
-                </View>
-              );
-            }
-
-            if (profile.homeTown) {
-              gridFields.push(
-                <View key="hometown" style={styles.gridItem}>
-                  <Ionicons name="home" size={16} color="#666" style={styles.gridIcon} />
-                  <Text style={styles.gridLabel}>Home</Text>
-                  <Text style={styles.gridValue} numberOfLines={1}>{profile.homeTown}</Text>
-                </View>
+                <React.Fragment key="pronouns">
+                  <View style={styles.gridItem}>
+                    <Ionicons name="chatbubble" size={16} color="#666" style={styles.gridIcon} />
+                    <Text style={styles.gridLabel}>Pronouns</Text>
+                    <Text style={styles.gridValue}>{profile.pronouns}</Text>
+                  </View>
+                </React.Fragment>
               );
             }
             
-            if (profile.height) {
+            if (isShortValue(profile.height)) {
+              if (gridFields.length > 0) {
+                gridFields.push(<View key="sep-height" style={styles.verticalSeparator} />);
+              }
               gridFields.push(
-                <View key="height" style={styles.gridItem}>
-                  <Ionicons name="resize" size={16} color="#666" style={styles.gridIcon} />
-                  <Text style={styles.gridLabel}>Height</Text>
-                  <Text style={styles.gridValue}>{profile.height}</Text>
-                </View>
+                <React.Fragment key="height">
+                  <View style={styles.gridItem}>
+                    <Ionicons name="resize" size={16} color="#666" style={styles.gridIcon} />
+                    <Text style={styles.gridLabel}>Height</Text>
+                    <Text style={styles.gridValue}>{profile.height}</Text>
+                  </View>
+                </React.Fragment>
               );
             }
             
-            // Only return the first 4 fields
-            return gridFields.slice(0, 4);
+            return gridFields;
           })()}
-        </View>
+        </ScrollView>
         
         <View style={styles.separator} />
+        
+        {/* Longer fields displayed vertically */}
+        {profile.homeTown && (
+          <>
+            <View style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
+                <Text style={styles.detailLabel}>Home Town</Text>
+              </View>
+              <Text style={styles.detailValue}>{profile.homeTown}</Text>
+            </View>
+            <View style={styles.separator} />
+          </>
+        )}
         
         {profile.currentCity && (
           <>
@@ -463,6 +493,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
     marginVertical: 4,
   },
+  gridScrollContainer: {
+    maxHeight: 100,
+    width: '100%',
+    marginVertical: 4,
+  },
+  gridContentContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -470,9 +509,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   gridItem: {
-    width: '23%',
+    minWidth: 80,
     alignItems: 'center',
     paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   gridIcon: {
     marginBottom: 6,
@@ -489,6 +529,12 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  verticalSeparator: {
+    width: 1,
+    backgroundColor: '#e0e0e0',
+    marginHorizontal: 8,
+    alignSelf: 'stretch',
   },
   opinionCard: {
     backgroundColor: 'white',
