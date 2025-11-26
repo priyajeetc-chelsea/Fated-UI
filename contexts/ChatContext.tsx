@@ -53,7 +53,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         const storedChatUser = await AsyncStorage.getItem(CHAT_STORAGE_KEY);
         if (storedChatUser) {
           const chatUser = JSON.parse(storedChatUser);
-          console.log('💬 ChatContext: Loaded chat user from storage:', chatUser);
           setActiveChatUser(chatUser);
         } else {
           console.log('💬 ChatContext: No stored chat user found');
@@ -70,17 +69,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
   // Wrap setActiveChatUser to add logging and persist to storage
   const setActiveChatUserWithLogging = async (user: ChatUser | null) => {
-    console.log('💬 ChatContext: setActiveChatUser called with:', user);
     setActiveChatUser(user);
     
     // Persist to AsyncStorage
     try {
       if (user) {
         await AsyncStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(user));
-        console.log('💬 ChatContext: Chat user saved to storage');
       } else {
         await AsyncStorage.removeItem(CHAT_STORAGE_KEY);
-        console.log('💬 ChatContext: Chat user removed from storage');
       }
     } catch (error) {
       console.error('💬 ChatContext: Failed to save chat user to storage:', error);
@@ -92,8 +88,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     setActiveChatUser: setActiveChatUserWithLogging,
     isLoading,
   };
-
-  console.log('💬 ChatContext: Rendering with activeChatUser =', activeChatUser, 'isLoading =', isLoading);
 
   return (
     <ChatContext.Provider value={value}>

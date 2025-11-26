@@ -1,9 +1,9 @@
+import { clearStoredChatUser } from '@/contexts/ChatContext';
+import { clearStoredUser } from '@/contexts/UserContext';
 import { authApiService } from '@/services/auth/api';
 import { GoogleAuthService } from '@/services/auth/google-auth';
 import { AuthContextType, AuthState } from '@/types/auth';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { clearStoredUser } from '@/contexts/UserContext';
-import { clearStoredChatUser } from '@/contexts/ChatContext';
 
 const initialState: AuthState = {
   phoneNumber: '',

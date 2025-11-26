@@ -7,18 +7,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -60,8 +60,6 @@ export default function ChatScreen() {
     }
   }, [paramUserId, paramUserName, paramUserPhoto, paramMatchUserId, paramIsFinalMatch, paramIsPotentialMatch, setActiveChatUser]);
   
-  console.log('💬 ChatScreen params:', { otherUserId, otherUserName, otherUserPhoto, isFinalMatch, isPotentialMatch });
-  console.log('💬 ChatScreen stored:', activeChatUser);
   
   // Use currentUser.id directly - will be set from homepage response
   // Show loading screen if user is not yet loaded
