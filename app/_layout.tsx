@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthGuard } from '@/components/auth';
+import { ChatProvider } from '@/contexts/ChatContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { AuthProvider } from '@/contexts/auth/AuthContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -48,21 +49,23 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <AuthProvider>
           <UserProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <AuthGuard>
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                  }}
-                >
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-                  <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-                  <Stack.Screen name="chat/[userId]" options={{ headerShown: false }} />
-                </Stack>
-                <StatusBar style="auto" backgroundColor="#f5f5f5" />
-              </AuthGuard>
-            </ThemeProvider>
+            <ChatProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <AuthGuard>
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                    }}
+                  >
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                    <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+                    <Stack.Screen name="chat/[userId]" options={{ headerShown: false }} />
+                  </Stack>
+                  <StatusBar style="auto" backgroundColor="#f5f5f5" />
+                </AuthGuard>
+              </ThemeProvider>
+            </ChatProvider>
           </UserProvider>
         </AuthProvider>
       </SafeAreaProvider>

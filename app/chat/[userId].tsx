@@ -1,3 +1,4 @@
+import { useChatContext } from '@/contexts/ChatContext';
 import { useUser } from '@/contexts/UserContext';
 import { useChat } from '@/hooks/use-chat';
 import { ChatMessage } from '@/services/chat-api';
@@ -25,17 +26,42 @@ export default function ChatScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   
-  // Parse params
+  // Get current user and chat context
   const { currentUser } = useUser();
+  const { activeChatUser, setActiveChatUser } = useChatContext();
   
-  const otherUserId = parseInt(params.userId as string);
-  const otherUserName = params.userName as string;
-  const otherUserPhoto = params.userPhoto as string;
-  const matchUserId = params.matchUserId ? parseInt(params.matchUserId as string) : otherUserId;
-  const isFinalMatch = params.isFinalMatch === 'true';
-  const isPotentialMatch = params.isPotentialMatch === 'true';
+  // Parse params - prefer stored values from context if available
+  const paramUserId = params.userId ? parseInt(params.userId as string) : 0;
+  const paramUserName = params.userName as string;
+  const paramUserPhoto = params.userPhoto as string;
+  const paramMatchUserId = params.matchUserId ? parseInt(params.matchUserId as string) : paramUserId;
+  const paramIsFinalMatch = params.isFinalMatch === 'true';
+  const paramIsPotentialMatch = params.isPotentialMatch === 'true';
+  
+  // Use context values if params are missing/invalid (happens when returning to chat)
+  const otherUserId = paramUserId > 0 ? paramUserId : (activeChatUser?.userId || 0);
+  const otherUserName = paramUserName || activeChatUser?.userName || 'User';
+  const otherUserPhoto = paramUserPhoto || activeChatUser?.userPhoto || '';
+  const matchUserId = paramMatchUserId > 0 ? paramMatchUserId : (activeChatUser?.matchUserId || otherUserId);
+  const isFinalMatch = paramIsFinalMatch || (activeChatUser?.isFinalMatch || false);
+  const isPotentialMatch = paramIsPotentialMatch || (activeChatUser?.isPotentialMatch || false);
+  
+  // Store chat user info when params are valid (first navigation to chat)
+  useEffect(() => {
+    if (paramUserId > 0 && paramUserName) {
+      setActiveChatUser({
+        userId: paramUserId,
+        userName: paramUserName,
+        userPhoto: paramUserPhoto,
+        matchUserId: paramMatchUserId,
+        isFinalMatch: paramIsFinalMatch,
+        isPotentialMatch: paramIsPotentialMatch,
+      });
+    }
+  }, [paramUserId, paramUserName, paramUserPhoto, paramMatchUserId, paramIsFinalMatch, paramIsPotentialMatch, setActiveChatUser]);
   
   console.log('💬 ChatScreen params:', { otherUserId, otherUserName, otherUserPhoto, isFinalMatch, isPotentialMatch });
+  console.log('💬 ChatScreen stored:', activeChatUser);
   
   // Use currentUser.id directly - will be set from homepage response
   // Show loading screen if user is not yet loaded
@@ -47,9 +73,10 @@ export default function ChatScreen() {
 
   // Wait for currentUser to be loaded before initializing chat
   // This prevents issues when navigating to chat before homepage loads
-  const chatEnabled = currentUserId > 0;
+  // Also ensure we have a valid otherUserId from either params or storage
+  const chatEnabled = currentUserId > 0 && otherUserId > 0;
 
-  console.log('💬 ChatScreen: currentUserId =', currentUserId, 'chatEnabled =', chatEnabled);
+  console.log('💬 ChatScreen: currentUserId =', currentUserId, 'otherUserId =', otherUserId, 'chatEnabled =', chatEnabled);
 
   const {
     messages,
@@ -112,6 +139,8 @@ export default function ChatScreen() {
   useEffect(() => {
     return () => {
       webSocketService.forceDisconnectAndReset();
+      // Note: We intentionally DON'T clear activeChatUser here
+      // so it persists when user comes back to chat
     };
   }, []);
 

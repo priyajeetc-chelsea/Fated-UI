@@ -291,16 +291,14 @@ export function PotentialMatchModal({
             <View style={styles.userSection}>
               {isLocked ? (
                 <View style={styles.lockedSection}>
-                  <View style={styles.blurredPhotoContainer}>
-                    <Ionicons name="person" size={40} color="#333" />
-                  </View>
+                
                   <View style={styles.unlockSection}>
                     <Text style={styles.unlockText}>Please like an opinion of this user to unlock match and view each other&apos;s profile</Text>
                   </View>
                 </View>
               ) : (
                 <>
-                  <Image source={{ uri: potentialMatch.photo }} style={styles.profilePhoto} />
+                  {/* <Image source={{ uri: potentialMatch.photo }} style={styles.profilePhoto} /> */}
                   {potentialMatch.waitingForMatchResponse?null:<View style={styles.unlockSection}>
                     <Text style={styles.unlockText}>Please like the profile of this user to unlock final match</Text>
                   </View>}

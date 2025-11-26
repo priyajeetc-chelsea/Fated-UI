@@ -405,9 +405,7 @@ export default function MatchesScreen() {
         </TouchableOpacity>
       );
     } else {
-      const displayPhoto = pm.data.photoUrl && pm.data.photoUrl.trim() !== ''
-        ? pm.data.photoUrl
-        : `https://picsum.photos/200/200?random=${pm.data.userId}`;
+      const displayPhoto = ''
 
       return (
         <TouchableOpacity
@@ -742,83 +740,6 @@ const styles = StyleSheet.create({
   potentialMatchesList: {
     paddingVertical: 10,
   },
-  potentialMatchItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f8f8f8',
-  },
-  hiddenPhoto: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#004242',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 15,
-  },
-  lockedPhotoContainer: {
-    position: 'relative',
-    marginRight: 15,
-  },
-  lockedOverlay: {
-    position: 'absolute',
-    bottom: -8,
-    left: 0,
-    right: 0,
-    backgroundColor: '#004242',
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    alignItems: 'center',
-  },
-  lockedText: {
-    color: '#ffffff',
-    fontSize: 8,
-    fontWeight: '600',
-  },
-  lockHint: {
-    fontSize: 12,
-    color: '#004242',
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  photoContainer: {
-    position: 'relative',
-    marginRight: 15,
-  },
-  placeholderPhoto: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mutualBadge: {
-    position: 'absolute',
-    bottom: -8,
-    left: 0,
-    right: 0,
-    backgroundColor: '#4CAF50',
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    alignItems: 'center',
-  },
-  mutualText: {
-    color: '#ffffff',
-    fontSize: 8,
-    fontWeight: '600',
-  },
-  mutualHint: {
-    fontSize: 12,
-    color: '#4CAF50',
-    fontWeight: '500',
-    marginTop: 2,
-  },
   // WhatsApp-style chat interface for mutual likes
   whatsappChatItem: {
     flexDirection: 'row',
@@ -859,22 +780,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  userImageContainer: {
-    marginRight: 6,
-  },
-  userImageSmall: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  userImagePlaceholder: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   chatName: {
     fontSize: 16,
@@ -943,20 +848,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 10,
     fontWeight: '600',
-  },
-  potentialMatchInfo: {
-    flex: 1,
-  },
-  potentialMatchName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-  likedOpinionPreview: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
-  },
+  }
 
 });
