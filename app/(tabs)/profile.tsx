@@ -58,57 +58,67 @@ export default function ProfilePage() {
     return (
       <View style={styles.opinionCard}>
         
-        {profile.showGender && (
-          <>
-            <View style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="person" size={16} color="#666" style={styles.detailIcon} />
-                <Text style={styles.detailLabel}>Gender</Text>
-              </View>
-              <Text style={styles.detailValue}>{profile.gender}</Text>
-            </View>
-            <View style={styles.separator} />
-          </>
-        )}
-        
-        {profile.showSexuality && profile.sexuality && (
-          <>
-            <View style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="heart" size={16} color="#666" style={styles.detailIcon} />
-                <Text style={styles.detailLabel}>Sexuality</Text>
-              </View>
-              <Text style={styles.detailValue}>{profile.sexuality}</Text>
-            </View>
-            <View style={styles.separator} />
-          </>
-        )}
-        
-        {profile.showPronouns && (
-          <>
-            <View style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="chatbubble" size={16} color="#666" style={styles.detailIcon} />
-                <Text style={styles.detailLabel}>Pronouns</Text>
-              </View>
-              <Text style={styles.detailValue}>{profile.pronouns}</Text>
-            </View>
-            <View style={styles.separator} />
-          </>
-        )}
+        {/* Horizontal grid for first 4 fields */}
+        <View style={styles.gridContainer}>
+          {(() => {
+            const gridFields = [];
+            
+            if (profile.showGender) {
+              gridFields.push(
+                <View key="gender" style={styles.gridItem}>
+                  <Ionicons name="person" size={16} color="#666" style={styles.gridIcon} />
+                  <Text style={styles.gridLabel}>Gender</Text>
+                  <Text style={styles.gridValue}>{profile.gender}</Text>
+                </View>
+              );
+            }
+            
+            if (profile.showSexuality && profile.sexuality) {
+              gridFields.push(
+                <View key="sexuality" style={styles.gridItem}>
+                  <Ionicons name="heart" size={16} color="#666" style={styles.gridIcon} />
+                  <Text style={styles.gridLabel}>Sexuality</Text>
+                  <Text style={styles.gridValue}>{profile.sexuality}</Text>
+                </View>
+              );
+            }
+            
+            if (profile.showPronouns) {
+              gridFields.push(
+                <View key="pronouns" style={styles.gridItem}>
+                  <Ionicons name="chatbubble" size={16} color="#666" style={styles.gridIcon} />
+                  <Text style={styles.gridLabel}>Pronouns</Text>
+                  <Text style={styles.gridValue}>{profile.pronouns}</Text>
+                </View>
+              );
+            }
 
-        {profile.homeTown && (
-          <>
-            <View style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
-                <Text style={styles.detailLabel}>Home Town</Text>
-              </View>
-              <Text style={styles.detailValue}>{profile.homeTown}</Text>
-            </View>
-            <View style={styles.separator} />
-          </>
-        )}
+            if (profile.homeTown) {
+              gridFields.push(
+                <View key="hometown" style={styles.gridItem}>
+                  <Ionicons name="home" size={16} color="#666" style={styles.gridIcon} />
+                  <Text style={styles.gridLabel}>Home</Text>
+                  <Text style={styles.gridValue} numberOfLines={1}>{profile.homeTown}</Text>
+                </View>
+              );
+            }
+            
+            if (profile.height) {
+              gridFields.push(
+                <View key="height" style={styles.gridItem}>
+                  <Ionicons name="resize" size={16} color="#666" style={styles.gridIcon} />
+                  <Text style={styles.gridLabel}>Height</Text>
+                  <Text style={styles.gridValue}>{profile.height}</Text>
+                </View>
+              );
+            }
+            
+            // Only return the first 4 fields
+            return gridFields.slice(0, 4);
+          })()}
+        </View>
+        
+        <View style={styles.separator} />
         
         {profile.currentCity && (
           <>
@@ -452,6 +462,33 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e0e0e0',
     marginVertical: 4,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  gridItem: {
+    width: '23%',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  gridIcon: {
+    marginBottom: 6,
+  },
+  gridLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  gridValue: {
+    fontSize: 13,
+    color: '#333',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   opinionCard: {
     backgroundColor: 'white',

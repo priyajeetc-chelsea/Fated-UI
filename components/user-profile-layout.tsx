@@ -58,53 +58,65 @@ export default function UserProfileLayout({
   const renderDetailsCard = () => (
     <View style={styles.opinionCard}>
       
-      {userData.age && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="calendar" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Age</ThemedText>
+      {/* Horizontal grid for first 4 fields */}
+      <View style={styles.gridContainer}>
+        {(() => {
+          const gridFields = [];
+          
+          if (userData.age) {
+            gridFields.push(
+              <View key="age" style={styles.gridItem}>
+                <Ionicons name="calendar" size={16} color="#666" style={styles.gridIcon} />
+                <ThemedText style={styles.gridLabel}>Age</ThemedText>
+                <ThemedText style={styles.gridValue}>{userData.age}</ThemedText>
+              </View>
+            );
+          }
+          
+          gridFields.push(
+            <View key="gender" style={styles.gridItem}>
+              <Ionicons name="person" size={16} color="#666" style={styles.gridIcon} />
+              <ThemedText style={styles.gridLabel}>Gender</ThemedText>
+              <ThemedText style={styles.gridValue}>{userData.gender}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.age}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      <View style={styles.detailRow}>
-        <View style={styles.detailLabelContainer}>
-          <Ionicons name="person" size={16} color="#666" style={styles.detailIcon} />
-          <ThemedText style={styles.detailLabel}>Gender & Pronouns</ThemedText>
-        </View>
-        <ThemedText style={styles.detailValue}>{userData.gender} • {userData.pronouns}</ThemedText>
+          );
+          
+          if (userData.sexuality) {
+            gridFields.push(
+              <View key="sexuality" style={styles.gridItem}>
+                <Ionicons name="heart" size={16} color="#666" style={styles.gridIcon} />
+                <ThemedText style={styles.gridLabel}>Sexuality</ThemedText>
+                <ThemedText style={styles.gridValue}>{userData.sexuality}</ThemedText>
+              </View>
+            );
+          }
+          
+          if (userData.homeTown) {
+            gridFields.push(
+              <View key="hometown" style={styles.gridItem}>
+                <Ionicons name="home" size={16} color="#666" style={styles.gridIcon} />
+                <ThemedText style={styles.gridLabel}>Home</ThemedText>
+                <ThemedText style={styles.gridValue} numberOfLines={1}>{userData.homeTown}</ThemedText>
+              </View>
+            );
+          }
+          
+          if (userData.height) {
+            gridFields.push(
+              <View key="height" style={styles.gridItem}>
+                <Ionicons name="resize" size={16} color="#666" style={styles.gridIcon} />
+                <ThemedText style={styles.gridLabel}>Height</ThemedText>
+                <ThemedText style={styles.gridValue}>{userData.height}</ThemedText>
+              </View>
+            );
+          }
+          
+          // Only return the first 4 fields
+          return gridFields.slice(0, 4);
+        })()}
       </View>
+      
       <View style={styles.separator} />
-      
-      {userData.sexuality && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="heart" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Sexuality</ThemedText>
-            </View>
-            <ThemedText style={styles.detailValue}>{userData.sexuality}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      {userData.homeTown && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
-            </View>
-            <ThemedText style={styles.detailValue}>{userData.homeTown}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
       
       {userData.currentCity && (
         <>
@@ -184,17 +196,7 @@ export default function UserProfileLayout({
         </>
       )}
       
-      {userData.height && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="resize" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Height</ThemedText>
-            </View>
-            <ThemedText style={styles.detailValue}>{userData.height}</ThemedText>
-          </View>
-        </>
-      )}
+      
     </View>
   );
 
@@ -438,6 +440,33 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e0e0e0',
     marginVertical: 4,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  gridItem: {
+    width: '23%',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  gridIcon: {
+    marginBottom: 6,
+  },
+  gridLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  gridValue: {
+    fontSize: 13,
+    color: '#333',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   crossButton: {
     position: 'absolute',
