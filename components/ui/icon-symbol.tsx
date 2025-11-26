@@ -18,6 +18,7 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'heart.fill': 'favorite',
   'person.fill': 'person',
+  'star.fill': 'star'
 } as IconMapping;
 
 /**

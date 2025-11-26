@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface ChatUser {
   userId: number;
@@ -68,7 +68,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   }, []);
 
   // Wrap setActiveChatUser to add logging and persist to storage
-  const setActiveChatUserWithLogging = async (user: ChatUser | null) => {
+  const setActiveChatUserWithLogging = useCallback(async (user: ChatUser | null) => {
     setActiveChatUser(user);
     
     // Persist to AsyncStorage
@@ -81,7 +81,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('💬 ChatContext: Failed to save chat user to storage:', error);
     }
-  };
+  }, []);
 
   const value: ChatContextType = {
     activeChatUser,

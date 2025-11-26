@@ -58,7 +58,8 @@ export default function ChatScreen() {
         isPotentialMatch: paramIsPotentialMatch,
       });
     }
-  }, [paramUserId, paramUserName, paramUserPhoto, paramMatchUserId, paramIsFinalMatch, paramIsPotentialMatch, setActiveChatUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramUserId, paramUserName, paramUserPhoto, paramMatchUserId, paramIsFinalMatch, paramIsPotentialMatch]);
   
   
   // Use currentUser.id directly - will be set from homepage response

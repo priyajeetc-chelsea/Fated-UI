@@ -18,9 +18,6 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  console.log('💬 useChat: Initialized with currentUserId =', currentUserId, 'otherUserId =', otherUserId, 'enabled =', enabled);
-
   const messagesRef = useRef<ChatMessage[]>([]);
   const lastReadMessageIdRef = useRef<number | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
