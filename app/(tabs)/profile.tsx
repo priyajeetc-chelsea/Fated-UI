@@ -43,7 +43,7 @@ export default function ProfilePage() {
   };
 
   const renderPhotoCard = (photoUrl: string, index: number) => (
-    <View key={`photo-${index}`} style={styles.opinionCard}>
+    <View key={`photo-${index}`} style={styles.photoCardContainer}>
       <Image 
         source={{ uri: photoUrl }} 
         style={styles.profilePhoto}
@@ -57,7 +57,6 @@ export default function ProfilePage() {
     
     return (
       <View style={styles.opinionCard}>
-        <Text style={styles.questionText}>Profile Details</Text>
         
         {profile.showGender && (
           <>
@@ -469,10 +468,24 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  photoCardContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    marginBottom: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
   profilePhoto: {
     width: '100%',
     height: 300,
-    borderRadius: 10,
+    borderRadius: 16,
   },
   themeTag: {
     alignSelf: 'flex-start',

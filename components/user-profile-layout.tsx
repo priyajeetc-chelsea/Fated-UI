@@ -46,7 +46,7 @@ export default function UserProfileLayout({
   const scrollViewRef = useRef<ScrollView>(null);
 
   const renderPhotoCard = (photoUrl: string, index: number) => (
-    <View key={`photo-${index}`} style={styles.opinionCard}>
+    <View key={`photo-${index}`} style={styles.photoCardContainer}>
       <Image 
         source={{ uri: photoUrl }} 
         style={styles.profilePhoto}
@@ -57,7 +57,6 @@ export default function UserProfileLayout({
 
   const renderDetailsCard = () => (
     <View style={styles.opinionCard}>
-      <ThemedText style={styles.questionText}>Profile Details</ThemedText>
       
       {userData.age && (
         <>
@@ -360,6 +359,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  photoCardContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    marginBottom: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
   themeTag: {
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
@@ -394,7 +407,7 @@ const styles = StyleSheet.create({
   profilePhoto: {
     width: '100%',
     height: 300,
-    borderRadius: 10,
+    borderRadius: 16,
   },
   detailRow: {
     flexDirection: 'row',
