@@ -6,18 +6,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -34,6 +34,8 @@ export default function ChatScreen() {
   const matchUserId = params.matchUserId ? parseInt(params.matchUserId as string) : otherUserId;
   const isFinalMatch = params.isFinalMatch === 'true';
   const isPotentialMatch = params.isPotentialMatch === 'true';
+  
+  console.log('💬 ChatScreen params:', { otherUserId, otherUserName, otherUserPhoto, isFinalMatch, isPotentialMatch });
   
   // Use currentUser.id directly - will be set from homepage response
   // Show loading screen if user is not yet loaded
@@ -222,11 +224,15 @@ export default function ChatScreen() {
           </TouchableOpacity>
           
           <View style={styles.headerUserInfo}>
-            {otherUserPhoto && (
+            {otherUserPhoto && otherUserPhoto.trim() !== '' ? (
               <Image 
                 source={{ uri: otherUserPhoto }} 
                 style={styles.headerPhoto}
               />
+            ) : (
+              <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
+                <Ionicons name="person" size={20} color="#999" />
+              </View>
             )}
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>{otherUserName}</Text>
@@ -263,11 +269,16 @@ export default function ChatScreen() {
             disabled={!isFinalMatch}
             activeOpacity={isFinalMatch ? 0.6 : 1}
           >
-            {otherUserPhoto && (
+            {otherUserPhoto && otherUserPhoto.trim() !== '' ? (
               <Image 
                 source={{ uri: otherUserPhoto }} 
                 style={styles.headerPhoto}
+                onError={() => console.log('Failed to load header photo')}
               />
+            ) : (
+              <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
+                <Ionicons name="person" size={20} color="#999" />
+              </View>
             )}
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>{otherUserName}</Text>
@@ -395,6 +406,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 12,
     backgroundColor: '#e0e0e0',
+  },
+  headerPhotoPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTextContainer: {
     flex: 1,

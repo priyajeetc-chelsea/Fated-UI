@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
@@ -13,6 +14,18 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+const USER_STORAGE_KEY = '@fated_current_user';
+
+// Utility function to clear user data (can be called from anywhere)
+export const clearStoredUser = async () => {
+  try {
+    await AsyncStorage.removeItem(USER_STORAGE_KEY);
+    console.log('👤 clearStoredUser: User data cleared from storage');
+  } catch (error) {
+    console.error('👤 clearStoredUser: Failed to clear user from storage:', error);
+  }
+};
 
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -30,16 +43,45 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load user from AsyncStorage on mount
   useEffect(() => {
-    // User will be set dynamically from the homepage API response
-    // No hardcoded initialization needed
-    setIsLoading(false);
+    const loadUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          console.log('👤 UserContext: Loaded user from storage:', user);
+          setCurrentUser(user);
+        } else {
+          console.log('👤 UserContext: No stored user found');
+        }
+      } catch (error) {
+        console.error('👤 UserContext: Failed to load user from storage:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUser();
   }, []);
 
-  // Wrap setCurrentUser to add logging
-  const setCurrentUserWithLogging = (user: User | null) => {
+  // Wrap setCurrentUser to add logging and persist to storage
+  const setCurrentUserWithLogging = async (user: User | null) => {
     console.log('👤 UserContext: setCurrentUser called with:', user);
     setCurrentUser(user);
+    
+    // Persist to AsyncStorage
+    try {
+      if (user) {
+        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+        console.log('👤 UserContext: User saved to storage');
+      } else {
+        await AsyncStorage.removeItem(USER_STORAGE_KEY);
+        console.log('👤 UserContext: User removed from storage');
+      }
+    } catch (error) {
+      console.error('👤 UserContext: Failed to save user to storage:', error);
+    }
   };
 
   const value: UserContextType = {
@@ -48,7 +90,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     isLoading,
   };
 
-  console.log('👤 UserContext: Rendering with currentUser =', currentUser);
+  console.log('👤 UserContext: Rendering with currentUser =', currentUser, 'isLoading =', isLoading);
 
   return (
     <UserContext.Provider value={value}>

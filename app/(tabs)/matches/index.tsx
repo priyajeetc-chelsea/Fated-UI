@@ -131,6 +131,39 @@ export default function MatchesScreen() {
     }
   }, []);
 
+  // Helper function to check if matches data has changed
+  const hasMatchesChanged = useCallback((oldMatches: Match[], newMatches: Match[]) => {
+    if (oldMatches.length !== newMatches.length) return true;
+    
+    return oldMatches.some((oldMatch, index) => {
+      const newMatch = newMatches[index];
+      return oldMatch.id !== newMatch.id ||
+             oldMatch.lastMessage !== newMatch.lastMessage ||
+             oldMatch.unreadCount !== newMatch.unreadCount ||
+             oldMatch.isUnread !== newMatch.isUnread ||
+             oldMatch.photo !== newMatch.photo;
+    });
+  }, []);
+
+  // Helper function to check if potential matches data has changed
+  const hasPotentialMatchesChanged = useCallback((oldMatches: PotentialMatchDisplay[], newMatches: PotentialMatchDisplay[]) => {
+    if (oldMatches.length !== newMatches.length) return true;
+    
+    return oldMatches.some((oldMatch, index) => {
+      const newMatch = newMatches[index];
+      if (oldMatch.type !== newMatch.type) return true;
+      
+      const oldData = oldMatch.data;
+      const newData = newMatch.data;
+      
+      return oldData.userId !== newData.userId ||
+             oldData.unreadCount !== newData.unreadCount ||
+             oldData.isUnread !== newData.isUnread ||
+             oldData.lastMessage?.id !== newData.lastMessage?.id ||
+             oldData.lastMessage?.content !== newData.lastMessage?.content;
+    });
+  }, []);
+
   // Silent fetch for polling (doesn't show errors)
   const silentFetchMatches = useCallback(async () => {
     try {
@@ -144,7 +177,9 @@ export default function MatchesScreen() {
         unreadCount: m.unreadCount ?? 0,
         isUnread: m.isUnread ?? false,
       }));
-      setMatches(confirmed);
+      
+      // Only update if data has changed
+      setMatches(prev => hasMatchesChanged(prev, confirmed) ? confirmed : prev);
       
       const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
         type: 'likesYou',
@@ -166,12 +201,15 @@ export default function MatchesScreen() {
           lastMessage: (pm as any).lastMessage ?? null,
         },
       }));
-      setPotentialMatches([...likesYou, ...mutualLike]);
+      
+      const newPotentialMatches = [...likesYou, ...mutualLike];
+      // Only update if data has changed
+      setPotentialMatches(prev => hasPotentialMatchesChanged(prev, newPotentialMatches) ? newPotentialMatches : prev);
     } catch (error) {
       // Silent fail for polling
       console.error('Silent polling failed:', error);
     }
-  }, []);
+  }, [hasMatchesChanged, hasPotentialMatchesChanged]);
 
   // Calculate total unread count for confirmed matches
   const totalUnreadCount = matches.reduce((total, match) => total + match.unreadCount, 0);

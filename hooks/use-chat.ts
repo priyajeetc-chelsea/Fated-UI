@@ -109,8 +109,8 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
    * Poll for new messages every 3 seconds
    */
   const pollForNewMessages = useCallback(async () => {
-    if (!enabled || !otherUserId || !hasInitializedRef.current || !currentUserId) {
-      return;
+    if (!enabled || !otherUserId || !hasInitializedRef.current || !currentUserId || isSending) {
+      return; // Skip polling while sending to avoid race conditions
     }
 
     try {
@@ -134,23 +134,55 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
         }));
 
         // Find truly new messages (not in current state)
+        // Check both by ID AND by content to avoid duplicates from optimistic updates
         const newMessages = allMessages.filter((msg: ChatMessage) => {
           const isNewMessage = !lastPolledMessageIdRef.current || msg.id > lastPolledMessageIdRef.current;
-          const notInCurrentMessages = !messagesRef.current.some(existingMsg => existingMsg.id === msg.id);
+          const notInCurrentMessages = !messagesRef.current.some(existingMsg => {
+            // Match by ID (if both have real IDs)
+            if (existingMsg.id === msg.id && existingMsg.id < 9999999999999) {
+              return true;
+            }
+            // Match by content and sender to catch optimistic updates
+            // Compare messages sent within last 10 seconds with same content
+            const isSameSender = existingMsg.isSent === msg.isSent;
+            const isSameContent = existingMsg.content.trim() === msg.content.trim();
+            const isRecent = Date.now() - existingMsg.timestamp.getTime() < 10000; // 10 seconds
+            
+            if (isSameSender && isSameContent && isRecent) {
+              // This is likely the same message - update the existing one with real ID
+              return true;
+            }
+            
+            return false;
+          });
           return isNewMessage && notInCurrentMessages;
         });
 
-        // Update read status of existing messages
+        // Update read status of existing messages and replace optimistic messages with real ones
         setMessages(prev => {
           const updatedMessages = prev.map(existingMsg => {
+            // First try to match by ID
             const serverMessage = allMessages.find(serverMsg => serverMsg.id === existingMsg.id);
-            if (serverMessage && (existingMsg.isRead !== serverMessage.isRead || existingMsg.status !== serverMessage.status)) {
-              // Update read status and status from server
+            
+            // If no match by ID, try to match optimistic messages by content
+            const optimisticMatch = !serverMessage && existingMsg.id > 9999999999999 // Likely a temp ID
+              ? allMessages.find(serverMsg => 
+                  serverMsg.isSent === existingMsg.isSent &&
+                  serverMsg.content.trim() === existingMsg.content.trim() &&
+                  Math.abs(Date.now() - existingMsg.timestamp.getTime()) < 10000 // Within 10 seconds
+                )
+              : null;
+            
+            const matchedMessage = serverMessage || optimisticMatch;
+            
+            if (matchedMessage) {
+              // Update with server data (including real ID if it was optimistic)
               return {
                 ...existingMsg,
-                isRead: serverMessage.isRead,
-                readAt: serverMessage.readAt,
-                status: serverMessage.status,
+                id: matchedMessage.id, // Update temp ID to real ID
+                isRead: matchedMessage.isRead,
+                readAt: matchedMessage.readAt,
+                status: matchedMessage.status,
               };
             }
             return existingMsg;
@@ -171,7 +203,7 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
     } catch (error) {
       console.error('Polling failed:', error);
     }
-  }, [enabled, otherUserId, currentUserId]);
+  }, [enabled, otherUserId, currentUserId, isSending]);
 
   /**
    * Ensure WebSocket connection with retry logic
