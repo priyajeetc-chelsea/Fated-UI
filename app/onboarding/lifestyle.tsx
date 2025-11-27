@@ -5,11 +5,11 @@ import ThemedInput from '@/components/onboarding/themed-input';
 import ThemedPicker from '@/components/onboarding/themed-picker';
 import { apiService } from '@/services/api';
 import {
-    DRINK_SMOKE_OPTIONS,
-    EDUCATION_LEVELS,
-    HEIGHT_OPTIONS,
-    LifestyleFormData,
-    RELIGIOUS_BELIEFS
+  DRINK_SMOKE_OPTIONS,
+  EDUCATION_LEVELS,
+  HEIGHT_OPTIONS,
+  LifestyleFormData,
+  RELIGIOUS_BELIEFS
 } from '@/types/onboarding';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -354,5 +354,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 32,
+    marginBottom: 16
   },
 });

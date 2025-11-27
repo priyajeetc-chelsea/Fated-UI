@@ -70,7 +70,7 @@ export default function ProfilePage() {
             
             // Helper function to check if value is short enough (less than 10 characters)
             const isShortValue = (value: any) => {
-              return value && String(value).length < 10;
+              return value && String(value).length < 20;
             };
             
             if (profile.showGender && isShortValue(profile.gender)) {
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: '#333',
   },
   detailValue: {
     fontSize: 14,
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
   gridLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#666',
+    color: '#333',
     marginBottom: 4,
     textAlign: 'center',
   },

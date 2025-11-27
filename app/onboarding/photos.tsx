@@ -78,10 +78,14 @@ export default function PhotosForm() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
+        allowsEditing: Platform.OS === 'ios', // Only enable editing on iOS
         aspect: [3, 4],
         quality: 0.8,
         allowsMultipleSelection: false,
+        // For Android, provide better UX without forced cropping
+        ...(Platform.OS === 'android' && {
+          selectionLimit: 1,
+        }),
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -440,5 +444,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 16,
+    marginBottom: 16
   },
 });

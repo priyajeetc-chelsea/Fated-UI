@@ -422,5 +422,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 32,
+    marginBottom: 16
   },
 });

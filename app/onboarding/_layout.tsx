@@ -1,7 +1,40 @@
 import { Stack } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { BackHandler, Platform } from 'react-native';
 
 export default function OnboardingLayout() {
+  // Prevent Android back button
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        // Return true to prevent default back behavior
+        return true;
+      });
+
+      return () => backHandler.remove();
+    }
+  }, []);
+
+  // Prevent browser back button on web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const handlePopState = (event: PopStateEvent) => {
+        event.preventDefault();
+        window.history.pushState(null, '', window.location.pathname);
+      };
+
+      // Push initial state
+      window.history.pushState(null, '', window.location.pathname);
+      
+      // Listen for back button
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, []);
+
   return (
     <Stack
       screenOptions={{

@@ -213,25 +213,7 @@ export default function ChatScreen() {
           ]}>
             {message.content}
           </Text>
-          
-          {message.isSent && (
-            <View style={styles.messageStatus}>
-              {message.status === 'sending' && (
-                <ActivityIndicator size="small" color="#999" />
-              )}
-              {message.status === 'delivered' && (
-                <Ionicons name="checkmark" size={16} color="#999" />
-              )}
-              {message.status === 'read' && (
-                <Ionicons name="checkmark-done" size={16} color="#4CAF50" />
-              )}
-              {message.status === 'failed' && (
-                <TouchableOpacity onPress={() => retryFailedMessage(message.id)}>
-                  <Ionicons name="alert-circle" size={16} color="#FF5252" />
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+
         </View>
         
         {isLastMessage && message.isSent && (

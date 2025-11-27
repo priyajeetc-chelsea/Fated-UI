@@ -514,5 +514,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 8,
+    marginBottom: 16
   },
 });

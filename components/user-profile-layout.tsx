@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: '#333',
   },
   detailValue: {
     fontSize: 14,
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   gridLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#666',
+    color: '#333',
     marginBottom: 4,
     textAlign: 'center',
   },
