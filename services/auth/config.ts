@@ -34,7 +34,7 @@ export const AuthConfig = {
    */
   GOOGLE_WEB_CLIENT_ID: '186874701766-oa5kkuclbkbpnqv9n1cuf05fje9ibcvd.apps.googleusercontent.com',
   GOOGLE_IOS_CLIENT_ID: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com', 
-  GOOGLE_ANDROID_CLIENT_ID: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
+  GOOGLE_ANDROID_CLIENT_ID: '186874701766-0o838ve0f6pfkr00mvikfajs61meu4fp.apps.googleusercontent.com',
   
   /**
    * Expo Client ID (for development)

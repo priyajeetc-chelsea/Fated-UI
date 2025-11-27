@@ -22,7 +22,6 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.fated.app"
@@ -41,6 +40,9 @@
         }
       ],
       [
+        "@react-native-google-signin/google-signin"
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
@@ -56,6 +58,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0d7c7584-1501-46fe-88f8-e9c80352874f"
+      }
     }
   }
 }
