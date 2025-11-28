@@ -189,7 +189,7 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
                         style={styles.likeProfileButton}
                         onPress={handleContinue}
                     >
-                        <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Send Match</Text>
+                        <Text style={{color: 'white', fontSize: 14, fontWeight: Platform.OS === 'android' ? 'bold' : '600',}}>Send Match</Text>
                         <Ionicons name="heart" size={24} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 19,
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'android' ? 'bold' : '600',
     color: '#000',
     fontFamily: 'Playfair Display',
   },
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   },
   commentLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'android' ? 'bold' : '600',
     color: '#000',
     marginBottom: 12,
   },
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: Platform.OS === 'android' ? 'bold' : '600',
     color: 'white',
   }
 });

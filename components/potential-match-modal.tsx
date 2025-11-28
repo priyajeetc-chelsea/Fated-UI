@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -50,7 +51,6 @@ export function PotentialMatchModal({
 }: PotentialMatchModalProps) {
   const { currentUser } = useUser();
   const [inputText, setInputText] = useState('');
-  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
   const mainScrollRef = useRef<ScrollView>(null);
 
   // Use currentUser.id directly - will be set from homepage response
@@ -76,40 +76,43 @@ export function PotentialMatchModal({
     messages,
     isSending,
     isLoadingMore,
+    hasMoreMessages,
     sendMessage,
     retryFailedMessage,
     markMessagesAsRead,
+    loadMoreMessages,
   } = useChat({
     ...chatConfig,
     enabled: shouldEnableChat || false,
   });
 
-  // Auto-scroll to bottom when new messages arrive (only if user hasn't scrolled up)
+  // Removed auto-scroll functionality to prevent unwanted scrolling behavior
+  const lastMessageIdRef = useRef<number | null>(null);
+  
   useEffect(() => {
-    if (messages.length > 0 && !isUserScrolledUp) {
-      setTimeout(() => {
-        mainScrollRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+    if (messages.length === 0) {
+      lastMessageIdRef.current = null;
+      return;
     }
-  }, [messages, isUserScrolledUp]);
+    
+    const lastMessage = messages[messages.length - 1];
+    lastMessageIdRef.current = lastMessage?.id || null;
+  }, [messages]);
 
-  // Auto-scroll to bottom when modal opens and has messages (to show latest messages)
+  // Initialize message reference when modal opens
   const hasMessages = messages.length > 0;
   useEffect(() => {
     if (visible && hasMessages) {
-      setIsUserScrolledUp(false); // Reset scroll state when modal opens
-      setTimeout(() => {
-        mainScrollRef.current?.scrollToEnd({ animated: false });
-      }, 300);
+      // Initialize the last message ID reference
+      if (messages.length > 0) {
+        lastMessageIdRef.current = messages[messages.length - 1]?.id || null;
+      }
     }
-  }, [visible, hasMessages]);
+  }, [visible, hasMessages, messages]);
 
-  // Auto-scroll when starting to type (focus on input) - always scroll to show typing area
+  // Handle input focus
   const handleInputFocus = () => {
-    setIsUserScrolledUp(false); // Reset scroll state when user starts typing
-    setTimeout(() => {
-      mainScrollRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+    // Input focus handler - removed auto-scroll functionality
   };
 
   // Mark messages as read when modal becomes visible or messages change
@@ -121,13 +124,18 @@ export function PotentialMatchModal({
     }
   }, [visible, shouldEnableChat, messages.length, markMessagesAsRead]);
 
-  // Force cleanup when modal closes
+  // Handle modal visibility changes
   useEffect(() => {
     if (!visible) {
-      console.log('🔄 PotentialMatchModal closed - forcing WebSocket cleanup');
-      webSocketService.forceDisconnectAndReset();
+      console.log('🔄 PotentialMatchModal closed - removing connection reference');
+      // Don't force disconnect, just remove reference to allow proper cleanup
+      webSocketService.removeConnectionReference();
+    } else if (visible && shouldEnableChat) {
+      console.log('🔄 PotentialMatchModal opened - ensuring connection');
+      // When modal opens, ensure we have a fresh connection
+      webSocketService.addConnectionReference(currentUserId);
     }
-  }, [visible]);
+  }, [visible, shouldEnableChat, currentUserId]);
 
   const handleLikeOpinion = () => {
     if (potentialMatch && onLikeOpinion) {
@@ -157,21 +165,10 @@ export function PotentialMatchModal({
     const message = inputText.trim();
     setInputText('');
     
-    // Reset scroll state and auto-scroll when sending a message
-    setIsUserScrolledUp(false);
-    setTimeout(() => {
-      mainScrollRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-    
     const success = await sendMessage(message);
     if (!success) {
       Alert.alert('Failed to send message', 'Please check your connection and try again.');
     }
-    
-    // Ensure scroll to bottom after message is sent
-    setTimeout(() => {
-      mainScrollRef.current?.scrollToEnd({ animated: true });
-    }, 200);
   };
 
   const renderMessage = (message: ChatMessage, index: number) => {
@@ -202,15 +199,6 @@ export function PotentialMatchModal({
           
           {message.isSent && (
             <View style={styles.messageStatus}>
-              {message.status === 'sending' && (
-                <ActivityIndicator size="small" color="#999" />
-              )}
-              {message.status === 'delivered' && (
-                <Ionicons name="checkmark" size={16} color="#999" />
-              )}
-              {message.status === 'read' && (
-                <Ionicons name="checkmark-done" size={16} color="#4CAF50" />
-              )}
               {message.status === 'failed' && (
                 <TouchableOpacity onPress={() => retryFailedMessage(message.id)}>
                   <Ionicons name="alert-circle" size={16} color="#FF5252" />
@@ -280,12 +268,28 @@ export function PotentialMatchModal({
             style={styles.content} 
             showsVerticalScrollIndicator={false} 
             contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              shouldEnableChat ? (
+                <RefreshControl
+                  refreshing={isLoadingMore}
+                  onRefresh={loadMoreMessages}
+                  enabled={hasMoreMessages}
+                  colors={['#004242']}
+                  tintColor="#004242"
+                />
+              ) : undefined
+            }
             onScroll={(event) => {
-              const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-              const isAtBottom = contentOffset.y >= (contentSize.height - layoutMeasurement.height - 50);
-              setIsUserScrolledUp(!isAtBottom);
+              const { contentOffset } = event.nativeEvent;
+              const isAtTop = contentOffset.y <= 0;
+
+              // Load more messages when scrolling to top of chat section (only for chat sections)
+              // Only trigger load more if we have messages (meaning we're in the chat section)
+              if (shouldEnableChat && isAtTop && hasMoreMessages && !isLoadingMore && messages.length > 0) {
+                loadMoreMessages();
+              }
             }}
-            scrollEventThrottle={100}
+            scrollEventThrottle={400}
           >
             {/* User Info */}
             <View style={styles.userSection}>
@@ -715,11 +719,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
   },
   unlockText: {
     flex: 1,

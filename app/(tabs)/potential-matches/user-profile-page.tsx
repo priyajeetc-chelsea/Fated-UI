@@ -62,7 +62,7 @@ export default function UserProfilePage() {
 // Check if this is a confirmed match (to hide action buttons)
   const isConfirmedMatch = params.isConfirmedMatch === 'true';
   const navigateBackToPotentialMatches = () => {
-    router.replace('/potential-matches/potential-match-home');
+    router.replace('/(tabs)/potential-matches');
   };
 
   const handleScroll = (event: any) => {

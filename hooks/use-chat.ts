@@ -43,13 +43,15 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
     try {
       if (!isInitial) setIsLoadingMore(true);
       
+      // Use a reasonable limit for both initial and pagination requests
+      const limit = isInitial ? 20 : 15;
       const lastMessageId = isInitial 
         ? "" 
         : Math.min(...messagesRef.current.map(m => m.id)).toString();
       
       const response = await chatApiService.getChatHistory(
         otherUserId, 
-        10, 
+        limit, 
         lastMessageId
       );
 
@@ -87,11 +89,13 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
         if (newMessages.length > 0) {
           lastPolledMessageIdRef.current = Math.max(...newMessages.map(m => m.id));
         }
+        // For initial load, check if we got the full limit of messages
+        setHasMoreMessages(newMessages.length >= 20);
       } else {
         setMessages(prev => [...newMessages.reverse(), ...prev]);
+        // For pagination, check if we got the full limit
+        setHasMoreMessages(newMessages.length >= 15);
       }
-
-      setHasMoreMessages(newMessages.length === 10);
       
     } catch (error) {
       console.error('Failed to load chat history:', error);
@@ -103,17 +107,41 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
   }, [enabled, otherUserId, currentUserId]);
 
   /**
+   * Ensure WebSocket connection with retry logic
+   */
+  const ensureConnection = useCallback(async () => {
+    if (!enabled || !currentUserId) return;
+
+    try {
+      if (!webSocketService.isConnected()) {
+        await webSocketService.addConnectionReference(currentUserId);
+        setIsConnected(true);
+      }
+    } catch {
+      setIsConnected(false);
+      
+      // Retry connection after 2 seconds
+      if (connectionRetryRef.current) {
+        clearTimeout(connectionRetryRef.current);
+      }
+      connectionRetryRef.current = setTimeout(() => {
+        ensureConnection();
+      }, 2000);
+    }
+  }, [enabled, currentUserId]);
+
+  /**
    * Poll for new messages every 3 seconds
    */
   const pollForNewMessages = useCallback(async () => {
-    if (!enabled || !otherUserId || !hasInitializedRef.current || !currentUserId || isSending) {
+    if (!enabled || !otherUserId || !currentUserId || isSending) {
       return; // Skip polling while sending to avoid race conditions
     }
 
     try {
       const response = await chatApiService.getChatHistory(
         otherUserId,
-        10,
+        20,
         ""
       );
 
@@ -129,6 +157,15 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
           senderId: msg.isSent ? currentUserId : otherUserId,
           receiverId: msg.isSent ? otherUserId : currentUserId,
         }));
+
+        // If this is the first poll after initialization, load all messages
+        if (!hasInitializedRef.current && allMessages.length > 0) {
+          console.log('🔄 Initial poll loading all messages:', allMessages.length);
+          setMessages(allMessages.reverse());
+          hasInitializedRef.current = true;
+          lastPolledMessageIdRef.current = Math.max(...allMessages.map(m => m.id));
+          return;
+        }
 
         // Find truly new messages (not in current state)
         // Check both by ID AND by content to avoid duplicates from optimistic updates
@@ -187,6 +224,7 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
 
           // Add new messages
           if (newMessages.length > 0) {
+            console.log('🆕 Adding new polled messages:', newMessages.length);
             return [...updatedMessages, ...newMessages.reverse()];
           }
           
@@ -199,32 +237,13 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
       }
     } catch (error) {
       console.error('Polling failed:', error);
-    }
-  }, [enabled, otherUserId, currentUserId, isSending]);
-
-  /**
-   * Ensure WebSocket connection with retry logic
-   */
-  const ensureConnection = useCallback(async () => {
-    if (!enabled || !currentUserId) return;
-
-    try {
-      if (!webSocketService.isConnected()) {
-        await webSocketService.addConnectionReference(currentUserId);
-        setIsConnected(true);
+      // If polling fails, it might be due to connection issues
+      // Try to ensure connection for next poll attempt
+      if (enabled && currentUserId) {
+        ensureConnection().catch(console.error);
       }
-    } catch {
-      setIsConnected(false);
-      
-      // Retry connection after 2 seconds
-      if (connectionRetryRef.current) {
-        clearTimeout(connectionRetryRef.current);
-      }
-      connectionRetryRef.current = setTimeout(() => {
-        ensureConnection();
-      }, 2000);
     }
-  }, [enabled, currentUserId]);
+  }, [enabled, otherUserId, currentUserId, isSending, ensureConnection]);
 
   /**
    * Send message via WebSocket with fallback
@@ -355,8 +374,26 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
             receiverId: wsMessage.receiverId,
           };
 
-          setMessages(prev => [...prev, newMessage]);
-          lastPolledMessageIdRef.current = newMessage.id;
+          console.log('📨 Received WebSocket message:', newMessage.content);
+
+          // Check if message already exists to avoid duplicates
+          setMessages(prev => {
+            const exists = prev.some(msg => 
+              msg.id === newMessage.id || 
+              (msg.content === newMessage.content && 
+               msg.senderId === newMessage.senderId && 
+               Math.abs(Date.now() - msg.timestamp.getTime()) < 5000)
+            );
+            
+            if (exists) {
+              console.log('⚠️ Duplicate message detected, skipping');
+              return prev;
+            }
+            
+            return [...prev, newMessage];
+          });
+
+          lastPolledMessageIdRef.current = Math.max(lastPolledMessageIdRef.current || 0, newMessage.id);
 
           // Auto-mark as read if app is active
           if (AppState.currentState === 'active') {
@@ -408,10 +445,18 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
   useEffect(() => {
     if (!enabled || !otherUserId) return;
 
-    // Start polling
-    pollingIntervalRef.current = setInterval(() => {
-      pollForNewMessages();
-    }, 3000);
+    // Start with immediate poll, then continue with interval
+    const startPolling = () => {
+      // Immediate first poll to catch any messages
+      setTimeout(() => pollForNewMessages(), 500);
+      
+      // Regular polling every 3 seconds
+      pollingIntervalRef.current = setInterval(() => {
+        pollForNewMessages();
+      }, 3000);
+    };
+
+    startPolling();
 
     return () => {
       if (pollingIntervalRef.current) {
@@ -469,15 +514,21 @@ export const useChat = ({ currentUserId, otherUserId, isFinalMatch, isPotentialM
       lastReadMessageIdRef.current = null;
       lastPolledMessageIdRef.current = null;
       
-      loadChatHistory(true).then(() => {
+      // Ensure connection is established before loading messages
+      ensureConnection().then(() => {
+        return loadChatHistory(true);
+      }).then(() => {
         // Mark messages as read when chat is first loaded
         setTimeout(() => markMessagesAsRead(), 1000);
+      }).catch((error) => {
+        console.error('Failed to initialize chat:', error);
+        setIsLoading(false);
       });
     } else {
       setMessages([]);
       setIsLoading(false);
     }
-  }, [enabled, otherUserId, loadChatHistory, markMessagesAsRead]);
+  }, [enabled, otherUserId, loadChatHistory, markMessagesAsRead, ensureConnection]);
 
   const loadMoreMessages = useCallback(() => {
     if (!isLoadingMore && hasMoreMessages) {

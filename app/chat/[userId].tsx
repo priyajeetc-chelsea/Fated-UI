@@ -68,7 +68,6 @@ export default function ChatScreen() {
 
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
-  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
 
   // Wait for currentUser to be loaded before initializing chat
   // This prevents issues when navigating to chat before homepage loads
@@ -86,7 +85,6 @@ export default function ChatScreen() {
     isLoadingMore,
     sendMessage,
     loadMoreMessages,
-    retryFailedMessage,
     markMessagesAsRead,
   } = useChat({
     currentUserId,
@@ -96,32 +94,19 @@ export default function ChatScreen() {
     enabled: chatEnabled, // Only enable chat when we have a valid currentUserId
   });
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messages.length > 0 && !isUserScrolledUp) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages, isUserScrolledUp]);
-
-  // Auto-scroll to bottom when chat screen first loads (to show latest messages)
+  // Initial scroll to bottom when chat screen first loads (to show latest messages)
   const hasMessages = messages.length > 0;
   useEffect(() => {
     if (hasMessages) {
-      setIsUserScrolledUp(false);
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
       }, 300);
     }
   }, [hasMessages]); // Trigger only when messages are first loaded
 
-  // Auto-scroll when starting to type (focus on input)
+  // Handle input focus
   const handleInputFocus = () => {
-    setIsUserScrolledUp(false);
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+    // Input focus handler - removed auto-scroll functionality
   };
 
   // Mark messages as read when screen comes into focus
@@ -170,22 +155,10 @@ export default function ChatScreen() {
     const message = inputText.trim();
     setInputText('');
     
-    // Auto-scroll to bottom when sending a message
-    setIsUserScrolledUp(false);
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-    
     const success = await sendMessage(message);
     if (!success) {
       Alert.alert('Failed to send message', 'Please check your connection and try again.');
     }
-    
-    // Ensure scroll to bottom after message is sent
-    setIsUserScrolledUp(false);
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 200);
   };
 
   const renderMessage = (message: ChatMessage, index: number) => {
@@ -326,15 +299,8 @@ export default function ChatScreen() {
             />
           }
           onScroll={(event) => {
-            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            const { contentOffset } = event.nativeEvent;
             const isAtTop = contentOffset.y <= 0;
-            const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 50, 0);
-            const isAtBottom = contentOffset.y >= bottomThreshold;
-
-            setIsUserScrolledUp((prev) => {
-              const next = !isAtBottom;
-              return prev === next ? prev : next;
-            });
 
             if (isAtTop && hasMoreMessages && !isLoadingMore) {
               loadMoreMessages();
@@ -557,6 +523,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#e0e0e0',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingBottom: 24, // Added extra bottom padding for better spacing
   },
   inputWrapper: {
     flexDirection: 'row',

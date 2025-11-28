@@ -304,9 +304,26 @@ export class WebSocketService {
     const isConnecting = this.isConnecting;
     const isConnected = this.isConnected();
     const hasActiveConnections = this.activeConnections > 0;
+    const connectionState = this.getConnectionState();
     
-    // Need refresh if we have active connections but are not connected and not actively connecting
-    const needsRefresh = hasActiveConnections && !isConnected && !isConnecting;
+    // Need refresh if:
+    // 1. We have active connections but are not connected and not actively connecting
+    // 2. Connection is in CLOSING or CLOSED state but we still have active connections
+    // 3. Connection failed multiple times recently
+    const needsRefresh = hasActiveConnections && (
+      (!isConnected && !isConnecting) ||
+      (connectionState === 'CLOSING' || connectionState === 'CLOSED') ||
+      (this.reconnectAttempts >= 3)
+    );
+    
+    console.log('🔍 Connection check:', {
+      isConnecting,
+      isConnected,
+      hasActiveConnections,
+      connectionState,
+      reconnectAttempts: this.reconnectAttempts,
+      needsRefresh
+    });
     
     return needsRefresh;
   }
@@ -380,7 +397,17 @@ export class WebSocketService {
 
     // If connection is in a problematic state, force refresh
     if (this.needsConnectionRefresh()) {
+      console.log('🔄 Connection needs refresh, forcing reconnect');
       return this.forceReconnect(userId);
+    }
+
+    // If we already have an open connection, just ensure user ID is set
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      if (userId) {
+        this.currentUserId = userId;
+      }
+      console.log('✅ WebSocket already connected, reusing connection');
+      return Promise.resolve();
     }
 
     return this.connect(userId);
