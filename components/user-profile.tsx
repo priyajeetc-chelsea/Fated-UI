@@ -99,9 +99,6 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
               <ThemedText style={[styles.userName, { color: '#000' }]}>
                 {user.name}
               </ThemedText>
-               {/* <ThemedText style={styles.userGender}>
-                ({user.gender})
-              </ThemedText> */}
             </View>
           </View>
         )}
@@ -231,10 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 25,
     color: '#000',
     fontFamily: 'Playfair Display Bold',
-  },
-   userGender: {
-    fontSize: 12,
-    color: '#004242',
   },
   opinionsContainer: {
     flex: 1,
