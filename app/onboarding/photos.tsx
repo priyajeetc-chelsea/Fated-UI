@@ -43,23 +43,6 @@ export default function PhotosForm() {
     loadSavedData();
   }, []);
 
-  // Save form data whenever formData or uploadedPhotoUrls change
-  useEffect(() => {
-    const saveFormData = async () => {
-      try {
-        const dataToSave = {
-          formData,
-          uploadedPhotoUrls,
-        };
-        await AsyncStorage.setItem(PHOTOS_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
-        console.log('Saved photos form data to storage');
-      } catch (error) {
-        console.error('Error saving photos form data:', error);
-      }
-    };
-    saveFormData();
-  }, [formData, uploadedPhotoUrls]);
-
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -125,11 +108,22 @@ export default function PhotosForm() {
         const newUploadedUrls = [...uploadedPhotoUrls];
         newUploadedUrls[index] = uploadInfo.s3Key;
         
-        setFormData(prev => ({
-          ...prev,
+        // Update both states in a single batch
+        const updatedFormData = {
+          ...formData,
           photos: newPhotos,
-        }));
+        };
+        
+        setFormData(updatedFormData);
         setUploadedPhotoUrls(newUploadedUrls);
+        
+        // Immediately save to AsyncStorage to prevent data loss on unmount
+        const dataToSave = {
+          formData: updatedFormData,
+          uploadedPhotoUrls: newUploadedUrls,
+        };
+        await AsyncStorage.setItem(PHOTOS_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
+        console.log('Saved photo immediately after upload');
       }
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -140,7 +134,7 @@ export default function PhotosForm() {
     }
   };
 
-  const removePhoto = (index: number) => {
+  const removePhoto = async (index: number) => {
     const newPhotos = [...formData.photos];
     newPhotos.splice(index, 1);
     
@@ -155,19 +149,37 @@ export default function PhotosForm() {
       newMainIndex = formData.mainPhotoIndex - 1;
     }
 
-    setFormData(prev => ({
-      ...prev,
+    const updatedFormData = {
+      ...formData,
       photos: newPhotos,
       mainPhotoIndex: newMainIndex,
-    }));
+    };
+    
+    setFormData(updatedFormData);
     setUploadedPhotoUrls(newUploadedUrls);
+    
+    // Immediately save to AsyncStorage
+    const dataToSave = {
+      formData: updatedFormData,
+      uploadedPhotoUrls: newUploadedUrls,
+    };
+    await AsyncStorage.setItem(PHOTOS_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
   };
 
-  const setMainPhoto = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
+  const setMainPhoto = async (index: number) => {
+    const updatedFormData = {
+      ...formData,
       mainPhotoIndex: index,
-    }));
+    };
+    
+    setFormData(updatedFormData);
+    
+    // Immediately save to AsyncStorage
+    const dataToSave = {
+      formData: updatedFormData,
+      uploadedPhotoUrls,
+    };
+    await AsyncStorage.setItem(PHOTOS_FORM_STORAGE_KEY, JSON.stringify(dataToSave));
   };
 
   const validateForm = (): boolean => {

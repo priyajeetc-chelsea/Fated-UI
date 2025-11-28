@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   topicCardSelected: {
-    backgroundColor: '#F3E8FF',
+    backgroundColor: '#f5f5f5',
     borderColor: '#004242',
   },
   topicContent: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   questionCountSelected: {
-    color: '#7744AA',
+    color: '#000',
   },
   checkbox: {
     width: 28,

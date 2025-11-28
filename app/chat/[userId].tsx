@@ -227,7 +227,10 @@ export default function ChatScreen() {
 
   if (isLoading || !chatEnabled) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView 
+        style={styles.container}
+        edges={Platform.OS === 'android' ? ['top', 'bottom'] : ['top']}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#000" />
@@ -260,7 +263,10 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView 
+      style={styles.container}
+      edges={Platform.OS === 'android' ? ['top', 'bottom'] : ['top']}
+    >
       <KeyboardAvoidingView 
         style={styles.container} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

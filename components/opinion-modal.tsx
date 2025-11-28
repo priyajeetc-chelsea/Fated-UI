@@ -97,6 +97,7 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
               bounces={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
+              scrollEnabled={Platform.OS === 'ios'}
             >
               <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                 <View style={styles.modalContent}>
@@ -115,14 +116,35 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
                     </View>
                     
                     {opinion.text.length > 300 ? (
-                      <TextInput
-                        style={[styles.opinionText, styles.opinionTextContainer]}
-                        value={opinion.text}
-                        multiline={true}
-                        scrollEnabled={true}
-                        editable={false}
-                        textAlignVertical="top"
-                      />
+                      Platform.OS === 'android' ? (
+                        <View style={styles.scrollViewWrapper}>
+                          <ScrollView
+                            style={styles.opinionScrollContainer}
+                            showsVerticalScrollIndicator={true}
+                            nestedScrollEnabled={true}
+                            bounces={false}
+                            scrollIndicatorInsets={{ right: 1 }}
+                            contentContainerStyle={{ paddingBottom: 10 }}
+                            directionalLockEnabled={false}
+                            scrollEventThrottle={16}
+                            removeClippedSubviews={false}
+                            keyboardShouldPersistTaps="handled"
+                          >
+                            <ThemedText style={styles.opinionText}>
+                              {opinion.text}
+                            </ThemedText>
+                          </ScrollView>
+                        </View>
+                      ) : (
+                        <TextInput
+                          style={[styles.opinionText, styles.opinionTextContainer]}
+                          value={opinion.text}
+                          multiline={true}
+                          scrollEnabled={true}
+                          editable={false}
+                          textAlignVertical="top"
+                        />
+                      )
                     ) : (
                       <ThemedText style={styles.opinionTextShort}>
                         {opinion.text}
@@ -237,6 +259,15 @@ const styles = StyleSheet.create({
   },
   opinionTextContainer: {
     height: 280, // Fixed height for scrollable area (300 - header - tags - padding)
+  },
+  scrollViewWrapper: {
+    height: 280, // Fixed height for wrapper
+  },
+  opinionScrollContainer: {
+    flex: 1,
+    borderWidth: 0,
+    paddingRight: 8, // Add some padding for better scroll indicator visibility
+    backgroundColor: 'transparent',
   },
   opinionText: {
     fontSize: 16,

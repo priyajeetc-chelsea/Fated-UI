@@ -61,8 +61,8 @@ export default function UserProfilePage() {
   const [showStickyHeader, setShowStickyHeader] = useState(false);
 // Check if this is a confirmed match (to hide action buttons)
   const isConfirmedMatch = params.isConfirmedMatch === 'true';
-  const navigateBackToMatches = () => {
-    router.replace('/matches');
+  const navigateBackToPotentialMatches = () => {
+    router.replace('/potential-matches/potential-match-home');
   };
 
   const handleScroll = (event: any) => {
@@ -79,7 +79,7 @@ export default function UserProfilePage() {
         console.log('User crossed via final swipe API');
 
         // Navigate to matches page and reload data
-         navigateBackToMatches();
+         navigateBackToPotentialMatches();
 
       } catch (error) {
         console.error('Failed to send final swipe:', error);
@@ -98,7 +98,7 @@ export default function UserProfilePage() {
         console.log('User liked via final swipe API');
         
         // Navigate to matches page and reload data
-  navigateBackToMatches();
+  navigateBackToPotentialMatches();
       } catch (error) {
         console.error('Failed to send final swipe:', error);
         // Still navigate back on error
@@ -247,7 +247,7 @@ export default function UserProfilePage() {
       showBackButton={true}
       userName={user.name}
       isScrolling={showStickyHeader}
-      onBackPress={navigateBackToMatches}
+      onBackPress={navigateBackToPotentialMatches}
     >
       <UserProfileLayout 
         userData={{
