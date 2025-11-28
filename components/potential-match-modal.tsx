@@ -51,6 +51,7 @@ export function PotentialMatchModal({
 }: PotentialMatchModalProps) {
   const { currentUser } = useUser();
   const [inputText, setInputText] = useState('');
+  const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const mainScrollRef = useRef<ScrollView>(null);
 
   // Use currentUser.id directly - will be set from homepage response
@@ -115,6 +116,12 @@ export function PotentialMatchModal({
     // Input focus handler - removed auto-scroll functionality
   };
 
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    mainScrollRef.current?.scrollToEnd({ animated: true });
+    setShowScrollToBottomButton(false);
+  };
+
   // Mark messages as read when modal becomes visible or messages change
   useEffect(() => {
     if (visible && shouldEnableChat && messages.length > 0) {
@@ -164,6 +171,7 @@ export function PotentialMatchModal({
 
     const message = inputText.trim();
     setInputText('');
+    setShowScrollToBottomButton(false); // Hide button when sending
     
     const success = await sendMessage(message);
     if (!success) {
@@ -280,8 +288,15 @@ export function PotentialMatchModal({
               ) : undefined
             }
             onScroll={(event) => {
-              const { contentOffset } = event.nativeEvent;
+              const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
               const isAtTop = contentOffset.y <= 0;
+              const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 50, 0);
+              const isAtBottom = contentOffset.y >= bottomThreshold;
+
+              // Show/hide scroll to bottom button based on scroll position
+              if (shouldEnableChat && messages.length > 0) {
+                setShowScrollToBottomButton(!isAtBottom);
+              }
 
               // Load more messages when scrolling to top of chat section (only for chat sections)
               // Only trigger load more if we have messages (meaning we're in the chat section)
@@ -384,6 +399,16 @@ export function PotentialMatchModal({
               </>
             )}
           </ScrollView>
+
+          {/* Scroll to Bottom Button */}
+          {shouldEnableChat && showScrollToBottomButton && (
+            <TouchableOpacity
+              style={styles.scrollToBottomButton}
+              onPress={scrollToBottom}
+            >
+              <Ionicons name="chevron-down" size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
 
           {/* Input Container - Fixed at bottom when chat is enabled */}
           {shouldEnableChat && (
@@ -726,5 +751,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
     color: '#000',
-  }
+  },
+  scrollToBottomButton: {
+    position: 'absolute',
+    bottom: 90,
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'grey',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
+  },
 });

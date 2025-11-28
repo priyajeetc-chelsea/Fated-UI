@@ -67,6 +67,7 @@ export default function ChatScreen() {
   const currentUserId = currentUser?.id || 0;
 
   const [inputText, setInputText] = useState('');
+  const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Wait for currentUser to be loaded before initializing chat
@@ -109,6 +110,26 @@ export default function ChatScreen() {
     // Input focus handler - removed auto-scroll functionality
   };
 
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+    setShowScrollToBottomButton(false);
+  };
+
+  // Hide scroll button when sending a message
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || isSending) return;
+
+    const message = inputText.trim();
+    setInputText('');
+    setShowScrollToBottomButton(false); // Hide button when sending
+    
+    const success = await sendMessage(message);
+    if (!success) {
+      Alert.alert('Failed to send message', 'Please check your connection and try again.');
+    }
+  };
+
   // Mark messages as read when screen comes into focus
   useFocusEffect(
     useCallback(() => {
@@ -149,17 +170,7 @@ export default function ChatScreen() {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputText.trim() || isSending) return;
 
-    const message = inputText.trim();
-    setInputText('');
-    
-    const success = await sendMessage(message);
-    if (!success) {
-      Alert.alert('Failed to send message', 'Please check your connection and try again.');
-    }
-  };
 
   const renderMessage = (message: ChatMessage, index: number) => {
     const isLastMessage = index === messages.length - 1;
@@ -299,8 +310,15 @@ export default function ChatScreen() {
             />
           }
           onScroll={(event) => {
-            const { contentOffset } = event.nativeEvent;
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
             const isAtTop = contentOffset.y <= 0;
+            const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 50, 0);
+            const isAtBottom = contentOffset.y >= bottomThreshold;
+
+            // Show/hide scroll to bottom button based on scroll position
+            if (messages.length > 0) {
+              setShowScrollToBottomButton(!isAtBottom);
+            }
 
             if (isAtTop && hasMoreMessages && !isLoadingMore) {
               loadMoreMessages();
@@ -324,6 +342,16 @@ export default function ChatScreen() {
             messages.map(renderMessage)
           )}
         </ScrollView>
+
+        {/* Scroll to Bottom Button */}
+        {showScrollToBottomButton && (
+          <TouchableOpacity
+            style={styles.scrollToBottomButton}
+            onPress={scrollToBottom}
+          >
+            <Ionicons name="chevron-down" size={24} color="#fff" />
+          </TouchableOpacity>
+        )}
 
         {/* Input */}
         <View style={styles.inputContainer}>
@@ -553,5 +581,22 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#ccc',
+  },
+  scrollToBottomButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'grey',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
   },
 });
