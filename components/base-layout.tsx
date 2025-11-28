@@ -191,9 +191,8 @@ const styles = StyleSheet.create({
   },
   stickyHeaderText: {
     fontSize: 24,
-    fontWeight: '600',
     color: '#000',
-    fontFamily: 'Playfair Display',
+    fontFamily: 'Playfair Display Bold',
   },
   placeholder: {
     width: 34,

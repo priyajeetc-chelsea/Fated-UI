@@ -391,9 +391,8 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 24,
-    fontWeight: '600',
     color: '#000',
-    fontFamily: 'Playfair Display',
+    fontFamily: 'Playfair Display Bold',
   },
   opinionsContainer: {
     flex: 1,
@@ -453,15 +452,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  cardTitle: {
-    fontSize: 23,
-    lineHeight: 30,
-    letterSpacing: -0.3,
-    color: 'black',
-    fontWeight: '600',
-    fontFamily: 'Playfair Display',
-    marginBottom: 16,
   },
   detailRow: {
     flexDirection: 'row',
@@ -591,8 +581,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     letterSpacing: -0.3,
     color: 'black',
-    fontWeight: '600',
-    fontFamily: 'Playfair Display',
+    fontFamily: 'Playfair Display Bold',
     marginBottom: 10,
   },
   opinionText: {

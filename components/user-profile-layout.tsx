@@ -383,9 +383,8 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 24,
-    fontWeight: '600',
     color: '#000',
-    fontFamily: 'Playfair Display',
+    fontFamily: 'Playfair Display Bold',
   },
   opinionsContainer: {
     flex: 1,
@@ -443,8 +442,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     letterSpacing: -0.3,
     color: 'black',
-    fontWeight: '600',
-    fontFamily: 'Playfair Display',
+    fontFamily: 'Playfair Display Bold',
     marginBottom: 10,
   },
   opinionText: {

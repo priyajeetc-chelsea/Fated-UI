@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   title: {
-    fontSize: 33,
+    fontSize: 28,
     letterSpacing: -1,
     fontFamily: 'Playfair Display',
     lineHeight: 36, // Increased lineHeight to be larger than fontSize (28 * 1.3 ≈ 36)

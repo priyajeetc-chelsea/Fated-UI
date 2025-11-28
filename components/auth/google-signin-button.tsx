@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface GoogleSignInButtonProps {
@@ -65,8 +65,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
-    color: '#000000',
+    fontFamily: 'Playfair Display Bold',
+    color: '#000',
   },
 });

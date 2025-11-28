@@ -78,8 +78,7 @@ const styles = StyleSheet.create({
   letter: {
     fontSize: 45,
     lineHeight: 50,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#004242',
   },
 });

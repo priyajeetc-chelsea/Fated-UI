@@ -233,8 +233,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#000000',
   },
   subtitleSection: {
@@ -273,8 +272,7 @@ const styles = StyleSheet.create({
     borderColor: '#CCCCCC',
     borderRadius: 8,
     fontSize: 20,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#000000',
     textAlign: 'center',
     backgroundColor: '#FFFFFF',
@@ -305,8 +303,7 @@ const styles = StyleSheet.create({
   },
   verifyButtonText: {
     fontSize: 16,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#FFFFFF',
   },
   verifyButtonTextDisabled: {

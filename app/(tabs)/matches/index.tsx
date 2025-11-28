@@ -273,8 +273,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
-    fontFamily:'Playfair Display',
+    fontFamily:'Playfair Display Bold',
     color: '#004242',
   },
   headerBadge: {

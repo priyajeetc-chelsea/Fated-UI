@@ -253,9 +253,8 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 19,
-    fontWeight: Platform.OS === 'android' ? 'bold' : '600',
     color: '#000',
-    fontFamily: 'Playfair Display',
+    fontFamily: 'Playfair Display Bold',
   },
   opinionTextContainer: {
     height: 280, // Fixed height for scrollable area (300 - header - tags - padding)

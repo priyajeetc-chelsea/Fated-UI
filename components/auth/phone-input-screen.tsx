@@ -222,8 +222,7 @@ const styles = StyleSheet.create({
   },
   choiceLabel: {
     fontSize: 32,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#000000',
     marginBottom: 12,
     textAlign: 'center',
@@ -262,8 +261,7 @@ const styles = StyleSheet.create({
   },
   phoneButtonText: {
     fontSize: 16,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#FFFFFF',
   },
   icon: {
@@ -284,8 +282,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 30,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#000000',
   },
   phoneInput: {
@@ -320,8 +317,7 @@ const styles = StyleSheet.create({
   },
   sendButtonText: {
     fontSize: 16,
-    fontFamily: 'Playfair Display',
-    fontWeight: '600',
+    fontFamily: 'Playfair Display Bold',
     color: '#FFFFFF',
   },
   sendButtonTextDisabled: {
