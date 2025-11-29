@@ -28,7 +28,7 @@ export default function RootLayout() {
   // Load Playfair Display font
   const [fontsLoaded] = useFonts({
     'Playfair Display': PlayfairDisplay_400Regular,
-    'Playfair Display 600': PlayfairDisplay_700Bold,
+    'Playfair Display Bold': PlayfairDisplay_700Bold,
   });
 
   useEffect(() => {

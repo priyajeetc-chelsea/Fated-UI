@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 25,
+    lineHeight: 34,
     color: '#000',
     fontFamily: 'Playfair Display Bold',
   },
