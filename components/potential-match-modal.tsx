@@ -12,7 +12,6 @@ import {
   Modal,
   Platform,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PotentialMatch {
   id: string;
@@ -236,7 +236,7 @@ export function PotentialMatchModal({
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="fullScreen"
+      presentationStyle="formSheet"
     >
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView 
