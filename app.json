@@ -2,7 +2,7 @@
   "expo": {
     "name": "fated",
     "slug": "fated",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/fated.png",
     "scheme": "fated",
@@ -22,9 +22,14 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA"
       ],
-      "package": "com.fated.app"
+      "package": "com.fated.app",
+      "largeHeap": true,
+      "hardwareAccelerated": true
     },
     "web": {
       "output": "static",

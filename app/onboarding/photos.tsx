@@ -4,8 +4,9 @@ import { apiService } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useCallback, useState } from 'react';
-import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, AppState, AppStateStatus, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface PhotoSlot {
   id: string;
@@ -17,10 +18,12 @@ interface PhotoSlot {
 
 const MAX_PHOTOS = 6;
 const MIN_PHOTOS = 4;
+const PHOTO_STATE_STORAGE_KEY = '@onboarding_photos_state';
 
 export default function PhotosForm() {
   const [loading, setLoading] = useState(false);
   const [mainPhotoId, setMainPhotoId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Initialize photo slots with unique IDs
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(() =>
@@ -32,6 +35,85 @@ export default function PhotosForm() {
       uploadProgress: '',
     }))
   );
+
+  // Preserve state across Android Activity restarts
+  const photoSlotsRef = useRef(photoSlots);
+  const mainPhotoIdRef = useRef(mainPhotoId);
+  const appState = useRef(AppState.currentState);
+
+  // Load persisted state on mount (critical for Android APK)
+  useEffect(() => {
+    const loadPersistedState = async () => {
+      try {
+        const savedState = await AsyncStorage.getItem(PHOTO_STATE_STORAGE_KEY);
+        if (savedState) {
+          const { photoSlots: savedSlots, mainPhotoId: savedMainId } = JSON.parse(savedState);
+          console.log('🔄 Restored photo state from storage');
+          setPhotoSlots(savedSlots);
+          setMainPhotoId(savedMainId);
+        }
+      } catch (error) {
+        console.error('Error loading persisted photo state:', error);
+      } finally {
+        setIsInitialized(true);
+      }
+    };
+    
+    loadPersistedState();
+  }, []);
+
+  // Persist state to AsyncStorage whenever it changes
+  useEffect(() => {
+    if (!isInitialized) return;
+    
+    const persistState = async () => {
+      try {
+        const stateToSave = {
+          photoSlots,
+          mainPhotoId,
+        };
+        await AsyncStorage.setItem(PHOTO_STATE_STORAGE_KEY, JSON.stringify(stateToSave));
+      } catch (error) {
+        console.error('Error persisting photo state:', error);
+      }
+    };
+
+    persistState();
+  }, [photoSlots, mainPhotoId, isInitialized]);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    photoSlotsRef.current = photoSlots;
+    mainPhotoIdRef.current = mainPhotoId;
+  }, [photoSlots, mainPhotoId]);
+
+  // Handle app state changes (Android lifecycle)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // App has come to the foreground - restore state if needed
+        console.log('📱 App returned to foreground - preserving photo state');
+        
+        // Restore state from refs if component was reset
+        if (photoSlots.length === MAX_PHOTOS && photoSlots.every(slot => !slot.localUri)) {
+          const hasDataInRefs = photoSlotsRef.current.some(slot => slot.localUri);
+          if (hasDataInRefs) {
+            console.log('🔄 Restoring photo state after Activity restart');
+            setPhotoSlots([...photoSlotsRef.current]);
+            setMainPhotoId(mainPhotoIdRef.current);
+          }
+        }
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [photoSlots]);
 
   const updatePhotoSlot = useCallback((id: string, updates: Partial<PhotoSlot>) => {
     setPhotoSlots(prev => prev.map(slot => 
@@ -59,6 +141,7 @@ export default function PhotosForm() {
     });
 
     try {
+      // For Android, use legacy mode to prevent Activity destruction
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: Platform.OS === 'ios',
@@ -67,6 +150,8 @@ export default function PhotosForm() {
         allowsMultipleSelection: false,
         ...(Platform.OS === 'android' && {
           selectionLimit: 1,
+          // Force legacy mode on Android to prevent Activity restart
+          legacy: true,
         }),
       });
 
@@ -182,6 +267,10 @@ export default function PhotosForm() {
       const response = await apiService.submitPhotos({ urls });
       
       if (response.code === 200) {
+        // Clear persisted state on successful submission
+        await AsyncStorage.removeItem(PHOTO_STATE_STORAGE_KEY);
+        console.log('✅ Photo state cleared after successful submission');
+        
         // Success - navigate to homepage
         router.replace('/(tabs)/homepage');
       } else {
