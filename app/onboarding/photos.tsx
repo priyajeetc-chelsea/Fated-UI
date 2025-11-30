@@ -2,11 +2,11 @@ import OnboardingButton from '@/components/onboarding/onboarding-button';
 import ProgressIndicator from '@/components/onboarding/progress-indicator';
 import { apiService } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState, AppStateStatus, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface PhotoSlot {
   id: string;
