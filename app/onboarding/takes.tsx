@@ -205,12 +205,18 @@ export default function TakesForm() {
         const nextStep = response.model.step;
         switch (nextStep) {
           case 4:
+            // Mark that we're moving to step 4 before navigating
+            await AsyncStorage.setItem('@current_onboarding_page', '4');
             router.push('/onboarding/photos');
             break;
           case 5:
+            // Onboarding complete, clear the page marker
+            await AsyncStorage.removeItem('@current_onboarding_page');
             router.replace('/(tabs)/homepage');
             break;
           default:
+            // Default to photos
+            await AsyncStorage.setItem('@current_onboarding_page', '4');
             router.push('/onboarding/photos');
         }
       } else {

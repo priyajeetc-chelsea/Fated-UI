@@ -51,8 +51,17 @@ export default function HomeScreen() {
             console.log('🚧 User needs to complete onboarding, redirecting to step:', response.model.onboardingStep.step);
             
             const { router } = await import('expo-router');
+            const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
             
-            switch (response.model.onboardingStep.step) {
+            // Check cached page first
+            const cachedPage = await AsyncStorage.getItem('@current_onboarding_page');
+            const effectiveStep = cachedPage 
+              ? Math.max(parseInt(cachedPage, 10), response.model.onboardingStep.step)
+              : response.model.onboardingStep.step;
+            
+            console.log('📍 Using effective step:', effectiveStep, '(cached:', cachedPage, ', backend:', response.model.onboardingStep.step, ')');
+            
+            switch (effectiveStep) {
               case 1:
                 router.replace('/onboarding/basic');
                 break;
@@ -157,15 +166,24 @@ export default function HomeScreen() {
         isRedirecting.current = true; // Mark that we're redirecting
         const step = response.onboardingStep.step;
         
+        // Check cached page first for more accurate routing
+        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+        const cachedPage = await AsyncStorage.getItem('@current_onboarding_page');
+        const effectiveStep = cachedPage 
+          ? Math.max(parseInt(cachedPage, 10), step)
+          : step;
+        
+        console.log('📍 Homepage: Using effective step:', effectiveStep, '(cached:', cachedPage, ', backend:', step, ')');
+        
         // Route to the appropriate onboarding screen
         const onboardingRoutes: Record<number, string> = {
           1: '/onboarding/basic',
           2: '/onboarding/lifestyle', 
-          3: '/onboarding/photos',
-          4: '/onboarding/topic-selection',
+          3: '/onboarding/takes',
+          4: '/onboarding/photos',
         };
         
-        router.replace(onboardingRoutes[step] as any || '/onboarding/basic');
+        router.replace(onboardingRoutes[effectiveStep] as any || '/onboarding/basic');
         setIsLoading(false);
         return;
       }

@@ -1,7 +1,10 @@
 import { apiService } from '@/services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+
+const CURRENT_ONBOARDING_PAGE_KEY = '@current_onboarding_page';
 
 export default function Index() {
   const [isChecking, setIsChecking] = useState(true);
@@ -15,6 +18,32 @@ export default function Index() {
   const checkOnboardingStatus = async () => {
     try {
       console.log('🔍 Index: Checking onboarding status...');
+      
+      // First, check if there's a cached current page (more reliable than backend)
+      const cachedPage = await AsyncStorage.getItem(CURRENT_ONBOARDING_PAGE_KEY);
+      if (cachedPage) {
+        const cachedStep = parseInt(cachedPage, 10);
+        console.log('📦 Index: Found cached onboarding step:', cachedStep);
+        
+        // Validate with backend that onboarding is still needed
+        const response = await apiService.getOnboardingStatus();
+        if (response.model?.onboardingStep && response.model.onboardingStep.step < 5) {
+          // Use the higher of cached or backend step (user might have progressed)
+          const effectiveStep = Math.max(cachedStep, response.model.onboardingStep.step);
+          console.log('🚧 Index: Using effective step:', effectiveStep);
+          setShouldRedirectToOnboarding(true);
+          setOnboardingStep(effectiveStep);
+          return;
+        } else {
+          // Backend says complete, clear cache and go to homepage
+          await AsyncStorage.removeItem(CURRENT_ONBOARDING_PAGE_KEY);
+          console.log('✅ Index: Onboarding complete, cleared cache');
+          setShouldRedirectToOnboarding(false);
+          return;
+        }
+      }
+      
+      // No cache, rely on backend
       const response = await apiService.getOnboardingStatus();
       
       if (response.model?.onboardingStep && response.model.onboardingStep.step < 5) {

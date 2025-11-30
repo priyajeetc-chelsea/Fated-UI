@@ -16,15 +16,15 @@ export function WaveText({ text, style }: WaveTextProps) {
     const animations = animatedValues.map((animatedValue, index) => {
       return Animated.loop(
         Animated.sequence([
-          Animated.delay(index * 50), // Stagger the animation
+          Animated.delay(index * 100), // Stagger the animation
           Animated.timing(animatedValue, {
             toValue: 1,
-            duration: 300,
+            duration: 400,
             useNativeDriver: true,
           }),
           Animated.timing(animatedValue, {
             toValue: 0,
-            duration: 300,
+            duration: 400,
             useNativeDriver: true,
           }),
         ])

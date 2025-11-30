@@ -19,6 +19,7 @@ interface PhotoSlot {
 const MAX_PHOTOS = 6;
 const MIN_PHOTOS = 4;
 const PHOTO_STATE_STORAGE_KEY = '@onboarding_photos_state';
+const CURRENT_ONBOARDING_PAGE_KEY = '@current_onboarding_page';
 
 export default function PhotosForm() {
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,21 @@ export default function PhotosForm() {
   const photoSlotsRef = useRef(photoSlots);
   const mainPhotoIdRef = useRef(mainPhotoId);
   const appState = useRef(AppState.currentState);
+  const isUploadingRef = useRef(false); // Track if upload is in progress
+
+  // Mark that we're on step 4 (photos page) when component mounts
+  useEffect(() => {
+    const markCurrentStep = async () => {
+      try {
+        await AsyncStorage.setItem(CURRENT_ONBOARDING_PAGE_KEY, '4');
+        console.log('📍 Marked current onboarding page as step 4 (photos)');
+      } catch (error) {
+        console.error('Error marking current step:', error);
+      }
+    };
+    
+    markCurrentStep();
+  }, []);
 
   // Load persisted state on mount (critical for Android APK)
   useEffect(() => {
@@ -62,49 +78,65 @@ export default function PhotosForm() {
     loadPersistedState();
   }, []);
 
-  // Persist state to AsyncStorage whenever it changes
+  // Persist state to AsyncStorage - DEBOUNCED to prevent constant re-renders
   useEffect(() => {
     if (!isInitialized) return;
     
-    const persistState = async () => {
+    // Don't persist while actively uploading - prevents interference
+    const isAnyUploading = photoSlots.some(slot => slot.isUploading);
+    if (isAnyUploading) {
+      console.log('⏸️ Skipping persistence - upload in progress');
+      return;
+    }
+    
+    const timeoutId = setTimeout(async () => {
       try {
         const stateToSave = {
           photoSlots,
           mainPhotoId,
         };
         await AsyncStorage.setItem(PHOTO_STATE_STORAGE_KEY, JSON.stringify(stateToSave));
+        console.log('💾 Photo state persisted');
       } catch (error) {
         console.error('Error persisting photo state:', error);
       }
-    };
+    }, 500); // Debounce by 500ms to prevent constant saves
 
-    persistState();
+    return () => clearTimeout(timeoutId);
   }, [photoSlots, mainPhotoId, isInitialized]);
 
   // Keep refs in sync with state
   useEffect(() => {
     photoSlotsRef.current = photoSlots;
     mainPhotoIdRef.current = mainPhotoId;
+    isUploadingRef.current = photoSlots.some(slot => slot.isUploading);
   }, [photoSlots, mainPhotoId]);
 
-  // Handle app state changes (Android lifecycle)
+  // Handle app state changes (Android lifecycle) - DISABLED during uploads
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      // Don't interfere if upload is in progress
+      if (isUploadingRef.current) {
+        console.log('⏸️ Ignoring app state change - upload in progress');
+        appState.current = nextAppState;
+        return;
+      }
+
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         // App has come to the foreground - restore state if needed
-        console.log('📱 App returned to foreground - preserving photo state');
+        console.log('📱 App returned to foreground - checking state');
         
-        // Restore state from refs if component was reset
-        if (photoSlots.length === MAX_PHOTOS && photoSlots.every(slot => !slot.localUri)) {
-          const hasDataInRefs = photoSlotsRef.current.some(slot => slot.localUri);
-          if (hasDataInRefs) {
-            console.log('🔄 Restoring photo state after Activity restart');
-            setPhotoSlots([...photoSlotsRef.current]);
-            setMainPhotoId(mainPhotoIdRef.current);
-          }
+        // Only restore if state was actually lost
+        const currentHasPhotos = photoSlots.some(slot => slot.localUri);
+        const refsHavePhotos = photoSlotsRef.current.some(slot => slot.localUri);
+        
+        if (!currentHasPhotos && refsHavePhotos) {
+          console.log('🔄 Restoring photo state after Activity restart');
+          setPhotoSlots([...photoSlotsRef.current]);
+          setMainPhotoId(mainPhotoIdRef.current);
         }
       }
       appState.current = nextAppState;
@@ -134,6 +166,13 @@ export default function PhotosForm() {
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
 
+    // Prevent multiple simultaneous uploads
+    const isAnyUploading = photoSlots.some(slot => slot.isUploading);
+    if (isAnyUploading) {
+      Alert.alert('Upload in Progress', 'Please wait for the current upload to complete.');
+      return;
+    }
+
     // Set uploading state
     updatePhotoSlot(slotId, { 
       isUploading: true, 
@@ -141,19 +180,18 @@ export default function PhotosForm() {
     });
 
     try {
-      // For Android, use legacy mode to prevent Activity destruction
+      console.log('📸 Opening image picker for slot:', slotId);
+      
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: Platform.OS === 'ios',
         aspect: [3, 4],
         quality: 0.8,
         allowsMultipleSelection: false,
-        ...(Platform.OS === 'android' && {
-          selectionLimit: 1,
-          // Force legacy mode on Android to prevent Activity restart
-          legacy: true,
-        }),
+        selectionLimit: 1,
       });
+
+      console.log('📸 Image picker result:', result.canceled ? 'canceled' : 'selected');
 
       if (result.canceled) {
         updatePhotoSlot(slotId, { 
@@ -164,6 +202,7 @@ export default function PhotosForm() {
       }
 
       const imageUri = result.assets[0].uri;
+      console.log('📸 Image selected:', imageUri);
       
       // Update with local preview immediately
       updatePhotoSlot(slotId, { 
@@ -171,8 +210,13 @@ export default function PhotosForm() {
         uploadProgress: 'Getting upload URL...' 
       });
 
+      console.log('📤 Requesting upload URL from server...');
+      
       // Get upload URL from API
       const uploadUrlResponse = await apiService.getPhotoUploadUrls();
+      
+      console.log('📤 Upload URL response:', uploadUrlResponse.code);
+      
       if (uploadUrlResponse.code !== 200) {
         throw new Error(uploadUrlResponse.msg || 'Failed to get upload URL');
       }
@@ -186,6 +230,8 @@ export default function PhotosForm() {
         throw new Error(`Upload slot not available for photo ${slotIndex + 1}`);
       }
 
+      console.log('📤 Starting S3 upload...');
+
       updatePhotoSlot(slotId, { 
         uploadProgress: 'Uploading to server...' 
       });
@@ -196,6 +242,8 @@ export default function PhotosForm() {
         imageUri,
         uploadInfo.contentType
       );
+
+      console.log('✅ Upload successful!');
 
       // Success - update with S3 key and clear uploading state
       updatePhotoSlot(slotId, { 
@@ -210,8 +258,8 @@ export default function PhotosForm() {
       }
 
     } catch (error) {
-      console.error('Error uploading image:', error);
-      Alert.alert('Upload Failed', 'Failed to upload image. Please try again.');
+      console.error('❌ Error uploading image:', error);
+      Alert.alert('Upload Failed', `Failed to upload image. ${error instanceof Error ? error.message : 'Please try again.'}`);
       
       // Reset slot on error
       updatePhotoSlot(slotId, { 
@@ -269,7 +317,8 @@ export default function PhotosForm() {
       if (response.code === 200) {
         // Clear persisted state on successful submission
         await AsyncStorage.removeItem(PHOTO_STATE_STORAGE_KEY);
-        console.log('✅ Photo state cleared after successful submission');
+        await AsyncStorage.removeItem(CURRENT_ONBOARDING_PAGE_KEY);
+        console.log('✅ Photo state and page marker cleared after successful submission');
         
         // Success - navigate to homepage
         router.replace('/(tabs)/homepage');

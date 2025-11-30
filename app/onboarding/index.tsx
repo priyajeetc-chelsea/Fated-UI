@@ -1,4 +1,5 @@
 import { apiService } from '@/services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -16,7 +17,15 @@ export default function OnboardingIndex() {
       const response = await apiService.getOnboardingStatus();
       
       if (response.model?.onboardingStep) {
-        const step = response.model.onboardingStep.step;
+        let step = response.model.onboardingStep.step;
+        
+        // Check cached page for more accurate routing
+        const cachedPage = await AsyncStorage.getItem('@current_onboarding_page');
+        if (cachedPage) {
+          const cachedStep = parseInt(cachedPage, 10);
+          step = Math.max(cachedStep, step);
+          console.log('📍 OnboardingIndex: Using effective step:', step, '(cached:', cachedStep, ', backend:', response.model.onboardingStep.step, ')');
+        }
         
         // Navigate based on step
         switch (step) {
