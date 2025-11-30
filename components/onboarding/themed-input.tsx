@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface ThemedInputProps {
   label: string;
@@ -14,6 +14,8 @@ interface ThemedInputProps {
   required?: boolean;
   showCharacterCount?: boolean;
   maxLength?: number;
+  showKeyboardDismiss?: boolean;
+  minimumCharacters?: number;
 }
 
 export default function ThemedInput({
@@ -29,7 +31,15 @@ export default function ThemedInput({
   required = false,
   showCharacterCount = false,
   maxLength,
+  showKeyboardDismiss = false,
+  minimumCharacters,
 }: ThemedInputProps) {
+  const handleKeyboardDismiss = () => {
+    Keyboard.dismiss();
+  };
+
+  const isMinimumMet = minimumCharacters ? value.trim().length >= minimumCharacters : true;
+  const characterCountColor = minimumCharacters ? (isMinimumMet ? '#4CAF50' : '#FF4444') : '#666';
   return (
     <View style={styles.container}>
       <Text style={styles.label}>
@@ -43,6 +53,7 @@ export default function ThemedInput({
             multiline && styles.multilineInput,
             error && styles.inputError,
             showCharacterCount && multiline && styles.inputWithCounter,
+            showKeyboardDismiss && multiline && styles.inputWithDismissButton,
           ]}
           value={value}
           onChangeText={onChangeText}
@@ -57,9 +68,23 @@ export default function ThemedInput({
           returnKeyType={multiline ? 'default' : 'done'}
         />
         {showCharacterCount && maxLength && (
-          <Text style={styles.characterCounter}>
+          <Text style={[styles.characterCounter, { color: characterCountColor }]}>
             {value.length}/{maxLength}
+            {minimumCharacters && (
+              <Text style={{ fontSize: 10, opacity: 0.8 }}>
+                {' '}{isMinimumMet ? '✓' : `(min ${minimumCharacters})`}
+              </Text>
+            )}
           </Text>
+        )}
+        {showKeyboardDismiss && multiline && Platform.OS !== 'web' && (
+          <TouchableOpacity
+            style={styles.keyboardDismissButton}
+            onPress={handleKeyboardDismiss}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.keyboardDismissText}>Done</Text>
+          </TouchableOpacity>
         )}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
@@ -110,6 +135,9 @@ const styles = StyleSheet.create({
   inputWithCounter: {
     paddingBottom: 30, // Space for character counter
   },
+  inputWithDismissButton: {
+    paddingTop: 40, // Space for keyboard dismiss button when multiline
+  },
   characterCounter: {
     position: 'absolute',
     bottom: 8,
@@ -120,5 +148,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 4,
+  },
+  keyboardDismissButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#004242',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    zIndex: 1,
+  },
+  keyboardDismissText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

@@ -20,6 +20,7 @@ export default function TakesForm() {
   
   const params = useLocalSearchParams();
   const MINIMUM_ANSWERS_REQUIRED = 3;
+  const MINIMUM_CHARACTERS_PER_ANSWER = 50;
 
   // Load saved form data on mount
   useEffect(() => {
@@ -97,14 +98,28 @@ export default function TakesForm() {
     loadTagAndQuestions();
   }, [params.tagAndQuestionData]);
 
-  const currentTopic = tagAndQuestions[currentTopicIndex];
-  const isLastTopic = currentTopicIndex === tagAndQuestions.length - 1;
-  const totalAnsweredCount = answers.size;
-  const canSubmit = totalAnsweredCount >= MINIMUM_ANSWERS_REQUIRED && isLastTopic;
-
   const getQuestionKey = (tagId: number, questionId: number): string => {
     return `${tagId}-${questionId}`;
   };
+
+  const isAnswerValid = (answer: string): boolean => {
+    return answer.trim().length >= MINIMUM_CHARACTERS_PER_ANSWER;
+  };
+
+  const getValidAnswerCount = (): number => {
+    let validCount = 0;
+    answers.forEach(answer => {
+      if (isAnswerValid(answer)) {
+        validCount++;
+      }
+    });
+    return validCount;
+  };
+
+  const currentTopic = tagAndQuestions[currentTopicIndex];
+  const isLastTopic = currentTopicIndex === tagAndQuestions.length - 1;
+  const validAnswerCount = getValidAnswerCount();
+  const canSubmit = validAnswerCount >= MINIMUM_ANSWERS_REQUIRED && isLastTopic;
 
   const updateAnswer = (tagId: number, questionId: number, answer: string) => {
     const key = getQuestionKey(tagId, questionId);
@@ -145,10 +160,10 @@ export default function TakesForm() {
   };
 
   const handleSubmit = async () => {
-    if (totalAnsweredCount < MINIMUM_ANSWERS_REQUIRED) {
+    if (validAnswerCount < MINIMUM_ANSWERS_REQUIRED) {
       Alert.alert(
         'More Answers Needed',
-        `Please answer at least ${MINIMUM_ANSWERS_REQUIRED} questions. You&apos;ve answered ${totalAnsweredCount}.`
+        `Please provide at least ${MINIMUM_ANSWERS_REQUIRED} meaningful answers (minimum ${MINIMUM_CHARACTERS_PER_ANSWER} characters each). You have ${validAnswerCount} valid answers.`
       );
       return;
     }
@@ -162,7 +177,7 @@ export default function TakesForm() {
         
         taq.questions.forEach(question => {
           const answer = getAnswer(taq.tag.id, question.id);
-          if (answer.trim()) {
+          if (isAnswerValid(answer)) {
             topicTakes.push({
               questionId: question.id,
               take: answer
@@ -242,13 +257,13 @@ export default function TakesForm() {
 
           <View style={styles.answerProgress}>
             <Text style={styles.answerProgressText}>
-              You&apos;ve answered {totalAnsweredCount} out of {MINIMUM_ANSWERS_REQUIRED} required questions
+              You have {validAnswerCount} out of {MINIMUM_ANSWERS_REQUIRED} required meaningful answers (min {MINIMUM_CHARACTERS_PER_ANSWER} chars)
             </Text>
             <View style={styles.progressBar}>
               <View 
                 style={[
                   styles.progressBarFill,
-                  { width: `${Math.min((totalAnsweredCount / MINIMUM_ANSWERS_REQUIRED) * 100, 100)}%` }
+                  { width: `${Math.min((validAnswerCount / MINIMUM_ANSWERS_REQUIRED) * 100, 100)}%` }
                 ]}
               />
             </View>
@@ -262,7 +277,7 @@ export default function TakesForm() {
             >
               {tagAndQuestions.map((taq, index) => {
                 const topicAnswerCount = taq.questions.filter(q => 
-                  getAnswer(taq.tag.id, q.id).trim() !== ''
+                  isAnswerValid(getAnswer(taq.tag.id, q.id))
                 ).length;
                 
                 return (
@@ -312,6 +327,8 @@ export default function TakesForm() {
                 numberOfLines={6}
                 showCharacterCount={true}
                 maxLength={500}
+                showKeyboardDismiss={true}
+                minimumCharacters={MINIMUM_CHARACTERS_PER_ANSWER}
               />
             </View>
           ))}
@@ -345,7 +362,7 @@ export default function TakesForm() {
                 />
               ) : (
                 <OnboardingButton
-                  title={totalAnsweredCount >= MINIMUM_ANSWERS_REQUIRED ? "Submit & Continue" : `Answer ${MINIMUM_ANSWERS_REQUIRED - totalAnsweredCount} More`}
+                  title={validAnswerCount >= MINIMUM_ANSWERS_REQUIRED ? "Submit & Continue" : `Need ${MINIMUM_ANSWERS_REQUIRED - validAnswerCount} More Valid Answers`}
                   onPress={handleSubmit}
                   loading={loading}
                   disabled={loading || !canSubmit}

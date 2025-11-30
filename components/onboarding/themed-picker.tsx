@@ -94,7 +94,7 @@ export default function ThemedPicker({
       <Modal
         visible={modalVisible}
         animationType="slide"
-        presentationStyle="pageSheet"
+        presentationStyle="formSheet"
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
