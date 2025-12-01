@@ -536,77 +536,80 @@ class ApiService {
   }
 
   // Upload image to S3 using pre-signed URL
-  async uploadImageToS3(uploadUrl: string, imageUri: string, contentType: string): Promise<void> {
-    try {
-      console.log('📸 Uploading image to S3');
-      console.log('📸 Image URI:', imageUri);
-      console.log('📸 Content Type:', contentType);
-      console.log('📸 Platform:', Platform.OS);
-      
-      // Android APK requires FileSystem.uploadAsync for proper file handling
-      if (Platform.OS === 'android') {
-        console.log('📸 Using FileSystem.uploadAsync for Android...');
-        
-        const uploadResult = await FileSystem.uploadAsync(uploadUrl, imageUri, {
-          httpMethod: 'PUT',
-          headers: {
-            'Content-Type': contentType,
-          },
-        });
+async uploadImageToS3(uploadUrl: string, imageUri: string): Promise<void> {
+  try {
+    console.log("📸 Uploading image to S3");
+    console.log("📸 Image URI:", imageUri);
+    console.log("📸 Platform:", Platform.OS);
 
-        console.log('📸 Upload result status:', uploadResult.status);
-        
-        if (uploadResult.status !== 200) {
-          console.error('📸 Upload failed with body:', uploadResult.body);
-          throw new Error(`S3 upload failed! status: ${uploadResult.status} - ${uploadResult.body}`);
-        }
-        
-        console.log('✅ Image uploaded to S3 successfully (Android)');
-        return;
-      }
-      
-      // iOS and Web can use standard fetch with blob
-      console.log('📸 Using fetch with blob for iOS/Web...');
-      const response = await fetch(imageUri);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image data: ${response.status} ${response.statusText}`);
-      }
-      
-      const blob = await response.blob();
-      console.log('📸 Image blob size:', blob.size, 'bytes');
+    // ----------------------------
+    // ANDROID — BEST & SAFEST METHOD
+    // ----------------------------
+    if (Platform.OS === "android") {
+      console.log("📸 Using RNFS binary upload for Android...");
 
-      if (blob.size === 0) {
-        throw new Error('Image blob is empty - file may not be accessible');
-      }
-
-      console.log('📸 Starting S3 upload...');
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': contentType,
-        },
-        body: blob,
+      // Convert to base64
+      const base64Data = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
       });
 
-      console.log('📸 S3 response status:', uploadResponse.status);
+      const binary = Buffer.from(base64Data, "base64");
 
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('📸 S3 error response:', errorText);
-        throw new Error(`S3 upload failed! status: ${uploadResponse.status} - ${errorText}`);
+      const uploadResp = await fetch(uploadUrl, {
+        method: "PUT",
+        body: binary,    // IMPORTANT: NO HEADERS
+      });
+
+      console.log("📸 Upload result status:", uploadResp.status);
+
+      if (!uploadResp.ok) {
+        const err = await uploadResp.text();
+        console.error("📸 Upload error body:", err);
+        throw new Error(`S3 upload failed! status=${uploadResp.status} - ${err}`);
       }
 
-      console.log('✅ Image uploaded to S3 successfully (iOS/Web)');
-    } catch (error) {
-      console.error('❌ Failed to upload image to S3:', error);
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      }
-      throw error;
+      console.log("✅ Image uploaded to S3 successfully (Android)");
+      return;
     }
+
+    // ----------------------------
+    // iOS + WEB
+    // ----------------------------
+    console.log("📸 Using fetch with blob for iOS/Web...");
+
+    const response = await fetch(imageUri);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image data: ${response.status} ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    console.log("📸 Image blob size:", blob.size);
+
+    if (blob.size === 0) {
+      throw new Error("Image blob is empty — file may not be accessible");
+    }
+
+    console.log("📸 Uploading to S3...");
+    const uploadResp = await fetch(uploadUrl, {
+      method: "PUT",
+      body: blob,       // IMPORTANT: NO HEADERS
+    });
+
+    console.log("📸 S3 response:", uploadResp.status);
+
+    if (!uploadResp.ok) {
+      const errText = await uploadResp.text();
+      console.error("📸 S3 error:", errText);
+      throw new Error(`S3 upload failed! status=${uploadResp.status} - ${errText}`);
+    }
+
+    console.log("✅ Image uploaded to S3 successfully (iOS/Web)");
+  } catch (error) {
+    console.error("❌ Failed to upload image to S3:", error);
+    throw error;
   }
+}
+
 
   // Submit uploaded photo URLs
   async submitPhotos(photoSubmissionData: PhotoSubmissionData): Promise<any> {

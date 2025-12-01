@@ -11,7 +11,7 @@ import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, Touchabl
 
 const PHOTOS_STORAGE_KEY = '@fated_onboarding_photos';
 const MAX_PHOTOS = 6;
-const MIN_PHOTOS = 3;
+const MIN_PHOTOS = 4;
 
 interface PhotoData {
   localUri: string;
@@ -122,7 +122,6 @@ export default function PhotosForm() {
       await apiService.uploadImageToS3(
         uploadUrl.uploadUrl,
         imageUri,
-        uploadUrl.contentType
       );
 
       // Update local state
