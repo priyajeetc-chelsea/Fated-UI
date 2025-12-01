@@ -56,7 +56,19 @@ export default function Index() {
       }
     } catch (error) {
       console.error('❌ Index: Failed to check onboarding status:', error);
-      // On error, proceed to homepage (user might need to login)
+      
+      // Check if it's an authentication error
+      if (error instanceof Error && 
+          (error.message.includes('Authentication expired') ||
+           error.message.includes('Session expired') ||
+           error.message.includes('No authentication token') ||
+           error.message.includes('401'))) {
+        console.log('🔐 Authentication error detected in index, will show login');
+        // Clear any cached onboarding data
+        await AsyncStorage.removeItem(CURRENT_ONBOARDING_PAGE_KEY);
+      }
+      
+      // On error, proceed to homepage (AuthGuard will handle auth requirement)
       setShouldRedirectToOnboarding(false);
     } finally {
       setIsChecking(false);

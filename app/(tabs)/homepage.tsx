@@ -4,6 +4,7 @@ import ThemeFilterBubbles from '@/components/theme-filter-bubbles';
 import { ThemedText } from '@/components/themed-text';
 import UserProfile from '@/components/user-profile';
 import { useUser } from '@/contexts/UserContext';
+import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
 import { apiService } from '@/services/api';
 import { ApiOpinion, ApiUser, MatchRequest, Tag } from '@/types/api';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -13,6 +14,7 @@ import { ActivityIndicator, Animated, AppState, AppStateStatus, StyleSheet, View
 export default function HomeScreen() {
   const { setCurrentUser } = useUser();
   const router = useRouter();
+  const { handleError } = useApiErrorHandler();
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -80,6 +82,7 @@ export default function HomeScreen() {
           }
         } catch (error) {
           console.error('❌ Failed to check onboarding status on app resume:', error);
+          handleError(error);
         }
       }
       
@@ -88,7 +91,7 @@ export default function HomeScreen() {
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
     return () => subscription?.remove();
-  }, []);
+  }, [handleError]);
 
   // Initial API call - use useFocusEffect to handle tab navigation
   useFocusEffect(
@@ -212,6 +215,7 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error('Failed to load matches:', error);
+      handleError(error);
     } finally {
       if (!appendToExisting) {
         setIsLoading(false);

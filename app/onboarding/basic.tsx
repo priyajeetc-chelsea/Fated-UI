@@ -5,6 +5,7 @@ import ProgressIndicator from '@/components/onboarding/progress-indicator';
 import SimpleThemedPicker from '@/components/onboarding/simple-themed-picker';
 import ThemedInput from '@/components/onboarding/themed-input';
 import ThemedPicker from '@/components/onboarding/themed-picker';
+import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
 import { apiService } from '@/services/api';
 import {
   BasicDetailsFormData,
@@ -22,6 +23,7 @@ const BASIC_FORM_STORAGE_KEY = '@fated_onboarding_basic_form';
 
 export default function BasicDetailsForm() {
   const [loading, setLoading] = useState(false);
+  const { handleError } = useApiErrorHandler();
   const [formData, setFormData] = useState<BasicDetailsFormData>({
     fname: '',
     lname: '',
@@ -188,6 +190,7 @@ export default function BasicDetailsForm() {
       }
     } catch (error) {
       console.error('Error submitting basic details:', error);
+      handleError(error);
       Alert.alert('Error', 'Failed to save your details. Please try again.');
     } finally {
       setLoading(false);
@@ -251,8 +254,8 @@ export default function BasicDetailsForm() {
         >
         <ProgressIndicator 
           currentStep={1} 
-          totalSteps={4} 
-          stepNames={['Basic Details', 'Lifestyle', 'Your Takes', 'Photos']}
+          totalSteps={5} 
+          stepNames={['Basic Details', 'Lifestyle', 'Topics', 'Your Takes', 'Photos']}
         />
 
         <Text style={styles.title}>Tell us about yourself</Text>

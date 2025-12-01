@@ -1,6 +1,7 @@
 import OnboardingButton from '@/components/onboarding/onboarding-button';
 import ProgressIndicator from '@/components/onboarding/progress-indicator';
 import ThemedInput from '@/components/onboarding/themed-input';
+import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
 import { apiService } from '@/services/api';
 import { AllTake, NewTakesFormData, TagAndQuestion, TopicTake } from '@/types/onboarding';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,6 +14,7 @@ const TAKES_FORM_STORAGE_KEY = '@fated_onboarding_takes_form';
 export default function TakesForm() {
   const [loading, setLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const { handleError } = useApiErrorHandler();
   const [tagAndQuestions, setTagAndQuestions] = useState<TagAndQuestion[]>([]);
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
@@ -90,13 +92,14 @@ export default function TakesForm() {
         }
       } catch (error) {
         console.error('Error loading tagAndQuestion data:', error);
+        handleError(error);
         Alert.alert('Error', 'Failed to load topics. Please try again.');
         router.back();
       }
     };
 
     loadTagAndQuestions();
-  }, [params.tagAndQuestionData]);
+  }, [params.tagAndQuestionData, handleError]);
 
   const getQuestionKey = (tagId: number, questionId: number): string => {
     return `${tagId}-${questionId}`;
@@ -224,6 +227,7 @@ export default function TakesForm() {
       }
     } catch (error) {
       console.error('Error submitting takes:', error);
+      handleError(error);
       Alert.alert('Error', 'Failed to save your takes. Please try again.');
     } finally {
       setLoading(false);
@@ -256,9 +260,9 @@ export default function TakesForm() {
           keyboardShouldPersistTaps="handled"
         >
           <ProgressIndicator 
-            currentStep={3} 
-            totalSteps={4} 
-            stepNames={['Basic Details', 'Lifestyle', 'Your Takes', 'Photos']}
+            currentStep={4} 
+            totalSteps={5} 
+            stepNames={['Basic Details', 'Lifestyle', 'Topics', 'Your Takes', 'Photos']}
           />
 
           <View style={styles.answerProgress}>

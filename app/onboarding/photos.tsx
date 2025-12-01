@@ -1,454 +1,284 @@
 import OnboardingButton from '@/components/onboarding/onboarding-button';
 import ProgressIndicator from '@/components/onboarding/progress-indicator';
+import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
 import { apiService } from '@/services/api';
-import { Ionicons } from '@expo/vector-icons';
+import { PhotoUploadUrl } from '@/types/onboarding';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, AppState, AppStateStatus, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-interface PhotoSlot {
-  id: string;
-  localUri: string | null;
-  s3Key: string | null;
-  isUploading: boolean;
-  uploadProgress: string;
-}
-
+const PHOTOS_STORAGE_KEY = '@fated_onboarding_photos';
 const MAX_PHOTOS = 6;
-const MIN_PHOTOS = 4;
-const PHOTO_STATE_STORAGE_KEY = '@onboarding_photos_state';
-const CURRENT_ONBOARDING_PAGE_KEY = '@current_onboarding_page';
+const MIN_PHOTOS = 3;
+
+interface PhotoData {
+  localUri: string;
+  s3Key: string;
+  uploaded: boolean;
+}
 
 export default function PhotosForm() {
   const [loading, setLoading] = useState(false);
-  const [mainPhotoId, setMainPhotoId] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  // Initialize photo slots with unique IDs
-  const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>(() =>
-    Array.from({ length: MAX_PHOTOS }, (_, index) => ({
-      id: `photo-${index}-${Date.now()}`,
-      localUri: null,
-      s3Key: null,
-      isUploading: false,
-      uploadProgress: '',
-    }))
-  );
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [photos, setPhotos] = useState<(PhotoData | null)[]>(Array(MAX_PHOTOS).fill(null));
+  const [uploadUrls, setUploadUrls] = useState<PhotoUploadUrl[]>([]);
+  const { handleError } = useApiErrorHandler();
 
-  // Preserve state across Android Activity restarts
-  const photoSlotsRef = useRef(photoSlots);
-  const mainPhotoIdRef = useRef(mainPhotoId);
-  const appState = useRef(AppState.currentState);
-  const isUploadingRef = useRef(false); // Track if upload is in progress
-
-  // Mark that we're on step 4 (photos page) when component mounts
+  // Load saved photo data on mount
   useEffect(() => {
-    const markCurrentStep = async () => {
+    const loadSavedData = async () => {
       try {
-        await AsyncStorage.setItem(CURRENT_ONBOARDING_PAGE_KEY, '4');
-        console.log('📍 Marked current onboarding page as step 4 (photos)');
-      } catch (error) {
-        console.error('Error marking current step:', error);
-      }
-    };
-    
-    markCurrentStep();
-  }, []);
-
-  // Load persisted state on mount (critical for Android APK)
-  useEffect(() => {
-    const loadPersistedState = async () => {
-      try {
-        const savedState = await AsyncStorage.getItem(PHOTO_STATE_STORAGE_KEY);
-        if (savedState) {
-          const { photoSlots: savedSlots, mainPhotoId: savedMainId } = JSON.parse(savedState);
-          console.log('🔄 Restored photo state from storage');
-          setPhotoSlots(savedSlots);
-          setMainPhotoId(savedMainId);
+        const savedData = await AsyncStorage.getItem(PHOTOS_STORAGE_KEY);
+        if (savedData) {
+          console.log('Loaded saved photos data');
+          const parsed = JSON.parse(savedData);
+          setPhotos(parsed.photos || Array(MAX_PHOTOS).fill(null));
         }
       } catch (error) {
-        console.error('Error loading persisted photo state:', error);
-      } finally {
-        setIsInitialized(true);
+        console.error('Error loading saved photos data:', error);
       }
     };
-    
-    loadPersistedState();
+    loadSavedData();
   }, []);
 
-  // Persist state to AsyncStorage - DEBOUNCED to prevent constant re-renders
+  // Save photo data whenever it changes
   useEffect(() => {
-    if (!isInitialized) return;
-    
-    // Don't persist while actively uploading - prevents interference
-    const isAnyUploading = photoSlots.some(slot => slot.isUploading);
-    if (isAnyUploading) {
-      console.log('⏸️ Skipping persistence - upload in progress');
-      return;
-    }
-    
-    const timeoutId = setTimeout(async () => {
+    const savePhotoData = async () => {
       try {
-        const stateToSave = {
-          photoSlots,
-          mainPhotoId,
-        };
-        await AsyncStorage.setItem(PHOTO_STATE_STORAGE_KEY, JSON.stringify(stateToSave));
-        console.log('💾 Photo state persisted');
+        await AsyncStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify({ photos }));
+        console.log('Saved photos data to storage');
       } catch (error) {
-        console.error('Error persisting photo state:', error);
+        console.error('Error saving photos data:', error);
       }
-    }, 500); // Debounce by 500ms to prevent constant saves
+    };
+    savePhotoData();
+  }, [photos]);
 
-    return () => clearTimeout(timeoutId);
-  }, [photoSlots, mainPhotoId, isInitialized]);
-
-  // Keep refs in sync with state
+  // Fetch upload URLs on mount
   useEffect(() => {
-    photoSlotsRef.current = photoSlots;
-    mainPhotoIdRef.current = mainPhotoId;
-    isUploadingRef.current = photoSlots.some(slot => slot.isUploading);
-  }, [photoSlots, mainPhotoId]);
+    const fetchUploadUrls = async () => {
+      try {
+        const response = await apiService.getPhotoUploadUrls();
+        if (response.code === 200 && response.model.uploadUrls) {
+          setUploadUrls(response.model.uploadUrls);
+          console.log('✅ Got upload URLs:', response.model.uploadUrls.length);
+        } else {
+          Alert.alert('Error', 'Failed to get upload URLs. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error fetching upload URLs:', error);
+        handleError(error);
+        Alert.alert('Error', 'Failed to initialize photo upload. Please try again.');
+      }
+    };
+    fetchUploadUrls();
+  }, [handleError]);
 
-  // Handle app state changes (Android lifecycle) - DISABLED during uploads
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      // Don't interfere if upload is in progress
-      if (isUploadingRef.current) {
-        console.log('⏸️ Ignoring app state change - upload in progress');
-        appState.current = nextAppState;
+  const pickImage = async (index: number) => {
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'We need camera roll permissions to upload photos.');
         return;
       }
 
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        // App has come to the foreground - restore state if needed
-        console.log('📱 App returned to foreground - checking state');
-        
-        // Only restore if state was actually lost
-        const currentHasPhotos = photoSlots.some(slot => slot.localUri);
-        const refsHavePhotos = photoSlotsRef.current.some(slot => slot.localUri);
-        
-        if (!currentHasPhotos && refsHavePhotos) {
-          console.log('🔄 Restoring photo state after Activity restart');
-          setPhotoSlots([...photoSlotsRef.current]);
-          setMainPhotoId(mainPhotoIdRef.current);
-        }
-      }
-      appState.current = nextAppState;
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [photoSlots]);
-
-  const updatePhotoSlot = useCallback((id: string, updates: Partial<PhotoSlot>) => {
-    setPhotoSlots(prev => prev.map(slot => 
-      slot.id === id ? { ...slot, ...updates } : slot
-    ));
-  }, []);
-
-  const requestPermissions = async (): Promise<boolean> => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please grant photo library access to upload photos.');
-      return false;
-    }
-    return true;
-  };
-
-  const pickImage = async (slotId: string, slotIndex: number) => {
-    const hasPermission = await requestPermissions();
-    if (!hasPermission) return;
-
-    // Prevent multiple simultaneous uploads
-    const isAnyUploading = photoSlots.some(slot => slot.isUploading);
-    if (isAnyUploading) {
-      Alert.alert('Upload in Progress', 'Please wait for the current upload to complete.');
-      return;
-    }
-
-    // Set uploading state
-    updatePhotoSlot(slotId, { 
-      isUploading: true, 
-      uploadProgress: 'Selecting photo...' 
-    });
-
-    try {
-      console.log('📸 Opening image picker for slot:', slotId);
-      
+      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: Platform.OS === 'ios',
+        allowsEditing: true,
         aspect: [3, 4],
         quality: 0.8,
-        allowsMultipleSelection: false,
-        selectionLimit: 1,
       });
 
-      console.log('📸 Image picker result:', result.canceled ? 'canceled' : 'selected');
-
-      if (result.canceled) {
-        updatePhotoSlot(slotId, { 
-          isUploading: false, 
-          uploadProgress: '' 
-        });
-        return;
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        
+        // Upload immediately
+        await uploadPhoto(index, imageUri);
       }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  };
 
-      const imageUri = result.assets[0].uri;
-      console.log('📸 Image selected:', imageUri);
-      
-      // Update with local preview immediately
-      updatePhotoSlot(slotId, { 
-        localUri: imageUri,
-        uploadProgress: 'Getting upload URL...' 
-      });
+  const uploadPhoto = async (index: number, imageUri: string) => {
+    if (index >= uploadUrls.length) {
+      Alert.alert('Error', 'No upload URL available for this photo slot.');
+      return;
+    }
 
-      console.log('📤 Requesting upload URL from server...');
-      
-      // Get upload URL from API
-      const uploadUrlResponse = await apiService.getPhotoUploadUrls();
-      
-      console.log('📤 Upload URL response:', uploadUrlResponse.code);
-      
-      if (uploadUrlResponse.code !== 200) {
-        throw new Error(uploadUrlResponse.msg || 'Failed to get upload URL');
-      }
+    const uploadUrl = uploadUrls[index];
+    setUploadingIndex(index);
 
-      // Find available upload slot (1-based in API)
-      const uploadInfo = uploadUrlResponse.model.uploadUrls.find(
-        url => url.photoIndex === slotIndex + 1
-      );
-      
-      if (!uploadInfo) {
-        throw new Error(`Upload slot not available for photo ${slotIndex + 1}`);
-      }
-
-      console.log('📤 Starting S3 upload...');
-
-      updatePhotoSlot(slotId, { 
-        uploadProgress: 'Uploading to server...' 
-      });
+    try {
+      console.log(`📸 Uploading photo ${index + 1}...`);
       
       // Upload to S3
       await apiService.uploadImageToS3(
-        uploadInfo.uploadUrl,
+        uploadUrl.uploadUrl,
         imageUri,
-        uploadInfo.contentType
+        uploadUrl.contentType
       );
 
-      console.log('✅ Upload successful!');
+      // Update local state
+      const newPhotos = [...photos];
+      newPhotos[index] = {
+        localUri: imageUri,
+        s3Key: uploadUrl.s3Key,
+        uploaded: true,
+      };
+      setPhotos(newPhotos);
 
-      // Success - update with S3 key and clear uploading state
-      updatePhotoSlot(slotId, { 
-        s3Key: uploadInfo.s3Key,
-        isUploading: false,
-        uploadProgress: '' 
-      });
-
-      // Set as main photo if it's the first photo
-      if (!mainPhotoId) {
-        setMainPhotoId(slotId);
-      }
-
+      console.log(`✅ Photo ${index + 1} uploaded successfully`);
     } catch (error) {
-      console.error('❌ Error uploading image:', error);
-      Alert.alert('Upload Failed', `Failed to upload image. ${error instanceof Error ? error.message : 'Please try again.'}`);
-      
-      // Reset slot on error
-      updatePhotoSlot(slotId, { 
-        localUri: null,
-        s3Key: null,
-        isUploading: false,
-        uploadProgress: '' 
-      });
+      console.error(`Error uploading photo ${index + 1}:`, error);
+      Alert.alert('Upload Failed', `Failed to upload photo ${index + 1}. Please try again.`);
+    } finally {
+      setUploadingIndex(null);
     }
   };
 
-  const removePhoto = (slotId: string) => {
-    updatePhotoSlot(slotId, { 
-      localUri: null,
-      s3Key: null,
-      isUploading: false,
-      uploadProgress: '' 
-    });
-
-    // If this was the main photo, set the first available photo as main
-    if (mainPhotoId === slotId) {
-      const nextMainPhoto = photoSlots.find(slot => 
-        slot.id !== slotId && slot.localUri && slot.s3Key
-      );
-      setMainPhotoId(nextMainPhoto?.id || null);
-    }
-  };
-
-  const setAsMainPhoto = (slotId: string) => {
-    setMainPhotoId(slotId);
-  };
-
-  const validateForm = (): boolean => {
-    const uploadedPhotos = photoSlots.filter(slot => slot.s3Key);
-    if (uploadedPhotos.length < MIN_PHOTOS) {
-      Alert.alert('Photos Required', `Please upload at least ${MIN_PHOTOS} photos to continue.`);
-      return false;
-    }
-    return true;
+  const removePhoto = (index: number) => {
+    const newPhotos = [...photos];
+    newPhotos[index] = null;
+    setPhotos(newPhotos);
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    const uploadedPhotos = photos.filter((p): p is PhotoData => p !== null && p.uploaded);
+
+    if (uploadedPhotos.length < MIN_PHOTOS) {
+      Alert.alert(
+        'More Photos Needed',
+        `Please upload at least ${MIN_PHOTOS} photos to continue.`
+      );
+      return;
+    }
 
     setLoading(true);
     try {
-      // Get all uploaded S3 keys in order
-      const urls = photoSlots
-        .filter(slot => slot.s3Key)
-        .map(slot => slot.s3Key!);
+      // Submit the S3 keys to the backend
+      const photoSubmissionData = {
+        urls: uploadedPhotos.map(p => p.s3Key),
+      };
 
-      // Submit to API
-      const response = await apiService.submitPhotos({ urls });
-      
+      console.log('📸 Submitting photo URLs:', photoSubmissionData);
+      const response = await apiService.submitPhotos(photoSubmissionData);
+
       if (response.code === 200) {
-        // Clear persisted state on successful submission
-        await AsyncStorage.removeItem(PHOTO_STATE_STORAGE_KEY);
-        await AsyncStorage.removeItem(CURRENT_ONBOARDING_PAGE_KEY);
-        console.log('✅ Photo state and page marker cleared after successful submission');
-        
-        // Success - navigate to homepage
-        router.replace('/(tabs)/homepage');
+        // Clear saved photo data after successful submission
+        await AsyncStorage.removeItem(PHOTOS_STORAGE_KEY);
+        await AsyncStorage.removeItem('@current_onboarding_page');
+        console.log('✅ Photos submitted successfully, onboarding complete!');
+
+        Alert.alert(
+          'Profile Complete! 🎉',
+          'Your profile is now complete. Let\'s find your perfect match!',
+          [
+            {
+              text: 'Get Started',
+              onPress: () => router.replace('/(tabs)/homepage'),
+            },
+          ]
+        );
       } else {
-        Alert.alert('Error', response.msg || 'Failed to save your photos');
+        Alert.alert('Error', response.msg || 'Failed to submit photos');
       }
     } catch (error) {
       console.error('Error submitting photos:', error);
-      Alert.alert('Error', 'Failed to save your photos. Please try again.');
+      handleError(error);
+      Alert.alert('Error', 'Failed to submit photos. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const renderPhotoSlot = (slot: PhotoSlot, index: number) => {
-    const isMainPhoto = mainPhotoId === slot.id && slot.localUri;
-    const hasPhoto = !!slot.localUri;
-
-    return (
-      <View key={slot.id} style={styles.photoSlot}>
-        <TouchableOpacity
-          style={[
-            styles.photoContainer,
-            isMainPhoto && styles.mainPhotoContainer,
-          ]}
-          onPress={() => !slot.isUploading && pickImage(slot.id, index)}
-          disabled={slot.isUploading}
-        >
-          {hasPhoto ? (
-            <>
-              <Image source={{ uri: slot.localUri! }} style={styles.photo} />
-              
-              {isMainPhoto && (
-                <View style={styles.mainPhotoBadge}>
-                  <Text style={styles.mainPhotoText}>Main</Text>
-                </View>
-              )}
-              
-              {!slot.isUploading && (
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removePhoto(slot.id)}
-                >
-                  <Ionicons name="close-circle" size={24} color="#FF4444" />
-                </TouchableOpacity>
-              )}
-              
-              {!isMainPhoto && hasPhoto && slot.s3Key && !slot.isUploading && (
-                <TouchableOpacity
-                  style={styles.setMainButton}
-                  onPress={() => setAsMainPhoto(slot.id)}
-                >
-                  <Text style={styles.setMainText}>Set as Main</Text>
-                </TouchableOpacity>
-              )}
-              
-              {slot.isUploading && (
-                <View style={styles.uploadingOverlay}>
-                  <Ionicons name="hourglass-outline" size={24} color="#FFF" />
-                </View>
-              )}
-            </>
-          ) : (
-            <View style={styles.placeholderContainer}>
-              {slot.isUploading ? (
-                <Ionicons name="hourglass-outline" size={32} color="#999" />
-              ) : (
-                <Ionicons name="camera-outline" size={32} color="#999" />
-              )}
-              <Text style={styles.placeholderText}>
-                {slot.isUploading 
-                  ? (slot.uploadProgress || 'Uploading...')
-                  : index === 0 ? 'Add Main Photo' : 'Add Photo'
-                }
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
-  const uploadedCount = photoSlots.filter(slot => slot.s3Key).length;
-  const isSubmitDisabled = loading || uploadedCount < MIN_PHOTOS;
+  const uploadedCount = photos.filter(p => p !== null && p.uploaded).length;
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <ProgressIndicator 
-            currentStep={4} 
-            totalSteps={4} 
-            stepNames={['Basic Details', 'Lifestyle', 'Your Takes', 'Photos']}
-          />
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <ProgressIndicator
+        currentStep={5}
+        totalSteps={5}
+        stepNames={['Basic Details', 'Lifestyle', 'Topics', 'Your Takes', 'Photos']}
+      />
 
-          <Text style={styles.title}>Add Your Photos</Text>
-          <Text style={styles.subtitle}>
-            Show your personality with great photos. Add at least {MIN_PHOTOS} photos to complete your profile.
+      <Text style={styles.title}>Add Your Photos</Text>
+      <Text style={styles.subtitle}>
+        Upload at least {MIN_PHOTOS} photos. Your first photo will be your main profile picture.
+      </Text>
+
+      <View style={styles.photoCountContainer}>
+        <Text style={styles.photoCountText}>
+          {uploadedCount} / {MAX_PHOTOS} photos uploaded
+        </Text>
+        {uploadedCount < MIN_PHOTOS && (
+          <Text style={styles.photoCountSubtext}>
+            ({MIN_PHOTOS - uploadedCount} more required)
           </Text>
+        )}
+      </View>
 
-          <View style={styles.photosGrid}>
-            {photoSlots.map((slot, index) => renderPhotoSlot(slot, index))}
+      <View style={styles.photosGrid}>
+        {photos.map((photo, index) => (
+          <View key={index} style={styles.photoSlot}>
+            {uploadingIndex === index ? (
+              <View style={styles.uploadingContainer}>
+                <ActivityIndicator size="large" color="#004242" />
+                <Text style={styles.uploadingText}>Uploading...</Text>
+              </View>
+            ) : photo ? (
+              <View style={styles.photoContainer}>
+                <Image source={{ uri: photo.localUri }} style={styles.photo} />
+                {index === 0 && (
+                  <View style={styles.mainPhotoBadge}>
+                    <Text style={styles.mainPhotoText}>Main</Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => removePhoto(index)}
+                >
+                  <Text style={styles.removeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.addPhotoButton}
+                onPress={() => pickImage(index)}
+                disabled={uploadingIndex !== null}
+              >
+                <Text style={styles.addPhotoIcon}>+</Text>
+                <Text style={styles.addPhotoText}>
+                  {index === 0 ? 'Add Main Photo' : `Add Photo ${index + 1}`}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
+        ))}
+      </View>
 
-          <View style={styles.tipsContainer}>
-            <Text style={styles.tipsTitle}>Photo Tips:</Text>
-            <Text style={styles.tipText}>• Use recent, clear photos of yourself</Text>
-            <Text style={styles.tipText}>• Show your face in your main photo</Text>
-            <Text style={styles.tipText}>• Add variety - different settings and angles</Text>
-            <Text style={styles.tipText}>• Avoid group photos as your main picture</Text>
-          </View>
+      <View style={styles.tipsContainer}>
+        <Text style={styles.tipsTitle}>📸 Photo Tips</Text>
+        <Text style={styles.tipText}>• Use clear, recent photos of yourself</Text>
+        <Text style={styles.tipText}>• Show your face clearly in at least one photo</Text>
+        <Text style={styles.tipText}>• Include variety - selfies, full body, hobbies</Text>
+        <Text style={styles.tipText}>• Avoid group photos where you can&apos;t be identified</Text>
+      </View>
 
-          <View style={styles.buttonContainer}>
-            <OnboardingButton
-              title={`Complete Profile (${uploadedCount}/${MIN_PHOTOS})`}
-              onPress={handleSubmit}
-              loading={loading}
-              disabled={isSubmitDisabled}
-            />
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+      <View style={styles.buttonContainer}>
+        <OnboardingButton
+          title={loading ? 'Submitting...' : 'Complete Profile'}
+          onPress={handleSubmit}
+          disabled={uploadedCount < MIN_PHOTOS || loading || uploadingIndex !== null}
+        />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -456,9 +286,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  scrollView: {
-    flex: 1,
   },
   scrollContent: {
     padding: 24,
@@ -470,64 +297,79 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 8,
     textAlign: 'center',
-    fontFamily: 'Playfair Display Bold',
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 32,
+    fontWeight: '400',
+    marginBottom: 24,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  photoCountContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  photoCountText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#004242',
+  },
+  photoCountSubtext: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
   },
   photosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   photoSlot: {
     width: '48%',
-    aspectRatio: 3/4,
+    aspectRatio: 3 / 4,
     marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  photoContainer: {
+  addPhotoButton: {
     flex: 1,
-    borderRadius: 12,
+    backgroundColor: '#F5F5F5',
     borderWidth: 2,
     borderColor: '#E0E0E0',
     borderStyle: 'dashed',
-    overflow: 'hidden',
-    position: 'relative',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  mainPhotoContainer: {
-    borderColor: '#000',
-    borderStyle: 'solid',
+  addPhotoIcon: {
+    fontSize: 40,
+    color: '#004242',
+    marginBottom: 8,
+  },
+  addPhotoText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+  },
+  photoContainer: {
+    flex: 1,
+    position: 'relative',
   },
   photo: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
-  },
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FAFAFA',
-  },
-  placeholderText: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 8,
-    textAlign: 'center',
+    borderRadius: 16,
   },
   mainPhotoBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#000',
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: '#004242',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   mainPhotoText: {
     color: '#FFF',
@@ -538,53 +380,49 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
-  },
-  setMainButton: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 4,
-    paddingVertical: 4,
-  },
-  setMainText: {
-    color: '#FFF',
-    fontSize: 12,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  uploadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  uploadingContainer: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+  },
+  uploadingText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#666',
   },
   tipsContainer: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
+    backgroundColor: '#F9F9F9',
     padding: 16,
-    marginBottom: 32,
+    borderRadius: 12,
+    marginBottom: 24,
   },
   tipsTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   tipText: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 4,
+    marginBottom: 6,
     lineHeight: 20,
   },
   buttonContainer: {
-    marginTop: 16,
-    marginBottom: 16
+    marginTop: 8,
   },
 });

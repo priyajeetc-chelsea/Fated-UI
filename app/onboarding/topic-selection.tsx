@@ -60,8 +60,8 @@ export default function TopicSelectionScreen() {
       >
         <ProgressIndicator 
           currentStep={3} 
-          totalSteps={4} 
-          stepNames={['Basic Details', 'Lifestyle', 'Your Takes', 'Photos']}
+          totalSteps={5} 
+          stepNames={['Basic Details', 'Lifestyle', 'Topics', 'Your Takes', 'Photos']}
         />
 
         <Text style={styles.title}>Choose Topics</Text>

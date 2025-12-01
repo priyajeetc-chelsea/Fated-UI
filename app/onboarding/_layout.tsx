@@ -88,6 +88,15 @@ export default function OnboardingLayout() {
         }} 
       />
       <Stack.Screen 
+        name="topic-selection" 
+        options={{ 
+          title: 'Choose Topics',
+          headerLeft: () => null,
+          headerBackVisible: false,
+          gestureEnabled: false,
+        }} 
+      />
+      <Stack.Screen 
         name="takes" 
         options={{ 
           title: 'Your Takes',

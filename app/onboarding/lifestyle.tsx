@@ -3,6 +3,7 @@ import PrivacyToggle from '@/components/onboarding/privacy-toggle';
 import ProgressIndicator from '@/components/onboarding/progress-indicator';
 import ThemedInput from '@/components/onboarding/themed-input';
 import ThemedPicker from '@/components/onboarding/themed-picker';
+import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
 import { apiService } from '@/services/api';
 import {
   DRINK_SMOKE_OPTIONS,
@@ -20,6 +21,7 @@ const LIFESTYLE_FORM_STORAGE_KEY = '@fated_onboarding_lifestyle_form';
 
 export default function LifestyleForm() {
   const [loading, setLoading] = useState(false);
+  const { handleError } = useApiErrorHandler();
   const [formData, setFormData] = useState<LifestyleFormData>({
     homeTown: '',
     currentCity: '',
@@ -127,32 +129,23 @@ export default function LifestyleForm() {
         await AsyncStorage.removeItem(LIFESTYLE_FORM_STORAGE_KEY);
         console.log('Cleared lifestyle form data from storage');
         
-        // Navigate to next step based on response
-        const nextStep = response.model.step;
-        switch (nextStep) {
-          case 3:
-            // Pass tagAndQuestion data to topic selection page
-            router.push({
-              pathname: '/onboarding/takes',
-              params: {
-                tagAndQuestionData: JSON.stringify(response.model.tagAndQuestion || [])
-              }
-            });
-            break;
-          case 4:
-            router.push('/onboarding/photos');
-            break;
-          case 5:
-            router.replace('/(tabs)/homepage');
-            break;
-          default:
-            router.push('/onboarding/takes');
+        // Navigate to topic selection page with tagAndQuestion data
+        if (response.model.tagAndQuestion && response.model.tagAndQuestion.length > 0) {
+          router.push({
+            pathname: '/onboarding/topic-selection',
+            params: {
+              tagAndQuestionData: JSON.stringify(response.model.tagAndQuestion)
+            }
+          });
+        } else {
+          Alert.alert('Error', 'No topics available. Please try again.');
         }
       } else {
         Alert.alert('Error', response.msg || 'Failed to save lifestyle details');
       }
     } catch (error) {
       console.error('Error submitting lifestyle details:', error);
+      handleError(error);
       Alert.alert('Error', 'Failed to save your details. Please try again.');
     } finally {
       setLoading(false);
@@ -196,8 +189,8 @@ export default function LifestyleForm() {
         >
         <ProgressIndicator 
           currentStep={2} 
-          totalSteps={4} 
-          stepNames={['Basic Details', 'Lifestyle', 'Your Takes', 'Photos']}
+          totalSteps={5} 
+          stepNames={['Basic Details', 'Lifestyle', 'Topics', 'Your Takes', 'Photos']}
         />
 
         <Text style={styles.title}>Your Lifestyle</Text>

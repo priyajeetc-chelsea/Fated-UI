@@ -307,15 +307,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (
       error.message.includes('Authentication expired') ||
       error.message.includes('Session expired') ||
-      error.message.includes('No authentication token')
+      error.message.includes('No authentication token') ||
+      error.message.includes('401')
     ) {
       // Sign out and clear all auth data
+      console.log('🚪 Signing out user due to authentication error...');
       await authApiService.clearAuthData();
+      await clearStoredUser();
+      await clearStoredChatUser();
+      
       setState(prev => ({
         ...initialState,
         isLoading: false,
-        error: error.message,
+        isAuthenticated: false,
+        error: 'Your session has expired. Please login again.',
       }));
+      
+      // The AuthGuard will detect isAuthenticated=false and show login modal
+      console.log('✅ User signed out, AuthGuard will show login modal');
     }
   }, []);
 
