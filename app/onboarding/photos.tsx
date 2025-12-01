@@ -6,7 +6,7 @@ import { PhotoUploadUrl } from '@/types/onboarding';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const PHOTOS_STORAGE_KEY = '@fated_onboarding_photos';
@@ -21,66 +21,112 @@ interface PhotoData {
 
 export default function PhotosForm() {
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [photos, setPhotos] = useState<(PhotoData | null)[]>(Array(MAX_PHOTOS).fill(null));
   const [uploadUrls, setUploadUrls] = useState<PhotoUploadUrl[]>([]);
   const { handleError } = useApiErrorHandler();
+  const hasInitialized = useRef(false);
+  const isFetchingUrls = useRef(false);
 
   // Load saved photo data on mount
   useEffect(() => {
+    let mounted = true;
     const loadSavedData = async () => {
       try {
         const savedData = await AsyncStorage.getItem(PHOTOS_STORAGE_KEY);
-        if (savedData) {
+        if (mounted && savedData) {
           console.log('Loaded saved photos data');
           const parsed = JSON.parse(savedData);
-          setPhotos(parsed.photos || Array(MAX_PHOTOS).fill(null));
+          if (parsed.photos && Array.isArray(parsed.photos)) {
+            setPhotos(parsed.photos);
+            console.log('📸 Restored photos from storage:', parsed.photos.filter((p: PhotoData | null) => p !== null).length);
+          }
         }
       } catch (error) {
         console.error('Error loading saved photos data:', error);
+      } finally {
+        if (mounted) {
+          setIsInitialized(true);
+          console.log('✅ Photo component initialized');
+        }
       }
     };
     loadSavedData();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  // Save photo data whenever it changes
+  // Save photo data whenever it changes (with debounce)
+  // But skip if we're currently uploading (immediate save handles that)
   useEffect(() => {
+    if (uploadingIndex !== null) {
+      console.log('⏭️ Skipping debounced save - upload in progress');
+      return;
+    }
+
     const savePhotoData = async () => {
       try {
         await AsyncStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify({ photos }));
-        console.log('Saved photos data to storage');
+        console.log('Saved photos data to storage (debounced)');
       } catch (error) {
         console.error('Error saving photos data:', error);
       }
     };
-    savePhotoData();
-  }, [photos]);
 
-  // Fetch upload URLs on mount
+    const timeoutId = setTimeout(savePhotoData, 100); // Debounce saves
+
+    return () => clearTimeout(timeoutId);
+  }, [photos, uploadingIndex]);
+
+  // Fetch upload URLs on mount - only run once
   useEffect(() => {
+    if (hasInitialized.current || isFetchingUrls.current) {
+      console.log('⏭️ Skipping URL fetch - already initialized or fetching');
+      return;
+    }
+
+    let mounted = true;
     const fetchUploadUrls = async () => {
+      if (isFetchingUrls.current) return;
+
+      isFetchingUrls.current = true;
       try {
+        console.log('📸 Getting photo upload URLs');
         const response = await apiService.getPhotoUploadUrls();
-        if (response.code === 200 && response.model.uploadUrls) {
+        if (mounted && response.code === 200 && response.model.uploadUrls) {
           setUploadUrls(response.model.uploadUrls);
+          hasInitialized.current = true;
+          console.log('✅ Photo upload URLs received');
           console.log('✅ Got upload URLs:', response.model.uploadUrls.length);
-        } else {
+        } else if (mounted) {
           Alert.alert('Error', 'Failed to get upload URLs. Please try again.');
         }
       } catch (error) {
-        console.error('Error fetching upload URLs:', error);
-        handleError(error);
-        Alert.alert('Error', 'Failed to initialize photo upload. Please try again.');
+        if (mounted) {
+          console.error('Error fetching upload URLs:', error);
+          handleError(error);
+          Alert.alert('Error', 'Failed to initialize photo upload. Please try again.');
+        }
+      } finally {
+        isFetchingUrls.current = false;
       }
     };
+
     fetchUploadUrls();
+
+    return () => {
+      mounted = false;
+    };
   }, [handleError]);
 
   const pickImage = async (index: number) => {
     try {
       // Request permission
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'We need camera roll permissions to upload photos.');
         return;
@@ -88,7 +134,7 @@ export default function PhotosForm() {
 
       // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [3, 4],
         quality: 0.8,
@@ -96,7 +142,7 @@ export default function PhotosForm() {
 
       if (!result.canceled && result.assets[0]) {
         const imageUri = result.assets[0].uri;
-        
+
         // Upload immediately
         await uploadPhoto(index, imageUri);
       }
@@ -117,23 +163,41 @@ export default function PhotosForm() {
 
     try {
       console.log(`📸 Uploading photo ${index + 1}...`);
-      
+
       // Upload to S3
       await apiService.uploadImageToS3(
         uploadUrl.uploadUrl,
         imageUri,
       );
 
-      // Update local state
-      const newPhotos = [...photos];
-      newPhotos[index] = {
-        localUri: imageUri,
-        s3Key: uploadUrl.s3Key,
-        uploaded: true,
-      };
-      setPhotos(newPhotos);
+      console.log(`✅ Photo ${index + 1} uploaded to S3 successfully`);
 
-      console.log(`✅ Photo ${index + 1} uploaded successfully`);
+      // Update local state with proper state updater function and save immediately
+      const newPhotos = await new Promise<(PhotoData | null)[]>((resolve) => {
+        setPhotos(prevPhotos => {
+          const updated = [...prevPhotos];
+          const newPhoto = {
+            localUri: imageUri,
+            s3Key: uploadUrl.s3Key,
+            uploaded: true,
+          };
+          updated[index] = newPhoto;
+          console.log(`✅ Updated state for photo ${index + 1}`, newPhoto);
+          console.log(`📊 Total uploaded photos: ${updated.filter(p => p?.uploaded).length}`);
+          resolve(updated);
+          return updated;
+        });
+      });
+
+      // Save immediately to AsyncStorage to prevent loss on remount
+      try {
+        await AsyncStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify({ photos: newPhotos }));
+        console.log(`💾 Saved photo ${index + 1} to storage immediately`);
+      } catch (err) {
+        console.error('Error saving immediately:', err);
+      }
+
+      console.log(`✅ Photo ${index + 1} state updated successfully`);
     } catch (error) {
       console.error(`Error uploading photo ${index + 1}:`, error);
       Alert.alert('Upload Failed', `Failed to upload photo ${index + 1}. Please try again.`);
@@ -143,9 +207,12 @@ export default function PhotosForm() {
   };
 
   const removePhoto = (index: number) => {
-    const newPhotos = [...photos];
-    newPhotos[index] = null;
-    setPhotos(newPhotos);
+    setPhotos(prevPhotos => {
+      const newPhotos = [...prevPhotos];
+      newPhotos[index] = null;
+      console.log(`🗑️ Removed photo at index ${index + 1}`);
+      return newPhotos;
+    });
   };
 
   const handleSubmit = async () => {
@@ -199,6 +266,23 @@ export default function PhotosForm() {
 
   const uploadedCount = photos.filter(p => p !== null && p.uploaded).length;
 
+  // Log the current state for debugging
+  useEffect(() => {
+    if (isInitialized) {
+      console.log(`📊 Current photo state - Uploaded: ${uploadedCount}/${MAX_PHOTOS}`);
+      console.log('📊 Photos array:', photos.map((p, i) => p ? `${i + 1}: ✓` : `${i + 1}: ✗`).join(', '));
+    }
+  }, [photos, uploadedCount, isInitialized]);
+
+  if (!isInitialized) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#004242" />
+        <Text style={styles.loadingText}>Loading photos...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <ProgressIndicator
@@ -225,7 +309,7 @@ export default function PhotosForm() {
 
       <View style={styles.photosGrid}>
         {photos.map((photo, index) => (
-          <View key={index} style={styles.photoSlot}>
+          <View key={`photo-slot-${index}`} style={styles.photoSlot}>
             {uploadingIndex === index ? (
               <View style={styles.uploadingContainer}>
                 <ActivityIndicator size="large" color="#004242" />
@@ -233,7 +317,12 @@ export default function PhotosForm() {
               </View>
             ) : photo ? (
               <View style={styles.photoContainer}>
-                <Image source={{ uri: photo.localUri }} style={styles.photo} />
+                <Image
+                  key={`photo-${index}-${photo.localUri}`}
+                  source={{ uri: photo.localUri }}
+                  style={styles.photo}
+                  resizeMode="cover"
+                />
                 {index === 0 && (
                   <View style={styles.mainPhotoBadge}>
                     <Text style={styles.mainPhotoText}>Main</Text>
@@ -285,6 +374,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
   },
   scrollContent: {
     padding: 24,
