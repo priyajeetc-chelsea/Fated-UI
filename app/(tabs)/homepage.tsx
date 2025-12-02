@@ -21,7 +21,7 @@ export default function HomeScreen() {
   const [isScrolling, setIsScrolling] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentRequest, setCurrentRequest] = useState<MatchRequest>(apiService.getDefaultRequest());
-  
+
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedOpinion, setSelectedOpinion] = useState<ApiOpinion | null>(null);
@@ -38,6 +38,8 @@ export default function HomeScreen() {
   const isRedirecting = React.useRef(false);
   const hasCheckedOnboarding = React.useRef(false);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const isOnOnboardingScreen = useRef(false);
+  const isScreenFocused = useRef(false);
 
   // Listen for app state changes (when user reopens the app)
   useEffect(() => {
@@ -45,47 +47,74 @@ export default function HomeScreen() {
       // When app comes back to foreground, check onboarding status
       if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
         console.log('🔄 App came to foreground, checking onboarding status...');
-        
+        console.log('🔍 isScreenFocused.current =', isScreenFocused.current);
+        console.log('🔍 isOnOnboardingScreen.current =', isOnOnboardingScreen.current);
+
+        // Skip if homepage is not the currently focused screen
+        if (!isScreenFocused.current) {
+          console.log('⏭️ Homepage not focused, skipping status check');
+          appStateRef.current = nextAppState;
+          return;
+        }
+
+        // Skip if we're already on an onboarding screen
+        if (isOnOnboardingScreen.current) {
+          console.log('⏭️ Already on onboarding screen, skipping status check');
+          appStateRef.current = nextAppState;
+          return;
+        }
+
         try {
           const response = await apiService.getOnboardingStatus();
-          
+
           if (response.model?.onboardingStep && response.model.onboardingStep.step < 5) {
             console.log('🚧 User needs to complete onboarding, redirecting to step:', response.model.onboardingStep.step);
-            
-            const { router } = await import('expo-router');
+
+            const { router, usePathname } = await import('expo-router');
+            const { useSegments } = await import('expo-router');
             const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-            
+
             // Check cached page first
             const cachedPage = await AsyncStorage.getItem('@current_onboarding_page');
-            const effectiveStep = cachedPage 
+            const effectiveStep = cachedPage
               ? Math.max(parseInt(cachedPage, 10), response.model.onboardingStep.step)
               : response.model.onboardingStep.step;
-            
+
             console.log('📍 Using effective step:', effectiveStep, '(cached:', cachedPage, ', backend:', response.model.onboardingStep.step, ')');
-            
+
+            // Mark that we're redirecting to onboarding
+            isOnOnboardingScreen.current = true;
+
+            // Determine target route and redirect
             switch (effectiveStep) {
               case 1:
+                console.log('🔀 Redirecting to: /onboarding/basic');
                 router.replace('/onboarding/basic');
                 break;
               case 2:
+                console.log('🔀 Redirecting to: /onboarding/lifestyle');
                 router.replace('/onboarding/lifestyle');
                 break;
               case 3:
+                console.log('🔀 Redirecting to: /onboarding/takes');
                 router.replace('/onboarding/takes');
                 break;
               case 4:
+                console.log('🔀 Redirecting to: /onboarding/photos');
                 router.replace('/onboarding/photos');
                 break;
             }
           } else {
             console.log('✅ Onboarding complete, staying on homepage');
+            // Reset the flag when onboarding is complete
+            isOnOnboardingScreen.current = false;
           }
         } catch (error) {
           console.error('❌ Failed to check onboarding status on app resume:', error);
           handleError(error);
         }
       }
-      
+
       appStateRef.current = nextAppState;
     };
 
@@ -96,30 +125,38 @@ export default function HomeScreen() {
   // Initial API call - use useFocusEffect to handle tab navigation
   useFocusEffect(
     useCallback(() => {
+      // Mark that homepage is now the focused screen
+      isScreenFocused.current = true;
+      console.log('🏠 Homepage: Screen focused, setting isScreenFocused = true');
+
       // Prevent any action if we're currently redirecting to onboarding
       if (isRedirecting.current) {
         console.log('🏠 Homepage: Redirect in progress, skipping focus handler');
         return;
       }
-      
+
       // Only load on the first focus, not every time user navigates back
       if (!hasInitiallyLoaded.current) {
         console.log('🏠 Homepage: Starting initial load...');
         hasInitiallyLoaded.current = true;
-        
+
         const defaultRequest = apiService.getDefaultRequest();
         setCurrentRequest(defaultRequest);
-        
+
         // Load matches
         loadMatches(defaultRequest);
       } else {
         console.log('🏠 Homepage: Focused again, skipping reload to prevent infinite loop');
       }
+
+      // Return cleanup function to mark screen as unfocused
+      return () => {
+        isScreenFocused.current = false;
+        console.log('🏠 Homepage: Screen unfocused, setting isScreenFocused = false');
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
-  );
-  
-  // Reset scrolling state when currentUserIndex changes
+  );  // Reset scrolling state when currentUserIndex changes
   useEffect(() => {
     setIsScrolling(false);
   }, [currentUserIndex]);
@@ -130,20 +167,20 @@ export default function HomeScreen() {
       console.log('⚠️ loadMatches: Redirecting in progress, skipping API call');
       return;
     }
-    
+
     if (!appendToExisting) {
       setIsLoading(true);
     }
-    
+
     try {
       console.log('📡 loadMatches: Calling /home API with request:', request);
       const response = await apiService.fetchMatches(request);
-      console.log('📡 loadMatches: Received response:', { 
-        userId: response.userId, 
+      console.log('📡 loadMatches: Received response:', {
+        userId: response.userId,
         onboardingStep: response.onboardingStep,
-        matchesCount: response.matches?.length 
+        matchesCount: response.matches?.length
       });
-      
+
       // Store current user's ID from the response
       if (response.userId) {
         console.log('🏠 Homepage: Setting currentUser with userId =', response.userId);
@@ -163,33 +200,39 @@ export default function HomeScreen() {
           setIsLoading(false);
           return;
         }
-        
+
         console.log('⚠️ Homepage (loadMatches): User in onboarding step', response.onboardingStep.step, '- redirecting');
         hasCheckedOnboarding.current = true;
         isRedirecting.current = true; // Mark that we're redirecting
+        isOnOnboardingScreen.current = true; // Set the flag to prevent AppState handler from redirecting
         const step = response.onboardingStep.step;
-        
+
         // Check cached page first for more accurate routing
         const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
         const cachedPage = await AsyncStorage.getItem('@current_onboarding_page');
-        const effectiveStep = cachedPage 
+        const effectiveStep = cachedPage
           ? Math.max(parseInt(cachedPage, 10), step)
           : step;
-        
+
         console.log('📍 Homepage: Using effective step:', effectiveStep, '(cached:', cachedPage, ', backend:', step, ')');
-        
+
         // Route to the appropriate onboarding screen
         const onboardingRoutes: Record<number, string> = {
           1: '/onboarding/basic',
-          2: '/onboarding/lifestyle', 
+          2: '/onboarding/lifestyle',
           3: '/onboarding/takes',
           4: '/onboarding/photos',
         };
-        
+
         router.replace(onboardingRoutes[effectiveStep] as any || '/onboarding/basic');
         setIsLoading(false);
         return;
       }
+
+      // If we reach here, onboarding is complete (step >= 5)
+      // Reset the flag so AppState handler can work correctly for future sessions
+      console.log('✅ Onboarding complete, resetting flag');
+      isOnOnboardingScreen.current = false;
 
       if (!response.matches || response.matches.length === 0) {
         console.log('⚠️ No matches available');
@@ -200,16 +243,16 @@ export default function HomeScreen() {
         setIsLoading(false);
         return;
       }
-      
+
       const convertedUsers = apiService.convertToAppUsers(response.matches);
-      
+
       if (appendToExisting) {
         setUsers(prevUsers => [...prevUsers, ...convertedUsers]);
       } else {
         setUsers(convertedUsers);
         setCurrentUserIndex(0);
       }
-      
+
       if (!appendToExisting) {
         setTags(response.tags.all);
       }
@@ -225,13 +268,13 @@ export default function HomeScreen() {
 
   const handleLikeOpinion = (opinionId: string) => {
     console.log('Liked opinion:', opinionId);
-    
+
     const currentUser = users[currentUserIndex];
     if (!currentUser) return;
-    
+
     const opinion = currentUser.opinions.find(op => op.id === opinionId);
     if (!opinion) return;
-    
+
     setSelectedOpinion(opinion);
     setSelectedUserName(currentUser.name);
     setModalVisible(true);
@@ -271,10 +314,10 @@ export default function HomeScreen() {
   const performSwipeAction = async (takeId: number, swipeRight: boolean, comment?: string) => {
     try {
       await apiService.sendSwipe(takeId, swipeRight, comment);
-      
+
       const newUsers = users.filter((_, index) => index !== currentUserIndex);
       setUsers(newUsers);
-      
+
       if (newUsers.length <= 2) {
         await loadMatches(currentRequest, false, true);
       } else if (currentUserIndex >= newUsers.length) {
@@ -284,7 +327,7 @@ export default function HomeScreen() {
       console.error('Failed to perform swipe action:', error);
       const newUsers = users.filter((_, index) => index !== currentUserIndex);
       setUsers(newUsers);
-      
+
       if (currentUserIndex >= newUsers.length) {
         setCurrentUserIndex(0);
       }
@@ -294,15 +337,15 @@ export default function HomeScreen() {
   const handleModalSubmit = async (comment: string) => {
     const currentUser = users[currentUserIndex];
     if (!currentUser || !selectedOpinion) return;
-    
+
     setModalVisible(false);
     setSelectedOpinion(null);
     setSelectedUserName('');
-    
+
     const takeId = parseInt(selectedOpinion.id);
-    
+
     showFeedbackAnimation('like');
-    
+
     setTimeout(async () => {
       await performSwipeAction(takeId, true, comment.trim() || undefined);
     }, 1000);
@@ -316,7 +359,7 @@ export default function HomeScreen() {
 
   const handleRemoveUser = async () => {
     showFeedbackAnimation('cross');
-    
+
     // Call swipe API with false (reject) before removing user
     const currentUser = users[currentUserIndex];
     if (currentUser && currentUser.opinions.length > 0) {
@@ -324,7 +367,7 @@ export default function HomeScreen() {
         // Get the first opinion's takeId for the swipe API call
         const firstOpinion = currentUser.opinions[0];
         const takeId = parseInt(firstOpinion.id); // takeId is stored in the id field
-        
+
         if (takeId && !isNaN(takeId)) {
           await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
           console.log('User rejected via swipe API');
@@ -333,15 +376,15 @@ export default function HomeScreen() {
         console.error('Failed to send reject swipe:', error);
       }
     }
-    
+
     setTimeout(() => {
       const newUsers = users.filter((_, index) => index !== currentUserIndex);
       setUsers(newUsers);
-      
+
       if (currentUserIndex >= newUsers.length) {
         setCurrentUserIndex(0);
       }
-      
+
       // Check if we have 2 or fewer users left, then fetch more
       if (newUsers.length <= 2) {
         console.log('Low on users, fetching more...');
@@ -378,7 +421,7 @@ export default function HomeScreen() {
         <View style={styles.emptyContainer}>
           {!isScrolling && (
             <View style={styles.emptyThemeContainer}>
-              <ThemeFilterBubbles 
+              <ThemeFilterBubbles
                 tags={tags}
                 onThemeChange={handleThemeChange}
               />
@@ -409,12 +452,12 @@ export default function HomeScreen() {
       showAppHeader
     >
       {!isScrolling && (
-        <ThemeFilterBubbles 
+        <ThemeFilterBubbles
           tags={tags}
           onThemeChange={handleThemeChange}
         />
       )}
-      
+
       {displayUser && (
         <UserProfile
           user={displayUser}
@@ -423,7 +466,7 @@ export default function HomeScreen() {
           onScrollStateChange={handleScrollStateChange}
         />
       )}
-      
+
       <OpinionModal
         visible={modalVisible}
         opinion={selectedOpinion}
