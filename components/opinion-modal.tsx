@@ -97,7 +97,7 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
               bounces={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
-              scrollEnabled={Platform.OS === 'ios'}
+              scrollEnabled={true}
             >
               <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                 <View style={styles.modalContent}>
