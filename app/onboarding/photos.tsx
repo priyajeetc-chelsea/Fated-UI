@@ -40,7 +40,7 @@ export default function PhotosForm() {
           const parsed = JSON.parse(savedData);
           if (parsed.photos && Array.isArray(parsed.photos)) {
             setPhotos(parsed.photos);
-            console.log('📸 Restored photos from storage:', parsed.photos.filter((p: PhotoData | null) => p !== null).length);
+            console.log('📸 Restored photos from storage:', parsed.photos.filter(p => p !== null).length);
           }
         }
       } catch (error) {
@@ -120,7 +120,7 @@ export default function PhotosForm() {
     return () => {
       mounted = false;
     };
-  }, [handleError]);
+  }, []);
 
   const pickImage = async (index: number) => {
     try {
