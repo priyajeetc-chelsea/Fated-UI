@@ -5,8 +5,8 @@ import { apiService } from '@/services/api';
 import { PhotoUploadUrl } from '@/types/onboarding';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const PHOTOS_STORAGE_KEY = '@fated_onboarding_photos';
@@ -29,39 +29,60 @@ export default function PhotosForm() {
   const hasInitialized = useRef(false);
   const isFetchingUrls = useRef(false);
 
-  // Load saved photo data on mount
-  useEffect(() => {
-    let mounted = true;
-    const loadSavedData = async () => {
-      try {
-        const savedData = await AsyncStorage.getItem(PHOTOS_STORAGE_KEY);
-        if (mounted && savedData) {
-          console.log('Loaded saved photos data');
-          const parsed = JSON.parse(savedData);
-          if (parsed.photos && Array.isArray(parsed.photos)) {
-            setPhotos(parsed.photos);
-            console.log('📸 Restored photos from storage:', parsed.photos.filter(p => p !== null).length);
+  // Load saved photo data on mount AND when screen comes into focus
+  // This ensures we reload data if the component was remounted due to navigation
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      const loadSavedData = async () => {
+        // Don't reload if we're currently uploading a photo
+        if (uploadingIndex !== null) {
+          console.log('⏭️ Skipping photo reload - upload in progress');
+          if (!isInitialized && mounted) {
+            setIsInitialized(true);
+          }
+          return;
+        }
+
+        try {
+          console.log('📸 Loading photos from storage...');
+          const savedData = await AsyncStorage.getItem(PHOTOS_STORAGE_KEY);
+          if (mounted && savedData) {
+            console.log('📸 Found saved photos data');
+            const parsed = JSON.parse(savedData);
+            if (parsed.photos && Array.isArray(parsed.photos)) {
+              const loadedCount = parsed.photos.filter((p: PhotoData | null) => p !== null).length;
+              console.log('📸 Restoring photos from storage:', loadedCount);
+              setPhotos(parsed.photos);
+            }
+          } else {
+            console.log('📸 No saved photos data found');
+          }
+        } catch (error) {
+          console.error('Error loading saved photos data:', error);
+        } finally {
+          if (mounted) {
+            setIsInitialized(true);
+            console.log('✅ Photo component initialized');
           }
         }
-      } catch (error) {
-        console.error('Error loading saved photos data:', error);
-      } finally {
-        if (mounted) {
-          setIsInitialized(true);
-          console.log('✅ Photo component initialized');
-        }
-      }
-    };
-    loadSavedData();
+      };
+      loadSavedData();
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+      return () => {
+        mounted = false;
+      };
+    }, [uploadingIndex, isInitialized])
+  );
 
   // Save photo data whenever it changes (with debounce)
-  // But skip if we're currently uploading (immediate save handles that)
+  // But skip if we're currently uploading or not initialized yet
   useEffect(() => {
+    if (!isInitialized) {
+      console.log('⏭️ Skipping save - not initialized yet');
+      return;
+    }
+
     if (uploadingIndex !== null) {
       console.log('⏭️ Skipping debounced save - upload in progress');
       return;
@@ -70,16 +91,16 @@ export default function PhotosForm() {
     const savePhotoData = async () => {
       try {
         await AsyncStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify({ photos }));
-        console.log('Saved photos data to storage (debounced)');
+        console.log('💾 Saved photos data to storage (debounced)');
       } catch (error) {
         console.error('Error saving photos data:', error);
       }
     };
 
-    const timeoutId = setTimeout(savePhotoData, 100); // Debounce saves
+    const timeoutId = setTimeout(savePhotoData, 500); // Increased debounce time
 
     return () => clearTimeout(timeoutId);
-  }, [photos, uploadingIndex]);
+  }, [photos, uploadingIndex, isInitialized]);
 
   // Fetch upload URLs on mount - only run once
   useEffect(() => {
@@ -172,30 +193,43 @@ export default function PhotosForm() {
 
       console.log(`✅ Photo ${index + 1} uploaded to S3 successfully`);
 
-      // Update local state with proper state updater function and save immediately
-      const newPhotos = await new Promise<(PhotoData | null)[]>((resolve) => {
-        setPhotos(prevPhotos => {
-          const updated = [...prevPhotos];
-          const newPhoto = {
-            localUri: imageUri,
-            s3Key: uploadUrl.s3Key,
-            uploaded: true,
-          };
-          updated[index] = newPhoto;
-          console.log(`✅ Updated state for photo ${index + 1}`, newPhoto);
-          console.log(`📊 Total uploaded photos: ${updated.filter(p => p?.uploaded).length}`);
-          resolve(updated);
-          return updated;
-        });
-      });
+      // Create new photo data
+      const newPhoto: PhotoData = {
+        localUri: imageUri,
+        s3Key: uploadUrl.s3Key,
+        uploaded: true,
+      };
 
-      // Save immediately to AsyncStorage to prevent loss on remount
+      // Get current photos from storage to ensure we have the latest
+      let currentPhotos: (PhotoData | null)[] = Array(MAX_PHOTOS).fill(null);
       try {
-        await AsyncStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify({ photos: newPhotos }));
+        const savedData = await AsyncStorage.getItem(PHOTOS_STORAGE_KEY);
+        if (savedData) {
+          const parsed = JSON.parse(savedData);
+          if (parsed.photos && Array.isArray(parsed.photos)) {
+            currentPhotos = parsed.photos;
+          }
+        }
+      } catch (err) {
+        console.error('Error reading current photos:', err);
+      }
+
+      // Update the specific index
+      currentPhotos[index] = newPhoto;
+      console.log(`✅ Updated photo ${index + 1}`, newPhoto);
+      console.log(`📊 Total uploaded photos: ${currentPhotos.filter(p => p?.uploaded).length}`);
+
+      // Save immediately to AsyncStorage before updating state
+      try {
+        await AsyncStorage.setItem(PHOTOS_STORAGE_KEY, JSON.stringify({ photos: currentPhotos }));
         console.log(`💾 Saved photo ${index + 1} to storage immediately`);
       } catch (err) {
-        console.error('Error saving immediately:', err);
+        console.error('❌ Error saving immediately:', err);
+        throw err; // Re-throw to trigger catch block
       }
+
+      // Update local state after save succeeds
+      setPhotos([...currentPhotos]);
 
       console.log(`✅ Photo ${index + 1} state updated successfully`);
     } catch (error) {
