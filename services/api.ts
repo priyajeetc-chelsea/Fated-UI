@@ -552,6 +552,27 @@ class ApiService {
     }
   }
 
+  // Get takes questions (topics and questions for onboarding)
+  async getTakesQuestions(): Promise<any> {
+    try {
+      console.log('📝 Fetching takes questions...');
+      const response = await this.makeAuthenticatedRequest('/onboarding/takes', {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const apiResponse = await response.json();
+      console.log('✅ Takes questions fetched successfully');
+      return apiResponse;
+    } catch (error) {
+      console.error('❌ Failed to fetch takes questions:', error);
+      throw error;
+    }
+  }
+
   // Get pre-signed upload URLs for photos
   async getPhotoUploadUrls(): Promise<PhotoUploadUrlResponse> {
     try {

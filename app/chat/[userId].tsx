@@ -7,18 +7,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -237,7 +237,7 @@ export default function ChatScreen() {
           </View>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#004242" />
+          <ActivityIndicator size="large" color="#4B164C" />
           <Text style={styles.loadingText}>
             {!chatEnabled ? 'Setting up chat...' : 'Loading chat...'}
           </Text>
@@ -305,8 +305,8 @@ export default function ChatScreen() {
               refreshing={isLoadingMore}
               onRefresh={loadMoreMessages}
               enabled={hasMoreMessages}
-              colors={['#004242']}
-              tintColor="#004242"
+              colors={['#4B164C']}
+              tintColor="#4B164C"
             />
           }
           onScroll={(event) => {
@@ -328,7 +328,7 @@ export default function ChatScreen() {
         >
           {isLoadingMore && (
             <View style={styles.loadMoreIndicator}>
-              <ActivityIndicator size="small" color="#004242" />
+              <ActivityIndicator size="small" color="#4B164C" />
             </View>
           )}
           
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   sentMessage: {
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     borderBottomRightRadius: 4,
   },
   receivedMessage: {
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   sendButton: {
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     borderRadius: 20,
     width: 40,
     height: 40,

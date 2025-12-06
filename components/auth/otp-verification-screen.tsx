@@ -2,13 +2,13 @@ import { useAuth } from '@/contexts/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Pressable,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 interface OtpVerificationScreenProps {
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   resendLink: {
-    color: '#004242',
+    color: '#4B164C',
     fontWeight: '600',
   },
   countdownText: {

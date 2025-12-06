@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     fontSize: 14,
-    color: '#004242',
+    color: '#4B164C',
     fontWeight: '600',
     marginTop: 8,
     marginBottom: 16,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   likedButton: {
-    borderColor: '#004242',
+    borderColor: '#4B164C',
     backgroundColor: '#FFF5F5',
   },
   crossButton: {

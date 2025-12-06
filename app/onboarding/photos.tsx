@@ -311,7 +311,7 @@ export default function PhotosForm() {
   if (!isInitialized) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#004242" />
+        <ActivityIndicator size="large" color="#4B164C" />
         <Text style={styles.loadingText}>Loading photos...</Text>
       </View>
     );
@@ -346,7 +346,7 @@ export default function PhotosForm() {
           <View key={`photo-slot-${index}`} style={styles.photoSlot}>
             {uploadingIndex === index ? (
               <View style={styles.uploadingContainer}>
-                <ActivityIndicator size="large" color="#004242" />
+                <ActivityIndicator size="large" color="#4B164C" />
                 <Text style={styles.uploadingText}>Uploading...</Text>
               </View>
             ) : photo ? (
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
   photoCountText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#004242',
+    color: '#4B164C',
   },
   photoCountSubtext: {
     fontSize: 14,
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
   },
   addPhotoIcon: {
     fontSize: 40,
-    color: '#004242',
+    color: '#4B164C',
     marginBottom: 8,
   },
   addPhotoText: {
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,

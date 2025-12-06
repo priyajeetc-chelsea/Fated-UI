@@ -286,7 +286,7 @@ export default function ProfilePage() {
     return (
       <BaseLayout>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#004242" />
+          <ActivityIndicator size="large" color="#4B164C" />
           <Text style={styles.loadingText}>Loading your profile...</Text>
         </View>
       </BaseLayout>
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

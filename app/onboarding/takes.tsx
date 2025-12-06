@@ -80,11 +80,23 @@ export default function TakesForm() {
           return;
         }
 
-        // If no params, fetch from API
-        console.log('No route params, fetching from API...');
+        // If no params, fetch from onboarding step API
+        console.log('No route params, fetching from onboarding step API...');
         const response = await apiService.getOnboardingStep();
-        if (response.code === 200 && response.model?.tagAndQuestion) {
+        
+        // Check if we got tagAndQuestion data from onboarding step
+        if (response.code === 200 && response.model?.tagAndQuestion && response.model.tagAndQuestion.length > 0) {
           setTagAndQuestions(response.model.tagAndQuestion);
+          setIsInitializing(false);
+          return;
+        }
+        
+        // If onboarding step has no questions (0 questions), fetch from takes API
+        console.log('No questions from onboarding step, fetching from takes API...');
+        const takesResponse = await apiService.getTakesQuestions();
+        
+        if (takesResponse.code === 200 && takesResponse.model && Array.isArray(takesResponse.model)) {
+          setTagAndQuestions(takesResponse.model);
           setIsInitializing(false);
         } else {
           Alert.alert('Error', 'Failed to load topics. Please try again.');
@@ -425,7 +437,7 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     borderRadius: 4,
   },
   topicChipsContainer: {
@@ -446,8 +458,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   topicChipActive: {
-    backgroundColor: '#004242',
-    borderColor: '#004242',
+    backgroundColor: '#4B164C',
+    borderColor: '#4B164C',
   },
   topicChipDisabled: {
     opacity: 0.5,
@@ -472,7 +484,7 @@ const styles = StyleSheet.create({
   topicChipBadgeText: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#004242',
+    color: '#4B164C',
   },
   title: {
     fontSize: 28,
@@ -500,7 +512,7 @@ const styles = StyleSheet.create({
   questionNumber: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#004242',
+    color: '#4B164C',
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

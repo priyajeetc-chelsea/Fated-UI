@@ -268,8 +268,8 @@ export function PotentialMatchModal({
                   refreshing={isLoadingMore}
                   onRefresh={loadMoreMessages}
                   enabled={hasMoreMessages}
-                  colors={['#004242']}
-                  tintColor="#004242"
+                  colors={['#4B164C']}
+                  tintColor="#4B164C"
                 />
               ) : undefined
             }
@@ -329,7 +329,7 @@ export function PotentialMatchModal({
             {/* Action Buttons or Waiting Message */}
             {potentialMatch.waitingForMatchResponse ? (
               <View style={styles.waitingSection}>
-                <Ionicons name="hourglass-outline" size={24} color="#004242" />
+                <Ionicons name="hourglass-outline" size={24} color="#4B164C" />
                 <Text style={styles.waitingText}>Waiting for them to like you back...</Text>
               </View>
             ) : (
@@ -368,7 +368,7 @@ export function PotentialMatchModal({
                 
                 {isLoadingMore && (
                   <View style={styles.loadMoreIndicator}>
-                    <ActivityIndicator size="small" color="#004242" />
+                    <ActivityIndicator size="small" color="#4B164C" />
                   </View>
                 )}
                 
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     flex: 1,
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   sentMessage: {
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     borderBottomRightRadius: 4,
   },
   receivedMessage: {
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   sendButton: {
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     borderRadius: 20,
     width: 40,
     height: 40,

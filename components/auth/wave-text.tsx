@@ -79,6 +79,6 @@ const styles = StyleSheet.create({
     fontSize: 45,
     lineHeight: 50,
     fontFamily: 'Playfair Display Bold',
-    color: '#004242',
+    color: '#4B164C',
   },
 });

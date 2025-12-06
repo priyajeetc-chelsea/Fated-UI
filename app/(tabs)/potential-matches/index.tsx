@@ -345,8 +345,8 @@ export default function PotentialMatchesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#004242']}
-              tintColor="#004242"
+              colors={['#4B164C']}
+              tintColor="#4B164C"
             />
           }
         >
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontFamily:'Playfair Display Bold',
-    color: '#004242',
+    color: '#4B164C',
   },
   headerBadge: {
     backgroundColor: '#ff4444',
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   chatBadge: {
-    backgroundColor: '#004242',
+    backgroundColor: '#4B164C',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: '#f5f5f5f5',
     borderWidth: 1,
-    borderColor: '#004242',
+    borderColor: '#4B164C',
     alignItems: 'center',
     justifyContent: 'center',
   },

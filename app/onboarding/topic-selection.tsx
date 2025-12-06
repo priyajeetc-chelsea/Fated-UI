@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   topicCardSelected: {
     backgroundColor: '#f5f5f5',
-    borderColor: '#004242',
+    borderColor: '#4B164C',
   },
   topicContent: {
     flex: 1,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   topicNameSelected: {
-    color: '#004242',
+    color: '#4B164C',
   },
   questionCount: {
     fontSize: 14,
@@ -198,8 +198,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxSelected: {
-    backgroundColor: '#004242',
-    borderColor: '#004242',
+    backgroundColor: '#4B164C',
+    borderColor: '#4B164C',
   },
   checkmark: {
     color: '#FFF',

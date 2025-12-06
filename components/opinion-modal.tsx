@@ -2,17 +2,17 @@ import { ApiOpinion } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   likeProfileButton: {
     flex: 1,
-    backgroundColor: '#004242', // Purple color
+    backgroundColor: '#4B164C', // Purple color
     paddingVertical: 10,
     borderRadius: 30,
     alignItems: 'center',

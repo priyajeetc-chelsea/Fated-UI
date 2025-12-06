@@ -8,7 +8,7 @@ type LogoutButtonProps = {
   variant?: 'text' | 'icon';
 };
 
-const ICON_COLOR = '#004242';
+const ICON_COLOR = '#4B164C';
 
 export const LogoutButton: React.FC<LogoutButtonProps> = ({ variant = 'text' }) => {
   const { signOut } = useAuth();

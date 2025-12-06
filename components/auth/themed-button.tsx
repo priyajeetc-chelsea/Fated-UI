@@ -37,7 +37,7 @@ export function ThemedButton({
   disabled,
   ...touchableProps
 }: ThemedButtonProps) {
-  const primaryColor = '#004242';
+  const primaryColor = '#4B164C';
   // || useThemeColor({}, 'primary');
   const primaryDarkColor = useThemeColor({}, 'primaryDark');
   const textColor = useThemeColor({}, 'text');
