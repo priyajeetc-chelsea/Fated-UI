@@ -36,7 +36,7 @@ class ApiService {
     return fetch(url, defaultOptions);
   }
 
-  // Fetch all matches (confirmed and potential)
+  // Fetch all matches (confirmed and potential) - DEPRECATED: Use fetchPotentialMatches and fetchConfirmedMatches instead
   async fetchAllMatches(): Promise<import('@/types/api').ApiAllMatchesResponse> {
     try {
       const response = await this.makeAuthenticatedRequest('/matches/all', {
@@ -51,6 +51,44 @@ class ApiService {
       return apiResponse;
     } catch (error) {
       console.error('❌ Failed to fetch all matches:', error);
+      throw error;
+    }
+  }
+
+  // Fetch potential matches (likes you and mutual likes)
+  async fetchPotentialMatches(): Promise<import('@/types/api').ApiPotentialMatchesResponse> {
+    try {
+      const response = await this.makeAuthenticatedRequest('/matches/potential', {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const apiResponse = await response.json();
+      return apiResponse;
+    } catch (error) {
+      console.error('❌ Failed to fetch potential matches:', error);
+      throw error;
+    }
+  }
+
+  // Fetch confirmed matches
+  async fetchConfirmedMatches(): Promise<import('@/types/api').ApiConfirmedMatchesResponse> {
+    try {
+      const response = await this.makeAuthenticatedRequest('/matches/confirm', {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const apiResponse = await response.json();
+      return apiResponse;
+    } catch (error) {
+      console.error('❌ Failed to fetch confirmed matches:', error);
       throw error;
     }
   }

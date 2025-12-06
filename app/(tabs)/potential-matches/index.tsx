@@ -49,26 +49,26 @@ export default function PotentialMatchesScreen() {
   const fetchPotentialMatches = useCallback(async () => {
     setError(null);
     try {
-      const res = await apiService.fetchAllMatches();
+      const res = await apiService.fetchPotentialMatches();
       
-      const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
+      const likesYou: PotentialMatchDisplay[] = (res.model?.likesYou || []).map((pm) => ({
         type: 'likesYou',
         data: {
           ...pm,
-          unreadCount: (pm as any).unreadCount ?? 0,
-          isUnread: (pm as any).isUnread ?? false,
-          lastMessage: (pm as any).lastMessage ?? null,
+          unreadCount: pm.unreadCount ?? 0,
+          isUnread: pm.isUnread ?? false,
+          lastMessage: pm.lastMessage ?? undefined,
         },
       }));
 
-      const mutualLike: PotentialMatchDisplay[] = (res.model?.potentialMatches?.mutualLike || []).map((pm) => ({
+      const mutualLike: PotentialMatchDisplay[] = (res.model?.mutualLike || []).map((pm) => ({
         type: 'mutualLike',
         data: {
           ...pm,
-          unreadCount: (pm as any).unreadCount ?? 0,
-          isUnread: (pm as any).isUnread ?? false,
-          lastMessage: (pm as any).lastMessage ?? null,
-          originalMessageId: (pm as any).lastMessage?.id,
+          unreadCount: pm.unreadCount ?? 0,
+          isUnread: pm.isUnread ?? false,
+          lastMessage: pm.lastMessage ?? undefined,
+          originalMessageId: pm.lastMessage?.id,
         },
       }));
 
@@ -98,25 +98,25 @@ export default function PotentialMatchesScreen() {
 
   const silentFetchPotentialMatches = useCallback(async () => {
     try {
-      const res = await apiService.fetchAllMatches();
+      const res = await apiService.fetchPotentialMatches();
       
-      const likesYou: PotentialMatchDisplay[] = (res.model?.potentialMatches?.likesYou || []).map((pm) => ({
+      const likesYou: PotentialMatchDisplay[] = (res.model?.likesYou || []).map((pm) => ({
         type: 'likesYou',
         data: {
           ...pm,
-          unreadCount: (pm as any).unreadCount ?? 0,
-          isUnread: (pm as any).isUnread ?? false,
-          lastMessage: (pm as any).lastMessage ?? null,
+          unreadCount: pm.unreadCount ?? 0,
+          isUnread: pm.isUnread ?? false,
+          lastMessage: pm.lastMessage ?? undefined,
         },
       }));
 
-      const mutualLike: PotentialMatchDisplay[] = (res.model?.potentialMatches?.mutualLike || []).map((pm) => ({
+      const mutualLike: PotentialMatchDisplay[] = (res.model?.mutualLike || []).map((pm) => ({
         type: 'mutualLike',
         data: {
           ...pm,
-          unreadCount: (pm as any).unreadCount ?? 0,
-          isUnread: (pm as any).isUnread ?? false,
-          lastMessage: (pm as any).lastMessage ?? null,
+          unreadCount: pm.unreadCount ?? 0,
+          isUnread: pm.isUnread ?? false,
+          lastMessage: pm.lastMessage ?? undefined,
         },
       }));
       

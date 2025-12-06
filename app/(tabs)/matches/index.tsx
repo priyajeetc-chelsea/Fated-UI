@@ -2,15 +2,15 @@ import { apiService } from '@/services/api';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  AppState,
-  AppStateStatus,
-  Image,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    AppState,
+    AppStateStatus,
+    Image,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -38,9 +38,9 @@ export default function MatchesScreen() {
   const fetchMatches = useCallback(async () => {
     setError(null);
     try {
-      const res = await apiService.fetchAllMatches();
+      const res = await apiService.fetchConfirmedMatches();
       
-      const confirmedMatches = res.model?.confirmedMatches?.matches || [];
+      const confirmedMatches = res.model?.matches || [];
       
       const confirmed = confirmedMatches.map((m: any) => {
         let displayMessage = m.lastMessage ? m.lastMessage.content : 'Say hello!';
@@ -76,8 +76,8 @@ export default function MatchesScreen() {
 
   const silentFetchMatches = useCallback(async () => {
     try {
-      const res = await apiService.fetchAllMatches();
-      const confirmed = (res.model?.confirmedMatches?.matches || []).map((m: any) => ({
+      const res = await apiService.fetchConfirmedMatches();
+      const confirmed = (res.model?.matches || []).map((m: any) => ({
         id: m.userId?.toString() ?? '',
         name: m.name ?? '',
         photo: m.photoUrl ?? '',

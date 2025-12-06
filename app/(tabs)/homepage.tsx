@@ -3,9 +3,11 @@ import OpinionModal from '@/components/opinion-modal';
 import ThemeFilterBubbles from '@/components/theme-filter-bubbles';
 import { ThemedText } from '@/components/themed-text';
 import UserProfile from '@/components/user-profile';
-import { useUser } from '@/contexts/UserContext';
+import { clearStoredChatUser } from '@/contexts/ChatContext';
+import { clearStoredUser, useUser } from '@/contexts/UserContext';
 import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
 import { apiService } from '@/services/api';
+import { authApiService } from '@/services/auth/api';
 import { ApiOpinion, ApiUser, MatchRequest, Tag } from '@/types/api';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -70,8 +72,7 @@ export default function HomeScreen() {
           if (response.model?.onboardingStep && response.model.onboardingStep.step < 5) {
             console.log('🚧 User needs to complete onboarding, redirecting to step:', response.model.onboardingStep.step);
 
-            const { router, usePathname } = await import('expo-router');
-            const { useSegments } = await import('expo-router');
+            const { router } = await import('expo-router');
             const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
 
             // Check cached page first
@@ -259,6 +260,16 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Failed to load matches:', error);
       handleError(error);
+      
+      // If this is the initial load and we got an error, redirect to login
+      if (!appendToExisting && !hasInitiallyLoaded.current) {
+        console.log('❌ Initial homepage load failed, redirecting to login');
+        await authApiService.clearAuthData();
+        await clearStoredUser();
+        await clearStoredChatUser();
+        // Navigate to root to trigger auth guard
+        router.replace('/' as any);
+      }
     } finally {
       if (!appendToExisting) {
         setIsLoading(false);

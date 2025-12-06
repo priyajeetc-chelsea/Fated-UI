@@ -5,19 +5,19 @@ import { webSocketService } from '@/services/websocket';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -87,29 +87,15 @@ export function PotentialMatchModal({
     enabled: shouldEnableChat || false,
   });
 
-  // Removed auto-scroll functionality to prevent unwanted scrolling behavior
-  const lastMessageIdRef = useRef<number | null>(null);
-  
-  useEffect(() => {
-    if (messages.length === 0) {
-      lastMessageIdRef.current = null;
-      return;
-    }
-    
-    const lastMessage = messages[messages.length - 1];
-    lastMessageIdRef.current = lastMessage?.id || null;
-  }, [messages]);
-
-  // Initialize message reference when modal opens
+  // Initial scroll to bottom when chat modal first loads (to show latest messages)
   const hasMessages = messages.length > 0;
   useEffect(() => {
     if (visible && hasMessages) {
-      // Initialize the last message ID reference
-      if (messages.length > 0) {
-        lastMessageIdRef.current = messages[messages.length - 1]?.id || null;
-      }
+      setTimeout(() => {
+        mainScrollRef.current?.scrollToEnd({ animated: false });
+      }, 300);
     }
-  }, [visible, hasMessages, messages]);
+  }, [visible, hasMessages]); // Trigger when modal opens and messages are loaded
 
   // Handle input focus
   const handleInputFocus = () => {

@@ -48,6 +48,9 @@ export interface PotentialMatchLike {
     answer: string;
   };
   waitingForMatchResponse?: boolean;
+  lastMessage?: LastMessage;
+  unreadCount?: number;
+  isUnread?: boolean;
 }
 
 export interface PotentialMatchMutual {
@@ -59,13 +62,31 @@ export interface PotentialMatchMutual {
     question: string;
     answer: string;
   };
-  photoUrl: string;
+  photoUrl?: string;
   waitingForMatchResponse?: boolean;
+  lastMessage?: LastMessage;
+  unreadCount?: number;
+  isUnread?: boolean;
 }
 
 export interface ApiPotentialMatches {
-  likesYou: PotentialMatchLike[];
-  mutualLike: PotentialMatchMutual[];
+  likesYou: PotentialMatchLike[] | null;
+  mutualLike: PotentialMatchMutual[] | null;
+}
+
+// Separate API response types for new endpoints
+export interface ApiPotentialMatchesResponse {
+  code: number;
+  msg: string;
+  model: ApiPotentialMatches;
+}
+
+export interface ApiConfirmedMatchesResponse {
+  code: number;
+  msg: string;
+  model: {
+    matches: ApiConfirmedMatch[];
+  };
 }
 
 export interface LastMessage {

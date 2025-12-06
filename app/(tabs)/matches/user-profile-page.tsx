@@ -7,52 +7,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-// Fallback user data in case no profile is passed
-const FALLBACK_USER_DATA = {
-  userId: 203,
-  firstName: "dummy user",
-  gender: "Female",
-  pronouns: "She/Her",
-  dob: "1999-02-14",
-  city: "Mumbai",
-  photoUrl: "https://cdn.app/user203.jpg",
-  intention: "date",
-  profile: {
-    education: "B.A. Sociology",
-    profession: "Content Strategist",
-    interestedIn: "Male",
-    location: "Mumbai",
-    topicsInterested: ["Feminism", "Mental Health"],
-    personalityTrait: ["Empathetic", "Creative", "Curious"],
-    dealBreaker: ["Dishonesty"],
-    politicalLeaning: "Progressive",
-    languages: ["English", "Hindi", "Marathi"],
-    shortBio: "Passionate about storytelling and social causes. I love deep conversations over coffee."
-  },
-  opinions: [
-    {
-      id: "1",
-      question: "Is feminism still relevant today?",
-      text: `I believe that technology is shaping our society in ways that we don't fully understand yet. On one hand, it has made life incredibly convenient—we can connect with people across the globe instantly, access unlimited information, and automate boring tasks. On the other hand, it has also created challenges that no generation before us had to deal with: social media addiction, the spread of misinformation, and the erosion of genuine human connection.
-
-For example, while I appreciate how platforms like Twitter or Reddit allow niche communities to flourish, I also feel they amplify negativity and extreme viewpoints, because outrage spreads faster than thoughtful debate. It's fascinating but also dangerous. The question then becomes: how do we balance innovation with responsibility?`,
-      theme: "Feminism"
-    },
-    {
-      id: "2",
-      question: "Can climate change be reversed?",
-      text: "Yes, but only with global collaboration and drastic cuts in emissions. We need to fundamentally change how we produce energy, how we consume goods, and how we think about growth. Individual actions matter, but systemic change is what will really make a difference.",
-      theme: "Climate Change"
-    },
-    {
-      id: "3", 
-      question: "Should mental health be part of school curriculum?",
-      text: "Mental health must be normalized and supported from an early age. Schools should teach emotional intelligence, coping strategies, and stress management. We need to break the stigma and create safe spaces for students to express their feelings.",
-      theme: "Mental Health"
-    }
-  ]
-};
-
 export default function UserProfilePage() {
   const params = useLocalSearchParams();
   const router = useRouter();
@@ -158,12 +112,16 @@ export default function UserProfilePage() {
               
               setUser(convertedUser);
             } else {
-              console.log('No valid profile data, using fallback');
-              setUser(createFallbackUser());
+              console.log('No valid profile data received');
+              // Redirect back to matches tab instead of showing fallback
+              router.replace('/matches');
+              return;
             }
           } catch (apiError) {
-            console.error('API error, using fallback:', apiError);
-            setUser(createFallbackUser());
+            console.error('API error loading user profile:', apiError);
+            // Redirect back to matches tab instead of showing fallback
+            router.replace('/matches');
+            return;
           }
         } 
         // Check if profile is provided (fallback data)
@@ -174,38 +132,29 @@ export default function UserProfilePage() {
             setUser(convertProfileDataToApiUser(profileData));
           } catch (parseError) {
             console.error('Error parsing profile data:', parseError);
-            setUser(createFallbackUser());
+            // Redirect back to matches tab instead of showing fallback
+            router.replace('/matches');
+            return;
           }
         } 
-        // No parameters provided, use fallback
+        // No parameters provided, redirect to matches
         else {
-          setUser(createFallbackUser());
+          console.log('No user parameters provided');
+          router.replace('/matches');
+          return;
         }
       } catch (error) {
         console.error('Error loading user profile:', error);
-        setUser(createFallbackUser());
+        // Redirect back to matches tab instead of showing fallback
+        router.replace('/matches');
+        return;
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUserProfile();
-  }, [params.userBId, params.profile]);
-
-  const createFallbackUser = (): ApiUser => ({
-    id: FALLBACK_USER_DATA.userId.toString(),
-    name: FALLBACK_USER_DATA.firstName,
-    age: 25,
-    gender: FALLBACK_USER_DATA.gender,
-    photo: `https://picsum.photos/200/200?random=${FALLBACK_USER_DATA.userId}`,
-    opinions: FALLBACK_USER_DATA.opinions.map(opinion => ({
-      id: opinion.id,
-      question: opinion.question,
-      text: opinion.text,
-      theme: opinion.theme,
-      liked: false
-    }))
-  });
+  }, [params.userBId, params.profile, router]);
 
   const convertProfileDataToApiUser = (profileData: any): ApiUser => ({
     id: profileData.userId?.toString() || '203',
