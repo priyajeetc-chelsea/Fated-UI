@@ -69,6 +69,8 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const previousMessageCountRef = useRef(0);
+  const isNearBottomRef = useRef(true);
 
   // Wait for currentUser to be loaded before initializing chat
   // This prevents issues when navigating to chat before homepage loads
@@ -98,12 +100,34 @@ export default function ChatScreen() {
   // Initial scroll to bottom when chat screen first loads (to show latest messages)
   const hasMessages = messages.length > 0;
   useEffect(() => {
-    if (hasMessages) {
+    if (hasMessages && previousMessageCountRef.current === 0) {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: false });
+        previousMessageCountRef.current = messages.length;
       }, 300);
     }
-  }, [hasMessages]); // Trigger only when messages are first loaded
+  }, [hasMessages, messages.length]);
+
+  // Scroll to bottom only when NEW messages arrive (not when loading old ones)
+  useEffect(() => {
+    if (!chatEnabled || messages.length === 0) return;
+    
+    const previousCount = previousMessageCountRef.current;
+    const currentCount = messages.length;
+    
+    // Only scroll if:
+    // 1. Message count increased (new message, not initial load)
+    // 2. User is near the bottom of the chat
+    // 3. Not loading more messages (which adds to the beginning)
+    if (currentCount > previousCount && previousCount > 0 && isNearBottomRef.current && !isLoadingMore) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+        setShowScrollToBottomButton(false);
+      }, 100);
+    }
+    
+    previousMessageCountRef.current = currentCount;
+  }, [messages.length, chatEnabled, isLoadingMore]);
 
   // Handle input focus
   const handleInputFocus = () => {
@@ -247,14 +271,14 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView 
-      style={styles.container}
-      edges={Platform.OS === 'android' ? ['top', 'bottom'] : ['top']}
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={0}
     >
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
+      <SafeAreaView 
+        style={styles.container}
+        edges={['top', 'bottom']}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -312,8 +336,11 @@ export default function ChatScreen() {
           onScroll={(event) => {
             const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
             const isAtTop = contentOffset.y <= 0;
-            const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 50, 0);
+            const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 100, 0);
             const isAtBottom = contentOffset.y >= bottomThreshold;
+
+            // Track if user is near bottom (for auto-scroll on new messages)
+            isNearBottomRef.current = isAtBottom;
 
             // Show/hide scroll to bottom button based on scroll position
             if (messages.length > 0) {
@@ -383,8 +410,8 @@ export default function ChatScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

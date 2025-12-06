@@ -33,7 +33,7 @@ export function GoogleSignInButton({
           <ActivityIndicator color="#000000" size="small" />
         ) : (
           <>
-            <Ionicons name="logo-google" size={20} color="#000000" style={styles.icon} />
+            <Ionicons name="logo-google" size={20} color="#FFFFFF" style={styles.icon} />
             <Text style={styles.text}>Continue with Google</Text>
           </>
         )}
@@ -45,11 +45,12 @@ export function GoogleSignInButton({
 const styles = StyleSheet.create({
   button: {
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: '#FFFFFF',
     borderRadius: 8,
     paddingVertical: 16,
     paddingHorizontal: 24,
-    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
+    backgroundColor: '#000000',
   },
   buttonDisabled: {
     borderColor: '#CCCCCC',
@@ -66,6 +67,6 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontFamily: 'Playfair Display Bold',
-    color: '#000',
+    color: '#FFFFFF'
   },
 });

@@ -53,6 +53,8 @@ export function PotentialMatchModal({
   const [inputText, setInputText] = useState('');
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const mainScrollRef = useRef<ScrollView>(null);
+  const previousMessageCountRef = useRef(0);
+  const isNearBottomRef = useRef(true);
 
   // Use currentUser.id directly - will be set from homepage response
   // Default to 0 if not available yet (chat will be disabled)
@@ -90,12 +92,34 @@ export function PotentialMatchModal({
   // Initial scroll to bottom when chat modal first loads (to show latest messages)
   const hasMessages = messages.length > 0;
   useEffect(() => {
-    if (visible && hasMessages) {
+    if (visible && hasMessages && previousMessageCountRef.current === 0) {
       setTimeout(() => {
         mainScrollRef.current?.scrollToEnd({ animated: false });
+        previousMessageCountRef.current = messages.length;
       }, 300);
     }
-  }, [visible, hasMessages]); // Trigger when modal opens and messages are loaded
+  }, [visible, hasMessages, messages.length]);
+
+  // Scroll to bottom only when NEW messages arrive (not when loading old ones)
+  useEffect(() => {
+    if (!visible || !shouldEnableChat || messages.length === 0) return;
+    
+    const previousCount = previousMessageCountRef.current;
+    const currentCount = messages.length;
+    
+    // Only scroll if:
+    // 1. Message count increased (new message, not initial load)
+    // 2. User is near the bottom of the chat
+    // 3. Not loading more messages (which adds to the beginning)
+    if (currentCount > previousCount && previousCount > 0 && isNearBottomRef.current && !isLoadingMore) {
+      setTimeout(() => {
+        mainScrollRef.current?.scrollToEnd({ animated: true });
+        setShowScrollToBottomButton(false);
+      }, 100);
+    }
+    
+    previousMessageCountRef.current = currentCount;
+  }, [messages.length, visible, shouldEnableChat, isLoadingMore]);
 
   // Handle input focus
   const handleInputFocus = () => {
@@ -224,12 +248,12 @@ export function PotentialMatchModal({
       animationType="slide"
       presentationStyle="formSheet"
     >
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView 
-          style={styles.container} 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
-        >
+      <KeyboardAvoidingView 
+        style={styles.container} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
           {/* Header with user name */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.backButton}>
@@ -276,8 +300,11 @@ export function PotentialMatchModal({
             onScroll={(event) => {
               const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
               const isAtTop = contentOffset.y <= 0;
-              const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 50, 0);
+              const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 100, 0);
               const isAtBottom = contentOffset.y >= bottomThreshold;
+
+              // Track if user is near bottom (for auto-scroll on new messages)
+              isNearBottomRef.current = isAtBottom;
 
               // Show/hide scroll to bottom button based on scroll position
               if (shouldEnableChat && messages.length > 0) {
@@ -429,8 +456,8 @@ export function PotentialMatchModal({
               </View>
             </View>
           )}
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
