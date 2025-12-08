@@ -5,19 +5,18 @@ import { webSocketService } from '@/services/websocket';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -239,23 +238,17 @@ export function PotentialMatchModal({
   };
 
 
-  if (!potentialMatch) return null;
+  if (!visible || !potentialMatch) return null;
 
   // Check if this is a locked state (likes you but not matched yet)
   const isLocked = potentialMatch.type === 'likesYou' && !potentialMatch.waitingForMatchResponse;
 
   return (
-    //If you need to change the deprecated safeAreaView, change modal presentation style
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="formSheet"
-    >
       <SafeAreaView style={styles.container} edges={['top']}>
         <KeyboardAvoidingView 
           style={styles.keyboardView} 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          keyboardVerticalOffset={0}
         >
           {/* Header with user name */}
           <View style={styles.header}>
@@ -461,12 +454,17 @@ export function PotentialMatchModal({
           )}
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
