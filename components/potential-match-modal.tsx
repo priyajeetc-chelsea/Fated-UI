@@ -183,6 +183,9 @@ export function PotentialMatchModal({
     setInputText('');
     setShowScrollToBottomButton(false); // Hide button when sending
     
+    // Ensure we're marked as being at bottom when sending
+    isNearBottomRef.current = true;
+    
     const success = await sendMessage(message);
     if (!success) {
       Alert.alert('Failed to send message', 'Please check your connection and try again.');
@@ -248,12 +251,12 @@ export function PotentialMatchModal({
       animationType="slide"
       presentationStyle="formSheet"
     >
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-      >
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <KeyboardAvoidingView 
+          style={styles.keyboardView} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
           {/* Header with user name */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.backButton}>
@@ -456,8 +459,8 @@ export function PotentialMatchModal({
               </View>
             </View>
           )}
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -466,6 +469,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  keyboardView: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
