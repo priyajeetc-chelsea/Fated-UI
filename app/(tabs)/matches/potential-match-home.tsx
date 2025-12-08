@@ -4,8 +4,8 @@ import UserProfile from '@/components/user-profile';
 import { apiService } from '@/services/api';
 import { ApiOpinion, ApiUser } from '@/types/api';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, StyleSheet, View } from 'react-native';
 
 interface OpinionWithTakeId extends ApiOpinion {
   takeId: number;
@@ -22,48 +22,6 @@ interface ModalOpinion {
   theme: string;
   question: string;
 }
-
-const DUMMY_PROFILE = {
-  userId: 203,
-  firstName: 'ana',
-  gender: 'Female',
-  pronouns: 'She/Her',
-  dob: '1999-02-14',
-  city: 'Mumbai',
-  photoUrl: 'https://cdn.app/user203.jpg',
-  intention: 'date',
-  profile: {
-    education: 'B.A. Sociology',
-    profession: 'Content Strategist',
-    interestedIn: 'Male',
-    location: 'Mumbai',
-    topicsInterested: ['Feminism', 'Mental Health'],
-    personalityTrait: ['Empathetic', 'Creative', 'Curious'],
-    dealBreaker: ['Dishonesty'],
-    politicalLeaning: 'Progressive',
-    languages: ['English,Hindi,Marathi'],
-    shortBio: 'Passionate about storytelling and social causes. I love deep conversations over coffee.',
-  },
-  opinions: [
-    {
-      question: 'Is feminism still relevant today?',
-      answer: `I believe that technology is shaping our society in ways that we don't fully understand yet. On one hand, it has made life incredibly convenient—we can connect with people across the globe instantly, access unlimited information, and automate boring tasks. On the other hand, it has also created challenges that no generation before us had to deal with: social media addiction, the spread of misinformation, and the erosion of genuine human connection.
-
-For example, while I appreciate how platforms like Twitter or Reddit allow niche communities to flourish, I also feel they amplify negativity and extreme viewpoints, because outrage spreads faster than thoughtful debate. It's fascinating but also dangerous. The question then becomes: how do we balance innovation with responsibility?`,
-      tag: { id: 1, name: 'Feminism' },
-    },
-    {
-      question: 'Can climate change be reversed?',
-      answer: 'Yes, but only with global collaboration and drastic cuts.',
-      tag: { id: 2, name: 'Climate Change' },
-    },
-    {
-      question: 'Should mental health be part of school curriculum?',
-      answer: 'Mental health must be normalized and supported.',
-      tag: { id: 3, name: 'Mental Health' },
-    }
-  ],
-};
 
 export default function PotentialMatchHome() {
   const params = useLocalSearchParams();
@@ -82,22 +40,6 @@ export default function PotentialMatchHome() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0));
 
-  const createDummyUser = useCallback((): ExtendedApiUser => ({
-    id: DUMMY_PROFILE.userId.toString(),
-    name: DUMMY_PROFILE.firstName,
-    age: 25,
-    gender: DUMMY_PROFILE.gender,
-    photo: `https://picsum.photos/200/200?random=${DUMMY_PROFILE.userId}`,
-    opinions: DUMMY_PROFILE.opinions.map((opinion, index) => ({
-      id: (index + 1).toString(),
-      question: opinion.question,
-      text: opinion.answer,
-      theme: opinion.tag.name,
-      liked: false,
-      takeId: index + 1 // Add takeId for dummy data
-    }))
-  }), []);
-
   useEffect(() => {
     const userName = Array.isArray(params.userName) ? params.userName[0] : params.userName;
     const opinions = Array.isArray(params.opinions) ? params.opinions[0] : params.opinions;
@@ -105,42 +47,62 @@ export default function PotentialMatchHome() {
     console.log('PotentialMatchHome params:', { userName, opinions: opinions ? 'present' : 'missing' });
     setIsLoading(true);
     
-    if (userName && opinions) {
-      try {
-        const parsedOpinions = JSON.parse(opinions) as any[];
-        console.log('Parsed opinions:', parsedOpinions.length, 'opinions for user', userName);
-        
-        // Create a user from the passed parameters
-        const convertedUser: ExtendedApiUser = {
-          id: Math.random().toString(), // Generate random ID since we don't have userBId
-          name: userName,
-          age: 25,
-          gender: 'Female',
-          photo: `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`,
-          opinions: parsedOpinions.map((opinion: any) => ({
-            id: opinion.takeId.toString(),
-            question: opinion.question,
-            text: opinion.answer, // API returns 'answer', not 'text'
-            theme: opinion.tag?.name || 'General', // Extract name from tag object
-            liked: false,
-            takeId: opinion.takeId // This is the key field for swipe actions
-          }))
-        };
-        
-        console.log('Created user with', convertedUser.opinions.length, 'opinions');
-        setUser(convertedUser);
-      } catch (error) {
-        console.error('Error parsing opinions data:', error);
-        console.log('Using dummy user due to parsing error');
-        setUser(createDummyUser());
-      }
-    } else {
-      console.log('No userName or opinions provided, using dummy user');
-      setUser(createDummyUser());
+    if (!userName || !opinions) {
+      // Missing required data, show error and redirect
+      Alert.alert(
+        'Invalid Match Data',
+        'Unable to load match information. Please try again.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/(tabs)/matches')
+          }
+        ]
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const parsedOpinions = JSON.parse(opinions) as any[];
+      console.log('Parsed opinions:', parsedOpinions.length, 'opinions for user', userName);
+      
+      // Create a user from the passed parameters
+      const convertedUser: ExtendedApiUser = {
+        id: Math.random().toString(), // Generate random ID since we don't have userBId
+        name: userName,
+        age: 25,
+        gender: 'Female',
+        photo: `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`,
+        opinions: parsedOpinions.map((opinion: any) => ({
+          id: opinion.takeId.toString(),
+          question: opinion.question,
+          text: opinion.answer, // API returns 'answer', not 'text'
+          theme: opinion.tag?.name || 'General', // Extract name from tag object
+          liked: false,
+          takeId: opinion.takeId // This is the key field for swipe actions
+        }))
+      };
+      
+      console.log('Created user with', convertedUser.opinions.length, 'opinions');
+      setUser(convertedUser);
+    } catch (error) {
+      console.error('Error parsing opinions data:', error);
+      Alert.alert(
+        'Error Loading Match',
+        'Failed to load match information. Please try again.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/(tabs)/matches')
+          }
+        ]
+      );
     }
     
     setIsLoading(false);
-  }, [params.userName, params.opinions, createDummyUser]); // More specific dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.userName, params.opinions]);
 
   const handleLikeOpinion = (opinionId: string) => {
     if (!user) return;
@@ -198,10 +160,11 @@ export default function PotentialMatchHome() {
       try {
         const takeId = modalOpinion && modalOpinion.takeId ? Number(modalOpinion.takeId) : null;
         if (!takeId || isNaN(takeId)) {
-          router.replace({ 
-            pathname: '/matches/user-profile-page', 
-            params: { profile: JSON.stringify(DUMMY_PROFILE) } 
-          });
+          Alert.alert(
+            'Error',
+            'Invalid opinion data. Please try again.',
+            [{ text: 'OK', onPress: () => router.replace('/(tabs)/matches') }]
+          );
           return;
         }
         
@@ -220,25 +183,28 @@ export default function PotentialMatchHome() {
               params: { userBId: userBId.toString() }
             });
           } else {
-            console.log('No UserB.id found in response, using fallback');
-            router.replace({ 
-              pathname: '/matches/user-profile-page', 
-              params: { profile: JSON.stringify(DUMMY_PROFILE) } 
-            });
+            console.log('No UserB.id found in response');
+            Alert.alert(
+              'Profile Unavailable',
+              'Unable to load match profile. Please try again later.',
+              [{ text: 'OK', onPress: () => router.replace('/(tabs)/matches') }]
+            );
           }
         } else {
-          console.log('No potential match or invalid response, using fallback');
-          router.replace({ 
-            pathname: '/matches/user-profile-page', 
-            params: { profile: JSON.stringify(DUMMY_PROFILE) } 
-          });
+          console.log('No potential match or invalid response');
+          Alert.alert(
+            'Match Unsuccessful',
+            'Unable to complete match. Please try again.',
+            [{ text: 'OK', onPress: () => router.replace('/(tabs)/matches') }]
+          );
         }
       } catch (error) {
         console.error('Error handling swipe:', error);
-        router.replace({ 
-          pathname: '/matches/user-profile-page', 
-          params: { profile: JSON.stringify(DUMMY_PROFILE) } 
-        });
+        Alert.alert(
+          'Error',
+          'Failed to process your like. Please check your connection and try again.',
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)/matches') }]
+        );
       }
     }, 1000);
   };

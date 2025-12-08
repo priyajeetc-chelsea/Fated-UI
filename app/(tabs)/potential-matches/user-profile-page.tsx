@@ -5,53 +5,7 @@ import { ApiUser } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
-
-// Fallback user data in case no profile is passed
-const FALLBACK_USER_DATA = {
-  userId: 203,
-  firstName: "dummy user",
-  gender: "Female",
-  pronouns: "She/Her",
-  dob: "1999-02-14",
-  city: "Mumbai",
-  photoUrl: "https://cdn.app/user203.jpg",
-  intention: "date",
-  profile: {
-    education: "B.A. Sociology",
-    profession: "Content Strategist",
-    interestedIn: "Male",
-    location: "Mumbai",
-    topicsInterested: ["Feminism", "Mental Health"],
-    personalityTrait: ["Empathetic", "Creative", "Curious"],
-    dealBreaker: ["Dishonesty"],
-    politicalLeaning: "Progressive",
-    languages: ["English", "Hindi", "Marathi"],
-    shortBio: "Passionate about storytelling and social causes. I love deep conversations over coffee."
-  },
-  opinions: [
-    {
-      id: "1",
-      question: "Is feminism still relevant today?",
-      text: `I believe that technology is shaping our society in ways that we don't fully understand yet. On one hand, it has made life incredibly convenient—we can connect with people across the globe instantly, access unlimited information, and automate boring tasks. On the other hand, it has also created challenges that no generation before us had to deal with: social media addiction, the spread of misinformation, and the erosion of genuine human connection.
-
-For example, while I appreciate how platforms like Twitter or Reddit allow niche communities to flourish, I also feel they amplify negativity and extreme viewpoints, because outrage spreads faster than thoughtful debate. It's fascinating but also dangerous. The question then becomes: how do we balance innovation with responsibility?`,
-      theme: "Feminism"
-    },
-    {
-      id: "2",
-      question: "Can climate change be reversed?",
-      text: "Yes, but only with global collaboration and drastic cuts in emissions. We need to fundamentally change how we produce energy, how we consume goods, and how we think about growth. Individual actions matter, but systemic change is what will really make a difference.",
-      theme: "Climate Change"
-    },
-    {
-      id: "3", 
-      question: "Should mental health be part of school curriculum?",
-      text: "Mental health must be normalized and supported from an early age. Schools should teach emotional intelligence, coping strategies, and stress management. We need to break the stigma and create safe spaces for students to express their feelings.",
-      theme: "Mental Health"
-    }
-  ]
-};
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function UserProfilePage() {
   const params = useLocalSearchParams();
@@ -113,114 +67,100 @@ export default function UserProfilePage() {
       
       try {
         // Check if userBId is provided (from API)
-        if (params.userBId) {
-          const userBId = Array.isArray(params.userBId) ? parseInt(params.userBId[0]) : parseInt(params.userBId);
-          console.log('Loading user profile for userBId:', userBId);
-          
-          try {
-            const userProfile = await apiService.fetchUserProfile(userBId);
-            console.log('API Response:', userProfile);
-            
-            if (userProfile && userProfile.model) {
-              const profileData = userProfile.model;
-              
-              // Convert API response to ApiUser format
-              const convertedUser: ApiUser = {
-                id: profileData.userId?.toString() || userBId.toString(),
-                name: `${profileData.fname || ''} ${profileData.lname || ''}`.trim(),
-                age: profileData.age,
-                gender: profileData.gender,
-                photo: profileData.photoUrls?.[0] || `https://picsum.photos/200/200?random=${userBId}`,
-                opinions: profileData.opinions?.map((opinion: any) => ({
-                  id: opinion.takeId?.toString() || Math.random().toString(),
-                  question: opinion.question || 'Question not available',
-                  text: opinion.answer || 'No answer provided',
-                  theme: opinion.tag?.name || 'General',
-                  liked: false
-                })) || [],
-                // Store additional data for profile display
-                profileData: {
-                  fname: profileData.fname,
-                  lname: profileData.lname,
-                  sexuality: profileData.sexuality,
-                  pronouns: profileData.pronouns,
-                  homeTown: profileData.homeTown,
-                  currentCity: profileData.currentCity,
-                  jobDetails: profileData.jobDetails,
-                  college: profileData.colllege, // Note: API has typo "colllege"
-                  highestEducationLevel: profileData.highestEducationLevel,
-                  religiousBeliefs: profileData.religiousBeliefs,
-                  drinkOrSmoke: profileData.drinkOrSmoke,
-                  height: profileData.height,
-                  photoUrls: profileData.photoUrls || []
-                }
-              };
-              
-              setUser(convertedUser);
-            } else {
-              console.log('No valid profile data, using fallback');
-              setUser(createFallbackUser());
-            }
-          } catch (apiError) {
-            console.error('API error, using fallback:', apiError);
-            setUser(createFallbackUser());
-          }
-        } 
-        // Check if profile is provided (fallback data)
-        else if (params.profile) {
-          try {
-            const profileString = Array.isArray(params.profile) ? params.profile[0] : params.profile;
-            const profileData = JSON.parse(profileString);
-            setUser(convertProfileDataToApiUser(profileData));
-          } catch (parseError) {
-            console.error('Error parsing profile data:', parseError);
-            setUser(createFallbackUser());
-          }
-        } 
-        // No parameters provided, use fallback
-        else {
-          setUser(createFallbackUser());
+        if (!params.userBId) {
+          // No user ID provided, show error and redirect
+          Alert.alert(
+            'Profile Not Found',
+            'Unable to load user profile. Please try again.',
+            [
+              {
+                text: 'OK',
+                onPress: () => navigateBackToPotentialMatches()
+              }
+            ]
+          );
+          setIsLoading(false);
+          return;
         }
+
+        const userBId = Array.isArray(params.userBId) ? parseInt(params.userBId[0]) : parseInt(params.userBId);
+        console.log('Loading user profile for userBId:', userBId);
+        
+        const userProfile = await apiService.fetchUserProfile(userBId);
+        console.log('API Response:', userProfile);
+        
+        if (!userProfile || !userProfile.model) {
+          // API returned invalid data
+          Alert.alert(
+            'Profile Not Available',
+            'This profile is currently unavailable. Please try again later.',
+            [
+              {
+                text: 'OK',
+                onPress: () => navigateBackToPotentialMatches()
+              }
+            ]
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        const profileData = userProfile.model;
+        
+        // Convert API response to ApiUser format
+        const convertedUser: ApiUser = {
+          id: profileData.userId?.toString() || userBId.toString(),
+          name: `${profileData.fname || ''} ${profileData.lname || ''}`.trim(),
+          age: profileData.age,
+          gender: profileData.gender,
+          photo: profileData.photoUrls?.[0] || `https://picsum.photos/200/200?random=${userBId}`,
+          opinions: profileData.opinions?.map((opinion: any) => ({
+            id: opinion.takeId?.toString() || Math.random().toString(),
+            question: opinion.question || 'Question not available',
+            text: opinion.answer || 'No answer provided',
+            theme: opinion.tag?.name || 'General',
+            liked: false
+          })) || [],
+          // Store additional data for profile display
+          profileData: {
+            fname: profileData.fname,
+            lname: profileData.lname,
+            sexuality: profileData.sexuality,
+            pronouns: profileData.pronouns,
+            homeTown: profileData.homeTown,
+            currentCity: profileData.currentCity,
+            jobDetails: profileData.jobDetails,
+            college: profileData.colllege, // Note: API has typo "colllege"
+            highestEducationLevel: profileData.highestEducationLevel,
+            religiousBeliefs: profileData.religiousBeliefs,
+            drinkOrSmoke: profileData.drinkOrSmoke,
+            height: profileData.height,
+            photoUrls: profileData.photoUrls || []
+          }
+        };
+        
+        setUser(convertedUser);
       } catch (error) {
         console.error('Error loading user profile:', error);
-        setUser(createFallbackUser());
+        // Show error alert and redirect back
+        Alert.alert(
+          'Error Loading Profile',
+          'Failed to load user profile. Please check your connection and try again.',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigateBackToPotentialMatches()
+            }
+          ]
+        );
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUserProfile();
-  }, [params.userBId, params.profile]);
-
-  const createFallbackUser = (): ApiUser => ({
-    id: FALLBACK_USER_DATA.userId.toString(),
-    name: FALLBACK_USER_DATA.firstName,
-    age: 25,
-    gender: FALLBACK_USER_DATA.gender,
-    photo: `https://picsum.photos/200/200?random=${FALLBACK_USER_DATA.userId}`,
-    opinions: FALLBACK_USER_DATA.opinions.map(opinion => ({
-      id: opinion.id,
-      question: opinion.question,
-      text: opinion.text,
-      theme: opinion.theme,
-      liked: false
-    }))
-  });
-
-  const convertProfileDataToApiUser = (profileData: any): ApiUser => ({
-    id: profileData.userId?.toString() || '203',
-    name: profileData.firstName || 'Unknown',
-    age: profileData.age || 25,
-    gender: profileData.gender || 'Unknown',
-    photo: profileData.photoUrl || `https://picsum.photos/200/200?random=${profileData.userId || 203}`,
-    opinions: profileData.opinions?.map((opinion: any) => ({
-      id: opinion.id || Math.random().toString(),
-      question: opinion.question || 'Question not available',
-      text: opinion.text || opinion.answer || 'No answer provided',
-      theme: opinion.theme || 'General',
-      liked: false
-    })) || []
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.userBId]);
 
   if (isLoading) {
     return (

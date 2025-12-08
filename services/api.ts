@@ -338,13 +338,6 @@ class ApiService {
       }
     } catch (error) {
       console.error('❌ API request failed:', error);
-      
-      // Check if it's a CORS error
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        console.warn('🚫 CORS error detected - falling back to mock data');
-        return this.getMockResponse(data) as T;
-      }
-      
       throw error;
     }
   }
@@ -410,7 +403,7 @@ class ApiService {
     }
   }
 
-  // Fetch matches with automatic fallback
+  // Fetch matches - no fallback, throw error on failure
   async fetchMatches(request: MatchRequest): Promise<MatchResponse> {
     try {
       const response = await this.makeRequest<MatchResponse>('/home', request);
@@ -430,9 +423,8 @@ class ApiService {
       return response;
     } catch (error) {
       console.error('💥 Failed to fetch matches:', error);
-      // Final fallback
-      console.warn('🔄 Using mock data as final fallback');
-      return this.getMockResponse(request);
+      // Re-throw the error instead of using fallback
+      throw error;
     }
   }
 
