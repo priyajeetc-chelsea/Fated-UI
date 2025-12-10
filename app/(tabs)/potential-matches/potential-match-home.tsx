@@ -269,6 +269,7 @@ export default function PotentialMatchHome() {
         onLikeOpinion={handleLikeOpinion}
         onRemoveUser={handleRemoveUser}
         onScrollStateChange={handleScrollStateChange}
+        enableStickyHeader={true}
       />
       
       <OpinionModal

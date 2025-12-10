@@ -40,6 +40,7 @@ export default function BaseLayout({
   const isHomePath = Boolean(pathname && pathname.includes('homepage'));
   const resolvedShowAppHeader = showAppHeader ?? isHomePath;
   const shouldShowLogoutButton = showLogoutButton && resolvedShowAppHeader;
+  const enableStickyHeader = userName && !isHomePath;
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -49,38 +50,64 @@ export default function BaseLayout({
     }
   };
 
-  // Animate sticky header appearance/disappearance
+  // Animate sticky header appearance/disappearance with smoother timing
   useEffect(() => {
-    Animated.timing(stickyHeaderOpacity, {
-      toValue: isScrolling ? 1 : 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  }, [isScrolling, stickyHeaderOpacity]);
+    if (enableStickyHeader) {
+      Animated.spring(stickyHeaderOpacity, {
+        toValue: isScrolling ? 1 : 0,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 50,
+      }).start();
+    }
+  }, [isScrolling, stickyHeaderOpacity, enableStickyHeader]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ThemedView style={styles.container}>
-        {/* Regular Header - always visible when not scrolling */}
-        {!isScrolling && (
-          <View style={styles.headerContainer}>
-            {showBackButton && (
-              <TouchableOpacity style={styles.headerBackButton} onPress={handleBackPress}>
-                <Ionicons name="arrow-back" size={26} color="#333" />
-              </TouchableOpacity>
-            )}
-            {resolvedShowAppHeader && <AppHeader />}
-            {shouldShowLogoutButton && (
-              <View style={styles.logoutButtonWrapper}>
-                <LogoutButton />
-              </View>
-            )}
-          </View>
-        )}
+        {/* Regular Header - fades out when scrolling (only on profile pages) */}
+        <Animated.View 
+          style={[
+            styles.headerContainer,
+            enableStickyHeader ? {
+              opacity: stickyHeaderOpacity.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0],
+              })
+            } : {}
+          ]}
+          pointerEvents={enableStickyHeader && isScrolling ? 'none' : 'auto'}
+        >
+          {showBackButton && (
+            <TouchableOpacity style={styles.headerBackButton} onPress={handleBackPress}>
+              <Ionicons name="arrow-back" size={26} color="#333" />
+            </TouchableOpacity>
+          )}
+          {resolvedShowAppHeader && <AppHeader />}
+          {shouldShowLogoutButton && (
+            <View style={styles.logoutButtonWrapper}>
+              <LogoutButton />
+            </View>
+          )}
+        </Animated.View>
         
-        {/* Sticky Header - positioned at screen level, appears when scrolling */}
-        {isScrolling && userName && (
-          <Animated.View style={[styles.stickyHeaderContainer, { opacity: stickyHeaderOpacity }]}>
+        {/* Sticky Header - positioned at screen level, appears when scrolling (only on profile pages) */}
+        {enableStickyHeader && (
+          <Animated.View 
+            style={[
+              styles.stickyHeaderContainer, 
+              { 
+                opacity: stickyHeaderOpacity,
+                transform: [{
+                  translateY: stickyHeaderOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-50, 0],
+                  })
+                }]
+              }
+            ]}
+            pointerEvents={isScrolling ? 'auto' : 'none'}
+          >
             <View style={styles.stickyHeaderContent}>
               {showBackButton ? (
                 <TouchableOpacity onPress={handleBackPress}>

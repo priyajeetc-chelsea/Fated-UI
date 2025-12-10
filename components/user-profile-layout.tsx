@@ -287,10 +287,7 @@ export default function UserProfileLayout({
 
   return (
     <KeyboardAvoidingView 
-      style={[
-        styles.container,
-        showStickyHeader && { paddingTop: 45 }
-      ]}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={100}
     >

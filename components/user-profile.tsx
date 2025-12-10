@@ -1,7 +1,7 @@
 import { ApiUser } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from './themed-text';
 
 interface UserProfileProps {
@@ -9,13 +9,16 @@ interface UserProfileProps {
   onLikeOpinion: (opinionId: string) => void;
   onRemoveUser: () => void;
   onScrollStateChange?: (isScrolling: boolean) => void;
+  enableStickyHeader?: boolean;
 }
 
-export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrollStateChange }: UserProfileProps) {
+export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrollStateChange, enableStickyHeader = false }: UserProfileProps) {
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const opinionLayouts = useRef<{[key: string]: {y: number, height: number}}>({});
   const lastScrollY = useRef(0);
+  const scrollDirection = useRef<'up' | 'down'>('down');
+  const paddingTopAnim = useRef(new Animated.Value(10)).current;
   // Create a stable reference to onScrollStateChange
   const scrollStateChangeRef = useRef(onScrollStateChange);
   
@@ -28,14 +31,16 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
   useEffect(() => {
     // Reset state immediately
     setShowStickyHeader(false);
+    paddingTopAnim.setValue(10);
     
     // Use the ref to avoid dependency issues
-    if (typeof scrollStateChangeRef.current === 'function') {
+    if (enableStickyHeader && typeof scrollStateChangeRef.current === 'function') {
       scrollStateChangeRef.current(false);
     }
     
     lastScrollY.current = 0;
-  }, [user.id]);
+    scrollDirection.current = 'down';
+  }, [user.id, paddingTopAnim, enableStickyHeader]);
 
   const truncateText = (text: string, maxWords: number = 30) => {
     const words = text.split(' ');
@@ -53,12 +58,34 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
     onLikeOpinion(opinionId);
   };
 
+  // Animate padding when sticky header state changes (only if enabled)
+  useEffect(() => {
+    if (enableStickyHeader) {
+      Animated.spring(paddingTopAnim, {
+        toValue: showStickyHeader ? 50 : 10,
+        useNativeDriver: false,
+        friction: 8,
+        tension: 40,
+      }).start();
+    }
+  }, [showStickyHeader, paddingTopAnim, enableStickyHeader]);
+
   // Create a non-memoized version for scroll events that doesn't cause render cycles
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (!enableStickyHeader) return;
+    
     const scrollY = event.nativeEvent.contentOffset.y;
     
-    // Reduced threshold for smoother, earlier appearance of sticky header
-    const shouldShowSticky = scrollY > 20;
+    // Determine scroll direction
+    if (scrollY > lastScrollY.current) {
+      scrollDirection.current = 'down';
+    } else if (scrollY < lastScrollY.current) {
+      scrollDirection.current = 'up';
+    }
+    
+    // Threshold for showing sticky header - lower for smoother transition
+    const SCROLL_THRESHOLD = 50;
+    const shouldShowSticky = scrollY > SCROLL_THRESHOLD;
     
     // Only update if the state is changing to avoid unnecessary re-renders
     if (showStickyHeader !== shouldShowSticky) {
@@ -76,32 +103,42 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
 
   return (
     <View style={{ flex: 1 }}>
-      <KeyboardAvoidingView 
+      <Animated.View 
         style={[
           styles.container,
-          showStickyHeader && { paddingTop: 45 } // Match reduced sticky header height
+          enableStickyHeader ? { paddingTop: paddingTopAnim } : {}
         ]}
+      >
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={100}
       >
 
       {/* Main Content Container */}
       <View style={styles.mainContainer}>
-        {/* Header with User Info - Hide when sticky header is shown */}
-        {!showStickyHeader && (
-          <View style={styles.containerHeader}>
-            <View style={styles.userInfoRow}>
-              <Image 
-                source={{ uri: user.photo }} 
-                style={styles.userPhoto}
-                blurRadius={3}
-              />
-              <ThemedText style={[styles.userName, { color: '#000' }]}>
-                {user.name}
-              </ThemedText>
-            </View>
+        {/* Header with User Info - Fades out when sticky header is shown */}
+        <Animated.View 
+          style={[
+            styles.containerHeader,
+            enableStickyHeader ? { 
+              opacity: showStickyHeader ? 0 : 1,
+              height: showStickyHeader ? 0 : undefined,
+              marginBottom: showStickyHeader ? -8 : 15,
+            } : { marginBottom: 5 }
+          ]}
+        >
+          <View style={styles.userInfoRow}>
+            <Image 
+              source={{ uri: user.photo }} 
+              style={styles.userPhoto}
+              blurRadius={3}
+            />
+            <ThemedText style={[styles.userName, { color: '#000' }]}>
+              {user.name}
+            </ThemedText>
           </View>
-        )}
+        </Animated.View>
 
         {/* Opinions List */}
         <ScrollView 
@@ -112,8 +149,8 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
             { paddingBottom: user.opinions.length === 1 ? 200 : 350 }
           ]}
           keyboardShouldPersistTaps="handled"
-          onScroll={handleScroll}
-          scrollEventThrottle={32}
+          onScroll={enableStickyHeader ? handleScroll : undefined}
+          scrollEventThrottle={enableStickyHeader ? 32 : undefined}
           showsVerticalScrollIndicator={true}
           scrollEnabled={true}
           removeClippedSubviews={false}
@@ -188,6 +225,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
         <Ionicons name="close" size={28} color="#fff" />
       </TouchableOpacity>
     </KeyboardAvoidingView>
+    </Animated.View>
     </View>
   );
 }
@@ -196,7 +234,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: 10,
     paddingHorizontal: 20,
   },
   mainContainer: {
@@ -206,15 +243,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
+    paddingBottom: 10,
+    borderBottomWidth: 0,
     borderBottomColor: 'rgba(0,0,0,0.1)',
+    overflow: 'hidden',
   },
   userInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
   },
 
   userPhoto: {

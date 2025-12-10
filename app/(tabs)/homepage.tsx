@@ -20,7 +20,6 @@ export default function HomeScreen() {
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [tags, setTags] = useState<Tag[]>([]);
-  const [isScrolling, setIsScrolling] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentRequest, setCurrentRequest] = useState<MatchRequest>(apiService.getDefaultRequest());
 
@@ -157,10 +156,7 @@ export default function HomeScreen() {
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
-  );  // Reset scrolling state when currentUserIndex changes
-  useEffect(() => {
-    setIsScrolling(false);
-  }, [currentUserIndex]);
+  );
 
   const loadMatches = async (request: MatchRequest, isThemeChange = false, appendToExisting = false) => {
     // Don't load if we're redirecting
@@ -404,12 +400,6 @@ export default function HomeScreen() {
     }, 1000);
   };
 
-  const handleScrollStateChange = (scrolling: boolean) => {
-    if (isScrolling !== scrolling) {
-      setIsScrolling(scrolling);
-    }
-  };
-
   const handleThemeChange = async (selectedTagIds: number[]) => {
     const newRequest = { ...currentRequest, tagIds: selectedTagIds };
     setCurrentRequest(newRequest);
@@ -430,14 +420,12 @@ export default function HomeScreen() {
     return (
       <BaseLayout showLogoutButton showAppHeader>
         <View style={styles.emptyContainer}>
-          {!isScrolling && (
-            <View style={styles.emptyThemeContainer}>
-              <ThemeFilterBubbles
-                tags={tags}
-                onThemeChange={handleThemeChange}
-              />
-            </View>
-          )}
+          <View style={styles.emptyThemeContainer}>
+            <ThemeFilterBubbles
+              tags={tags}
+              onThemeChange={handleThemeChange}
+            />
+          </View>
           <View style={styles.emptyMessageContainer}>
             <ThemedText style={styles.emptyMessageTitle}>That&apos;s all for today! ✨</ThemedText>
             <ThemedText style={styles.emptyMessageSubtitle}>
@@ -453,8 +441,6 @@ export default function HomeScreen() {
 
   return (
     <BaseLayout
-      userName={displayUser?.name}
-      isScrolling={isScrolling}
       showFeedback={showFeedback}
       feedbackType={feedbackType}
       fadeAnim={fadeAnim}
@@ -462,19 +448,16 @@ export default function HomeScreen() {
       showLogoutButton
       showAppHeader
     >
-      {!isScrolling && (
-        <ThemeFilterBubbles
-          tags={tags}
-          onThemeChange={handleThemeChange}
-        />
-      )}
+      <ThemeFilterBubbles
+        tags={tags}
+        onThemeChange={handleThemeChange}
+      />
 
       {displayUser && (
         <UserProfile
           user={displayUser}
           onLikeOpinion={handleLikeOpinion}
           onRemoveUser={handleRemoveUser}
-          onScrollStateChange={handleScrollStateChange}
         />
       )}
 
