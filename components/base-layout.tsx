@@ -40,7 +40,7 @@ export default function BaseLayout({
   const isHomePath = Boolean(pathname && pathname.includes('homepage'));
   const resolvedShowAppHeader = showAppHeader ?? isHomePath;
   const shouldShowLogoutButton = showLogoutButton && resolvedShowAppHeader;
-  const enableStickyHeader = userName && !isHomePath;
+  const enableStickyHeader = (userName && !isHomePath) || (isHomePath && isScrolling);
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -91,7 +91,7 @@ export default function BaseLayout({
           )}
         </Animated.View>
         
-        {/* Sticky Header - positioned at screen level, appears when scrolling (only on profile pages) */}
+        {/* Sticky Header - positioned at screen level, appears when scrolling */}
         {enableStickyHeader && (
           <Animated.View 
             style={[
@@ -116,9 +116,11 @@ export default function BaseLayout({
               ) : (
                 <View style={styles.placeholder} />
               )}
-              <Text style={styles.stickyHeaderText} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
-                {userName}
-              </Text>
+              {userName && (
+                <Text style={styles.stickyHeaderText} numberOfLines={1} ellipsizeMode="tail" allowFontScaling={false}>
+                  {userName}
+                </Text>
+              )}
               {shouldShowLogoutButton ? (
                 <View style={styles.stickyLogoutWrapper}>
                   <LogoutButton variant="icon" />
@@ -214,7 +216,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 13,
+    paddingVertical: 8,
+    minHeight: 50,
   },
   stickyHeaderText: {
     fontSize: 24,

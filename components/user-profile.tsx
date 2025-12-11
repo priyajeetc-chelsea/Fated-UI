@@ -14,6 +14,7 @@ interface UserProfileProps {
 
 export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrollStateChange, enableStickyHeader = false }: UserProfileProps) {
   const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const opinionLayouts = useRef<{[key: string]: {y: number, height: number}}>({});
   const lastScrollY = useRef(0);
@@ -31,6 +32,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
   useEffect(() => {
     // Reset state immediately
     setShowStickyHeader(false);
+    setIsScrolled(false);
     paddingTopAnim.setValue(10);
     
     // Use the ref to avoid dependency issues
@@ -54,8 +56,11 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
   };
 
   const handleLike = (opinionId: string) => {
+    console.log('🔵 UserProfile handleLike called with opinionId:', opinionId);
+    console.log('🔵 Calling onLikeOpinion prop...');
     // Directly trigger the modal without showing comment box
     onLikeOpinion(opinionId);
+    console.log('🔵 onLikeOpinion prop called successfully');
   };
 
   // Animate padding when sticky header state changes (only if enabled)
@@ -72,9 +77,16 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
 
   // Create a non-memoized version for scroll events that doesn't cause render cycles
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    if (!enableStickyHeader) return;
-    
     const scrollY = event.nativeEvent.contentOffset.y;
+    
+    // Track scroll state for homepage margin
+    if (!enableStickyHeader) {
+      const scrolled = scrollY > 20;
+      if (isScrolled !== scrolled) {
+        setIsScrolled(scrolled);
+      }
+      return;
+    }
     
     // Determine scroll direction
     if (scrollY > lastScrollY.current) {
@@ -125,7 +137,9 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
               opacity: showStickyHeader ? 0 : 1,
               height: showStickyHeader ? 0 : undefined,
               marginBottom: showStickyHeader ? -8 : 15,
-            } : { marginBottom: 5 }
+            } : { 
+              marginBottom: isScrolled ? 0 : 15
+            }
           ]}
         >
           <View style={styles.userInfoRow}>
@@ -149,8 +163,8 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
             { paddingBottom: user.opinions.length === 1 ? 200 : 350 }
           ]}
           keyboardShouldPersistTaps="handled"
-          onScroll={enableStickyHeader ? handleScroll : undefined}
-          scrollEventThrottle={enableStickyHeader ? 32 : undefined}
+          onScroll={handleScroll}
+          scrollEventThrottle={32}
           showsVerticalScrollIndicator={true}
           scrollEnabled={true}
           removeClippedSubviews={false}
@@ -184,7 +198,10 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
                         {isTruncated ? `${text}...` : text}
                       </ThemedText>
                       {isTruncated && (
-                        <TouchableOpacity onPress={() => handleLike(opinion.id)}>
+                        <TouchableOpacity onPress={() => {
+                          console.log('📖 Read more pressed for opinion:', opinion.id);
+                          handleLike(opinion.id);
+                        }}>
                           <ThemedText style={styles.readMoreText}>
                             Read more
                           </ThemedText>
@@ -201,7 +218,10 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
                   styles.likeButton, 
                   opinion.liked && styles.likedButton
                 ]} 
-                onPress={() => handleLike(opinion.id)}
+                onPress={() => {
+                  console.log('❤️ Heart button pressed for opinion:', opinion.id);
+                  handleLike(opinion.id);
+                }}
                 activeOpacity={0.7}
               >
                 <Ionicons 
@@ -244,7 +264,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingBottom: 10,
-    borderBottomWidth: 0,
+    borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.1)',
     overflow: 'hidden',
   },
@@ -323,8 +343,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4B164C',
     fontWeight: '600',
-    marginTop: 8,
-    marginBottom: 16,
+    marginTop: 5,
   },
   likeButton: {
     flexDirection: 'row',
