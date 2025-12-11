@@ -1,4 +1,5 @@
 import BaseLayout from '@/components/base-layout';
+import { LogoutButton } from '@/components/auth';
 import { apiService } from '@/services/api';
 import { CurrentUserProfile } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
@@ -310,6 +311,7 @@ export default function ProfilePage() {
     <BaseLayout
       userName={profile ? `${profile.fname} ${profile.lname || ''}` : undefined}
       isScrolling={showStickyHeader}
+      showLogoutButton={showStickyHeader}
     >
       <KeyboardAvoidingView 
         style={[
@@ -332,6 +334,7 @@ export default function ProfilePage() {
                   {profile.fname} {profile.lname || ''}
                 </Text>
               </View>
+              <LogoutButton variant="text" />
             </View>
           )}
 
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
   },
   containerHeader: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
     paddingBottom: 15,

@@ -58,21 +58,21 @@ export default function ThemeFilterBubbles({ tags, onThemeChange }: ThemeFilterB
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 5,
+    paddingVertical: 10,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     gap: 4,
   },
   bubble: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: 3,
     paddingHorizontal: 12,
     borderRadius: 20,
     borderWidth: 1.5,
-    minWidth: 80,
+    minWidth: 60,
   },
   label: {
     fontSize: 12,

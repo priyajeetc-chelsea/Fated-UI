@@ -408,7 +408,7 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <BaseLayout showLogoutButton showAppHeader>
+      <BaseLayout showAppHeader>
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color="#000" />
         </View>
@@ -418,7 +418,7 @@ export default function HomeScreen() {
 
   if (users.length === 0) {
     return (
-      <BaseLayout showLogoutButton showAppHeader>
+      <BaseLayout showAppHeader>
         <View style={styles.emptyContainer}>
           <View style={styles.emptyThemeContainer}>
             <ThemeFilterBubbles
@@ -445,7 +445,6 @@ export default function HomeScreen() {
       feedbackType={feedbackType}
       fadeAnim={fadeAnim}
       scaleAnim={scaleAnim}
-      showLogoutButton
       showAppHeader
     >
       <ThemeFilterBubbles

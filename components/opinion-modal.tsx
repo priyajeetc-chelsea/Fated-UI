@@ -80,17 +80,17 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
     >
       <View style={styles.overlay}>
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-          {/* Header with Close button */}
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.container}
           >
+            {/* Header with Close button */}
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <Ionicons name="close" size={28} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            
             {/* Scrollable Content */}
             <ScrollView
               ref={scrollViewRef}
@@ -124,8 +124,17 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
                 placeholderTextColor="#999"
                 style={styles.commentInput}
                 multiline
-                maxLength={200}
+                maxLength={300}
+                returnKeyType="done"
+                blurOnSubmit={true}
+                onSubmitEditing={() => Keyboard.dismiss()}
               />
+              <TouchableOpacity
+                style={styles.dismissKeyboardButton}
+                onPress={() => Keyboard.dismiss()}
+              >
+                <Ionicons name="checkmark" size={20} color="#4B164C" />
+              </TouchableOpacity>
             </View>
 
             {/* Action Buttons - Hide when keyboard is visible */}
@@ -157,30 +166,32 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)'
+    backgroundColor: 'grey'
   },
   safeArea: {
     flex: 1,
   },
   container: {
     flex: 1,
+    justifyContent: 'center',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
   },
   closeButton: {
     padding: 4,
   },
   scrollView: {
-    flex: 1,
+    flexGrow: 0,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 5,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   opinionCard: {
     backgroundColor: '#f9f9f9',
@@ -224,12 +235,33 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     minHeight: 80,
+    position: 'relative',
   },
   commentInput: {
     fontSize: 16,
     color: '#000',
     minHeight: 40,
     textAlignVertical: 'top',
+    paddingRight: 40,
+  },
+  dismissKeyboardButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonContainer: {
     flexDirection: 'row',

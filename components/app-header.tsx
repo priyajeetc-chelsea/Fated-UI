@@ -9,7 +9,7 @@ export default function AppHeader() {
       <View style={styles.brandContainer}>
         <Ionicons 
           name="heart" 
-          size={25} 
+          size={28} 
           color="#4B164C" 
           style={styles.logo}
         />
@@ -42,10 +42,10 @@ const styles = StyleSheet.create({
     marginRight: 3,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     letterSpacing: -1,
     fontFamily: 'Playfair Display',
-    lineHeight: 35, // Increased lineHeight to be larger than fontSize (28 * 1.3 ≈ 36)
+    lineHeight: 36, // Increased lineHeight to be larger than fontSize (28 * 1.3 ≈ 36)
     color: '#4B164C',
     includeFontPadding: false, // Removes extra padding that Android adds to text
   },
