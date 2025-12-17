@@ -229,17 +229,6 @@ export default function ProfilePage() {
           </>
         )}
         
-        {profile.height && (
-          <>
-            <View style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="resize" size={16} color="#666" style={styles.detailIcon} />
-                <Text style={styles.detailLabel}>Height</Text>
-              </View>
-              <Text style={styles.detailValue}>{profile.height}</Text>
-            </View>
-          </>
-        )}
       </View>
     );
   };
@@ -557,11 +546,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    height: 500,
   },
   profilePhoto: {
     width: '100%',
-    height: 300,
+    minHeight: 500,
     borderRadius: 16,
+    resizeMode: 'contain',
   },
   themeTag: {
     alignSelf: 'flex-start',

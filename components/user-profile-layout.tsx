@@ -355,12 +355,12 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
     flex: 1,
-    marginTop: 10,
   },
   containerHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
+    marginTop: 10,
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
@@ -417,6 +417,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    height: '500',
   },
   themeTag: {
     alignSelf: 'flex-start',
@@ -450,8 +451,9 @@ const styles = StyleSheet.create({
   },
   profilePhoto: {
     width: '100%',
-    height: 300,
+    height: 500,
     borderRadius: 16,
+    resizeMode: 'contain',
   },
   detailRow: {
     flexDirection: 'row',

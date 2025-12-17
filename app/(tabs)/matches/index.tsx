@@ -34,6 +34,7 @@ export default function MatchesScreen() {
   const pollingIntervalRef = useRef<any>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const isScreenFocusedRef = useRef(true);
+  const photoCache = useRef<Map<string, string>>(new Map());
 
   const fetchMatches = useCallback(async () => {
     setError(null);
@@ -44,11 +45,18 @@ export default function MatchesScreen() {
       
       const confirmed = confirmedMatches.map((m: any) => {
         let displayMessage = m.lastMessage ? m.lastMessage.content : 'Say hello!';
+        const userId = m.userId?.toString() ?? '';
+        const photoUrl = m.photoUrl ?? '';
+        
+        // Cache the photo URL for this user
+        if (photoUrl && userId) {
+          photoCache.current.set(userId, photoUrl);
+        }
         
         return {
-          id: m.userId?.toString() ?? '',
+          id: userId,
           name: m.name ?? '',
-          photo: m.photoUrl ?? '',
+          photo: photoUrl,
           lastMessage: displayMessage,
           timestamp: '',
           unreadCount: m.unreadCount ?? 0,
@@ -66,26 +74,36 @@ export default function MatchesScreen() {
     
     return oldMatches.some((oldMatch, index) => {
       const newMatch = newMatches[index];
+      // Don't compare photo URLs - they're cached and shouldn't cause updates
       return oldMatch.id !== newMatch.id ||
              oldMatch.lastMessage !== newMatch.lastMessage ||
              oldMatch.unreadCount !== newMatch.unreadCount ||
-             oldMatch.isUnread !== newMatch.isUnread ||
-             oldMatch.photo !== newMatch.photo;
+             oldMatch.isUnread !== newMatch.isUnread;
     });
   }, []);
 
   const silentFetchMatches = useCallback(async () => {
     try {
       const res = await apiService.fetchConfirmedMatches();
-      const confirmed = (res.model?.matches || []).map((m: any) => ({
-        id: m.userId?.toString() ?? '',
-        name: m.name ?? '',
-        photo: m.photoUrl ?? '',
-        lastMessage: m.lastMessage ? m.lastMessage.content : 'Say hello!',
-        timestamp: '',
-        unreadCount: m.unreadCount ?? 0,
-        isUnread: m.isUnread ?? false,
-      }));
+      const confirmed = (res.model?.matches || []).map((m: any) => {
+        const userId = m.userId?.toString() ?? '';
+        // Use cached photo URL if available, otherwise use the new one and cache it
+        let photoUrl = photoCache.current.get(userId);
+        if (!photoUrl && m.photoUrl) {
+          photoUrl = m.photoUrl;
+          photoCache.current.set(userId, photoUrl);
+        }
+        
+        return {
+          id: userId,
+          name: m.name ?? '',
+          photo: photoUrl ?? '',
+          lastMessage: m.lastMessage ? m.lastMessage.content : 'Say hello!',
+          timestamp: '',
+          unreadCount: m.unreadCount ?? 0,
+          isUnread: m.isUnread ?? false,
+        };
+      });
       
       setMatches(prev => hasMatchesChanged(prev, confirmed) ? confirmed : prev);
     } catch (error) {
@@ -107,6 +125,8 @@ export default function MatchesScreen() {
   useFocusEffect(
     useCallback(() => {
       isScreenFocusedRef.current = true;
+      // Clear photo cache when returning to tab to load fresh photos
+      photoCache.current.clear();
       fetchMatches();
       
       return () => {
