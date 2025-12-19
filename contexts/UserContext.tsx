@@ -5,12 +5,14 @@ interface User {
   id: number;
   name: string;
   email?: string;
+  photoUrls?: string[];
 }
 
 interface UserContextType {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
   isLoading: boolean;
+  updateUserPhotos: (photoUrls: string[]) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -21,7 +23,7 @@ const USER_STORAGE_KEY = '@fated_current_user';
 export const clearStoredUser = async () => {
   try {
     await AsyncStorage.removeItem(USER_STORAGE_KEY);
-    console.log('👤 clearStoredUser: User data cleared from storage');
+    console.log('👤 clearStoredUser: User data and cached photos cleared from storage');
   } catch (error) {
     console.error('👤 clearStoredUser: Failed to clear user from storage:', error);
   }
@@ -50,7 +52,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
         if (storedUser) {
           const user = JSON.parse(storedUser);
-          console.log('👤 UserContext: Loaded user from storage:', user);
+          console.log('👤 UserContext: Loaded user from storage:', {
+            id: user.id,
+            name: user.name,
+            hasPhotos: user.photoUrls ? user.photoUrls.length : 0
+          });
           setCurrentUser(user);
         } else {
           console.log('👤 UserContext: No stored user found');
@@ -84,10 +90,26 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
+  // Update user photos without changing other data
+  const updateUserPhotos = async (photoUrls: string[]) => {
+    if (currentUser) {
+      const updatedUser = { ...currentUser, photoUrls };
+      setCurrentUser(updatedUser);
+      
+      // Persist to AsyncStorage
+      try {
+        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error('📸 UserContext: Failed to save user photos to storage:', error);
+      }
+    }
+  };
+
   const value: UserContextType = {
     currentUser,
     setCurrentUser: setCurrentUserWithLogging,
     isLoading,
+    updateUserPhotos,
   };
 
   console.log('👤 UserContext: Rendering with currentUser =', currentUser, 'isLoading =', isLoading);

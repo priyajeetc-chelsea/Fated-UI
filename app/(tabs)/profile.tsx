@@ -1,5 +1,6 @@
 import BaseLayout from '@/components/base-layout';
 import { LogoutButton } from '@/components/auth';
+import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
 import { CurrentUserProfile } from '@/types/api';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ const ProfilePhotoCardWithLoader = ({ uri }: { uri: string }) => {
 };
 
 export default function ProfilePage() {
+  const { updateUserPhotos, setCurrentUser, currentUser } = useUser();
   const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
@@ -44,6 +46,20 @@ export default function ProfilePage() {
       
       if (response.code === 200) {
         setProfile(response.model);
+        
+        // Update user context with photos and name
+        if (response.model.photoUrls && response.model.photoUrls.length > 0) {
+          updateUserPhotos(response.model.photoUrls);
+        }
+        
+        // Update user name if we have it
+        if (currentUser && response.model.fname) {
+          setCurrentUser({
+            ...currentUser,
+            name: `${response.model.fname} ${response.model.lname || ''}`.trim(),
+            photoUrls: response.model.photoUrls || []
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to fetch profile:', error);

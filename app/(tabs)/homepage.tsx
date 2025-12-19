@@ -14,7 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, AppState, AppStateStatus, StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
-  const { setCurrentUser } = useUser();
+  const { setCurrentUser, currentUser } = useUser();
   const router = useRouter();
   const { handleError } = useApiErrorHandler();
   const [users, setUsers] = useState<ApiUser[]>([]);
@@ -122,16 +122,51 @@ export default function HomeScreen() {
     return () => subscription?.remove();
   }, [handleError]);
 
+  // Fetch user profile for tab icon (only if not already cached)
+  const fetchUserProfileForTabIcon = async (userId: number) => {
+    // Skip if we already have photos cached in current user context
+    if (currentUser?.photoUrls && currentUser.photoUrls.length > 0 && currentUser.id === userId) {
+      console.log('📸 Profile photos already cached for user', userId, 'skipping fetch');
+      return;
+    }
+
+    try {
+      console.log('📸 Fetching user profile for tab icon for user', userId);
+      const response = await apiService.getCurrentUserProfile();
+      
+      if (response.code === 200 && response.model.photoUrls && response.model.photoUrls.length > 0) {
+        setCurrentUser({
+          id: userId,
+          name: `${response.model.fname} ${response.model.lname || ''}`.trim(),
+          photoUrls: response.model.photoUrls
+        });
+        console.log('📸 User profile updated with photos for tab icon');
+      } else {
+        console.log('📸 No photos found in user profile, keeping basic user data');
+        // Still set basic user data even if no photos
+        setCurrentUser({
+          id: userId,
+          name: currentUser?.name || 'Current User'
+        });
+      }
+    } catch (error) {
+      console.error('📸 Failed to fetch user profile for tab icon:', error);
+      // Set basic user data even on error
+      setCurrentUser({
+        id: userId,
+        name: currentUser?.name || 'Current User'
+      });
+    }
+  };
+
   // Initial API call - use useFocusEffect to handle tab navigation
   useFocusEffect(
     useCallback(() => {
       // Mark that homepage is now the focused screen
       isScreenFocused.current = true;
-      console.log('🏠 Homepage: Screen focused, setting isScreenFocused = true');
 
       // Prevent any action if we're currently redirecting to onboarding
       if (isRedirecting.current) {
-        console.log('🏠 Homepage: Redirect in progress, skipping focus handler');
         return;
       }
 
@@ -181,10 +216,13 @@ export default function HomeScreen() {
       // Store current user's ID from the response
       if (response.userId) {
         console.log('🏠 Homepage: Setting currentUser with userId =', response.userId);
-        setCurrentUser({
-          id: response.userId,
-          name: 'Current User',
-        });
+        
+        // Only fetch profile if we don't have it cached or if it's a different user
+        if (!currentUser || currentUser.id !== response.userId || !currentUser.photoUrls) {
+          fetchUserProfileForTabIcon(response.userId);
+        } else {
+          console.log('📸 User profile already cached for user', response.userId);
+        }
       } else {
         console.warn('⚠️ Homepage: API response missing userId!', response);
       }

@@ -155,23 +155,13 @@ export function PotentialMatchModal({
 
   const handleLikeOpinion = () => {
     if (potentialMatch && onLikeOpinion) {
-      // Close modal first, then navigate
-      onClose();
-      // Use setTimeout to ensure modal closes before navigation
-      setTimeout(() => {
         onLikeOpinion(potentialMatch.id);
-      }, 100);
     }
   };
 
   const handleLikeProfile = () => {
     if (potentialMatch && onLikeProfile) {
-      // Close modal first, then navigate
-      onClose();
-      // Use setTimeout to ensure modal closes before navigation
-      setTimeout(() => {
         onLikeProfile(potentialMatch.id);
-      }, 100);
     }
   };
 
