@@ -22,6 +22,41 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const HeaderPhotoWithLoader = ({ uri }: { uri: string }) => {
+  const [loading, setLoading] = useState(true);
+  
+  if (!uri || uri.trim() === '') {
+    return (
+      <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
+        <Ionicons name="person" size={20} color="#999" />
+      </View>
+    );
+  }
+  
+  // Properly encode the URI to handle special characters in AWS S3 URLs
+  const encodedUri = uri.split('?')[0] + (uri.includes('?') ? '?' + uri.split('?')[1].split('&').map(param => {
+    const [key, value] = param.split('=');
+    return `${key}=${encodeURIComponent(decodeURIComponent(value || ''))}`;
+  }).join('&') : '');
+  
+  return (
+    <>
+      <Image 
+        source={{ uri: encodedUri }} 
+        style={styles.headerPhoto}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => setLoading(false)}
+      />
+      {loading && (
+        <View style={[styles.headerPhoto, { position: 'absolute', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
+          <ActivityIndicator size="small" color="#4B164C" />
+        </View>
+      )}
+    </>
+  );
+};
+
 export default function ChatScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -245,16 +280,15 @@ export default function ChatScreen() {
           </TouchableOpacity>
           
           <View style={styles.headerUserInfo}>
-            {otherUserPhoto && otherUserPhoto.trim() !== '' ? (
-              <Image 
-                source={{ uri: otherUserPhoto }} 
-                style={styles.headerPhoto}
-              />
-            ) : (
-              <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
-                <Ionicons name="person" size={20} color="#999" />
-              </View>
-            )}
+            <View style={{ marginRight: 12 }}>
+              {otherUserPhoto && otherUserPhoto.trim() !== '' ? (
+                <HeaderPhotoWithLoader uri={otherUserPhoto} />
+              ) : (
+                <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
+                  <Ionicons name="person" size={20} color="#999" />
+                </View>
+              )}
+            </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>{otherUserName}</Text>
             </View>
@@ -293,17 +327,9 @@ export default function ChatScreen() {
             disabled={!isFinalMatch}
             activeOpacity={isFinalMatch ? 0.6 : 1}
           >
-            {otherUserPhoto && otherUserPhoto.trim() !== '' ? (
-              <Image 
-                source={{ uri: otherUserPhoto }} 
-                style={styles.headerPhoto}
-                onError={() => console.log('Failed to load header photo')}
-              />
-            ) : (
-              <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
-                <Ionicons name="person" size={20} color="#999" />
-              </View>
-            )}
+            <View style={{ marginRight: 12 }}>
+              <HeaderPhotoWithLoader uri={otherUserPhoto} />
+            </View>
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>{otherUserName}</Text>
               {isFinalMatch && (
@@ -444,7 +470,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 12,
     backgroundColor: '#e0e0e0',
   },
   headerPhotoPlaceholder: {
