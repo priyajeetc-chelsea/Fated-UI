@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   AppState,
   AppStateStatus,
   Image,
@@ -33,6 +34,29 @@ type SelectedPotentialMatch = {
 type PotentialMatchDisplay =
   | ({ type: 'likesYou'; data: PotentialMatchLike & { unreadCount: number; isUnread: boolean; lastMessage?: { id: number; content: string } } })
   | ({ type: 'mutualLike'; data: PotentialMatchMutual & { unreadCount: number; isUnread: boolean; lastMessage?: { id: number; content: string } } });
+
+const PotentialMatchPhotoWithLoader = ({ uri, userId }: { uri: string; userId: string }) => {
+  const [loading, setLoading] = useState(true);
+  return (
+    <>
+      <Image 
+        source={{ uri }} 
+        style={styles.chatPhoto}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+        onError={() => {
+          console.log('Photo failed to load for user:', userId);
+          setLoading(false);
+        }}
+      />
+      {loading && (
+        <View style={[styles.chatPhoto, { position: 'absolute', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
+          <ActivityIndicator size="small" color="#4B164C" />
+        </View>
+      )}
+    </>
+  );
+};
 
 export default function PotentialMatchesScreen() {
   const [selectedPotentialMatch, setSelectedPotentialMatch] = useState<SelectedPotentialMatch | null>(null);
@@ -277,13 +301,7 @@ export default function PotentialMatchesScreen() {
         >
           <View style={styles.chatPhotoContainer}>
             {pm.data.photoUrl && pm.data.photoUrl.trim() !== '' ? (
-              <Image 
-                source={{ uri: displayPhoto }} 
-                style={styles.chatPhoto}
-                onError={() => {
-                  console.log('Photo failed to load for user:', pm.data.userId);
-                }}
-              />
+              <PotentialMatchPhotoWithLoader uri={displayPhoto} userId={pm.data.userId} />
             ) : (
               <View style={styles.chatPlaceholderPhoto}>
                 <Ionicons name="person" size={28} color="#999" />

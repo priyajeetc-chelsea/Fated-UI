@@ -6,6 +6,26 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+const ProfilePhotoCardWithLoader = ({ uri }: { uri: string }) => {
+  const [loading, setLoading] = useState(true);
+  return (
+    <>
+      <Image 
+        source={{ uri }} 
+        style={styles.profilePhoto}
+        resizeMode="cover"
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+      />
+      {loading && (
+        <View style={[styles.profilePhoto, { position: 'absolute', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
+          <ActivityIndicator size="small" color="#4B164C" />
+        </View>
+      )}
+    </>
+  );
+};
+
 export default function ProfilePage() {
   const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,11 +65,7 @@ export default function ProfilePage() {
 
   const renderPhotoCard = (photoUrl: string, index: number) => (
     <View key={`photo-${index}`} style={styles.photoCardContainer}>
-      <Image 
-        source={{ uri: photoUrl }} 
-        style={styles.profilePhoto}
-        resizeMode="cover"
-      />
+      <ProfilePhotoCardWithLoader uri={photoUrl} />
     </View>
   );
 
@@ -330,10 +346,9 @@ export default function ProfilePage() {
           {/* Cards List */}
           <ScrollView 
             ref={scrollViewRef}
-            style={styles.opinionsContainer}
+            style={[styles.opinionsContainer, showStickyHeader && { marginTop: -5 }]}
             contentContainerStyle={[
-              styles.opinionsContent,
-              { paddingBottom: 200 }
+              { paddingBottom: 50 }
             ]}
             onScroll={handleScroll}
             scrollEventThrottle={32}

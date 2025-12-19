@@ -2,6 +2,7 @@ import { apiService } from '@/services/api';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     AppState,
     AppStateStatus,
     Image,
@@ -23,6 +24,25 @@ interface Match {
   unreadCount: number;
   isUnread: boolean;
 }
+
+const ChatPhotoWithLoader = ({ uri }: { uri: string }) => {
+  const [loading, setLoading] = useState(true);
+  return (
+    <>
+      <Image 
+        source={{ uri }} 
+        style={styles.chatPhoto}
+        onLoadStart={() => setLoading(true)}
+        onLoadEnd={() => setLoading(false)}
+      />
+      {loading && (
+        <View style={[styles.chatPhoto, { position: 'absolute', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
+          <ActivityIndicator size="small" color="#4B164C" />
+        </View>
+      )}
+    </>
+  );
+};
 
 export default function MatchesScreen() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -208,7 +228,7 @@ export default function MatchesScreen() {
         }}
       >
         <View style={styles.chatPhotoContainer}>
-          <Image source={{ uri: displayPhoto }} style={styles.chatPhoto} />
+          <ChatPhotoWithLoader uri={displayPhoto} />
         </View>
         <View style={styles.chatContent}>
           <View style={styles.chatHeader}>

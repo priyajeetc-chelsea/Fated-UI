@@ -311,10 +311,10 @@ export default function UserProfileLayout({
         {/* Cards List */}
         <ScrollView 
           ref={scrollViewRef}
-          style={styles.opinionsContainer}
+          style={[styles.opinionsContainer, showStickyHeader && { marginTop: -5 }]}
           contentContainerStyle={[
             styles.opinionsContent,
-            { paddingBottom: 200 }
+            { paddingBottom: 50 }
           ]}
           keyboardShouldPersistTaps="handled"
           onScroll={onScroll}
