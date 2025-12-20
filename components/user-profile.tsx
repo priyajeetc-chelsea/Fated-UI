@@ -19,7 +19,6 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
   const opinionLayouts = useRef<{[key: string]: {y: number, height: number}}>({});
   const lastScrollY = useRef(0);
   const scrollDirection = useRef<'up' | 'down'>('down');
-  const paddingTopAnim = useRef(new Animated.Value(10)).current;
   // Create a stable reference to onScrollStateChange
   const scrollStateChangeRef = useRef(onScrollStateChange);
   
@@ -33,7 +32,6 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
     // Reset state immediately
     setShowStickyHeader(false);
     setIsScrolled(false);
-    paddingTopAnim.setValue(10);
     
     // Use the ref to avoid dependency issues
     if (enableStickyHeader && typeof scrollStateChangeRef.current === 'function') {
@@ -42,7 +40,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
     
     lastScrollY.current = 0;
     scrollDirection.current = 'down';
-  }, [user.id, paddingTopAnim, enableStickyHeader]);
+  }, [user.id, enableStickyHeader]);
 
   const truncateText = (text: string, maxWords: number = 30) => {
     const words = text.split(' ');
@@ -62,18 +60,6 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
     onLikeOpinion(opinionId);
     console.log('🔵 onLikeOpinion prop called successfully');
   };
-
-  // Animate padding when sticky header state changes (only if enabled)
-  useEffect(() => {
-    if (enableStickyHeader) {
-      Animated.spring(paddingTopAnim, {
-        toValue: showStickyHeader ? 50 : 10,
-        useNativeDriver: false,
-        friction: 8,
-        tension: 40,
-      }).start();
-    }
-  }, [showStickyHeader, paddingTopAnim, enableStickyHeader]);
 
   // Create a non-memoized version for scroll events that doesn't cause render cycles
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -118,7 +104,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
       <Animated.View 
         style={[
           styles.container,
-          enableStickyHeader ? { paddingTop: paddingTopAnim } : {}
+          // Remove paddingTop animation since BaseLayout now handles sticky header spacing
         ]}
       >
       <KeyboardAvoidingView 

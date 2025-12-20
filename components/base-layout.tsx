@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppHeader from './app-header';
 import { LogoutButton } from './auth';
 
@@ -35,12 +35,14 @@ export default function BaseLayout({
   showAppHeader,
 }: BaseLayoutProps) {
   const [stickyHeaderOpacity] = useState(new Animated.Value(0));
+  const [contentMarginTop] = useState(new Animated.Value(0));
   const router = useRouter();
   const pathname = usePathname();
   const isHomePath = Boolean(pathname && pathname.includes('homepage'));
   const resolvedShowAppHeader = showAppHeader ?? isHomePath;
   const shouldShowLogoutButton = showLogoutButton && resolvedShowAppHeader;
   const enableStickyHeader = (userName && !isHomePath) || (isHomePath && isScrolling);
+  const insets = useSafeAreaInsets();
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -53,14 +55,22 @@ export default function BaseLayout({
   // Animate sticky header appearance/disappearance with smoother timing
   useEffect(() => {
     if (enableStickyHeader) {
-      Animated.spring(stickyHeaderOpacity, {
-        toValue: isScrolling ? 1 : 0,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 50,
-      }).start();
+      Animated.parallel([
+        Animated.spring(stickyHeaderOpacity, {
+          toValue: isScrolling ? 1 : 0,
+          useNativeDriver: true, // Keep native driver for opacity and transform
+          friction: 8,
+          tension: 50,
+        }),
+        Animated.spring(contentMarginTop, {
+          toValue: isScrolling ? -5 : 0, // 50px sticky header height
+          useNativeDriver: false, // Layout property needs false
+          friction: 8,
+          tension: 50,
+        })
+      ]).start();
     }
-  }, [isScrolling, stickyHeaderOpacity, enableStickyHeader]);
+  }, [isScrolling, stickyHeaderOpacity, contentMarginTop, enableStickyHeader]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -97,6 +107,7 @@ export default function BaseLayout({
             style={[
               styles.stickyHeaderContainer, 
               { 
+                top: insets.top,
                 opacity: stickyHeaderOpacity,
                 transform: [{
                   translateY: stickyHeaderOpacity.interpolate({
@@ -132,8 +143,17 @@ export default function BaseLayout({
           </Animated.View>
         )}
         
-        {/* Main Content */}
-        {children}
+        {/* Main Content - with dynamic top margin when sticky header is visible */}
+        <Animated.View 
+          style={[
+            { flex: 1 },
+            enableStickyHeader && {
+              marginTop: contentMarginTop
+            }
+          ]}
+        >
+          {children}
+        </Animated.View>
         
         {/* Feedback Animation Overlay */}
         {showFeedback && fadeAnim && scaleAnim && (
@@ -203,7 +223,6 @@ const styles = StyleSheet.create({
   },
   stickyHeaderContainer: {
     position: 'absolute',
-    top: 0,
     left: 0,
     right: 0,
     backgroundColor: '#fff',
