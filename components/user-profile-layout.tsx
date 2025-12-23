@@ -152,96 +152,101 @@ export default function UserProfileLayout({
       <View style={styles.separator} />
       
       {/* Longer fields displayed vertically */}
-      {userData.homeTown && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
+      {(() => {
+        const detailFields = [];
+        
+        if (userData.homeTown) {
+          detailFields.push(
+            <View key="homeTown" style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
+                <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{userData.homeTown}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.homeTown}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      {userData.currentCity && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="location" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Current City</ThemedText>
+          );
+        }
+        
+        if (userData.currentCity) {
+          detailFields.push(
+            <View key="currentCity" style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="location" size={16} color="#666" style={styles.detailIcon} />
+                <ThemedText style={styles.detailLabel}>Current City</ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{userData.currentCity}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.currentCity}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      {userData.jobDetails && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="briefcase" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Job</ThemedText>
+          );
+        }
+        
+        if (userData.jobDetails) {
+          detailFields.push(
+            <View key="jobDetails" style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="briefcase" size={16} color="#666" style={styles.detailIcon} />
+                <ThemedText style={styles.detailLabel}>Job</ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{userData.jobDetails}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.jobDetails}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      {userData.college && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="school" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>College</ThemedText>
+          );
+        }
+        
+        if (userData.college) {
+          detailFields.push(
+            <View key="college" style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="school" size={16} color="#666" style={styles.detailIcon} />
+                <ThemedText style={styles.detailLabel}>College</ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{userData.college}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.college}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      {userData.highestEducationLevel && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="ribbon" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Education</ThemedText>
+          );
+        }
+        
+        if (userData.highestEducationLevel) {
+          detailFields.push(
+            <View key="education" style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="ribbon" size={16} color="#666" style={styles.detailIcon} />
+                <ThemedText style={styles.detailLabel}>Education</ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{userData.highestEducationLevel}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.highestEducationLevel}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      {userData.religiousBeliefs && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="book" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Religious Beliefs</ThemedText>
+          );
+        }
+        
+        if (userData.religiousBeliefs) {
+          detailFields.push(
+            <View key="religious" style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="book" size={16} color="#666" style={styles.detailIcon} />
+                <ThemedText style={styles.detailLabel}>Religious Beliefs</ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{userData.religiousBeliefs}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.religiousBeliefs}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
-      
-      {userData.drinkOrSmoke && (
-        <>
-          <View style={styles.detailRow}>
-            <View style={styles.detailLabelContainer}>
-              <Ionicons name="wine" size={16} color="#666" style={styles.detailIcon} />
-              <ThemedText style={styles.detailLabel}>Drink/Smoke</ThemedText>
+          );
+        }
+        
+        if (userData.drinkOrSmoke) {
+          detailFields.push(
+            <View key="drinkSmoke" style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons name="wine" size={16} color="#666" style={styles.detailIcon} />
+                <ThemedText style={styles.detailLabel}>Drink/Smoke</ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{userData.drinkOrSmoke}</ThemedText>
             </View>
-            <ThemedText style={styles.detailValue}>{userData.drinkOrSmoke}</ThemedText>
-          </View>
-          <View style={styles.separator} />
-        </>
-      )}
+          );
+        }
+        
+        // Render fields with separators only between items (not after last)
+        return detailFields.map((field, index) => (
+          <React.Fragment key={field.key}>
+            {field}
+            {index < detailFields.length - 1 && <View style={styles.separator} />}
+          </React.Fragment>
+        ));
+      })()}
       
       
     </View>

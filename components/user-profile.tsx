@@ -54,11 +54,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
   };
 
   const handleLike = (opinionId: string) => {
-    console.log('🔵 UserProfile handleLike called with opinionId:', opinionId);
-    console.log('🔵 Calling onLikeOpinion prop...');
-    // Directly trigger the modal without showing comment box
     onLikeOpinion(opinionId);
-    console.log('🔵 onLikeOpinion prop called successfully');
   };
 
   // Create a non-memoized version for scroll events that doesn't cause render cycles
@@ -205,7 +201,6 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
                   opinion.liked && styles.likedButton
                 ]} 
                 onPress={() => {
-                  console.log('❤️ Heart button pressed for opinion:', opinion.id);
                   handleLike(opinion.id);
                 }}
                 activeOpacity={0.7}

@@ -1,4 +1,5 @@
 import { apiService } from '@/services/api';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -27,13 +28,62 @@ interface Match {
 
 const ChatPhotoWithLoader = ({ uri }: { uri: string }) => {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    // Set a 10-second timeout for loading
+    timeoutRef.current = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setLoadError(true);
+      }
+    }, 10000);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [loading]);
+
+  const handleLoadStart = () => {
+    setLoading(true);
+    setLoadError(false);
+  };
+
+  const handleLoadEnd = () => {
+    setLoading(false);
+    setLoadError(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+
+  const handleLoadError = () => {
+    setLoading(false);
+    setLoadError(true);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+
+  if (loadError || !uri) {
+    return (
+      <View style={[styles.chatPhoto, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
+        <Ionicons name="person" size={24} color="#666" />
+      </View>
+    );
+  }
+
   return (
     <>
       <Image 
         source={{ uri }} 
         style={styles.chatPhoto}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
+        onLoadStart={handleLoadStart}
+        onLoadEnd={handleLoadEnd}
+        onError={handleLoadError}
       />
       {loading && (
         <View style={[styles.chatPhoto, { position: 'absolute', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>

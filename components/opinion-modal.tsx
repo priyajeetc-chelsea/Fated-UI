@@ -28,10 +28,6 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log('📊 OpinionModal props - visible:', visible, 'opinion:', opinion?.id, 'userName:', userName);
-  }, [visible, opinion, userName]);
 
   // Keyboard visibility listeners
   React.useEffect(() => {
@@ -87,7 +83,7 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
             {/* Header with Close button */}
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={28} color="#fff" />
+                <Ionicons name="close" size={28} color="#4B164C" />
               </TouchableOpacity>
             </View>
             
@@ -166,7 +162,7 @@ export default function OpinionModal({ visible, opinion, userName, onSubmit, onC
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'grey'
+    backgroundColor: '#e5e5e5ff', /* White with 20% alpha */
   },
   safeArea: {
     flex: 1,
@@ -179,7 +175,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingHorizontal: 2,
+    paddingHorizontal: 20,
   },
   closeButton: {
     padding: 4,
@@ -197,7 +193,7 @@ const styles = StyleSheet.create({
    backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 10,
     overflow: 'hidden', // Prevent any content from overflowing the card
     shadowColor: '#000',
     shadowOffset: {

@@ -73,7 +73,6 @@ export default function UserProfilePage() {
           
           try {
             const userProfile = await apiService.fetchUserProfile(userBId);
-            console.log('API Response:', userProfile);
             
             if (userProfile && userProfile.model) {
               const profileData = userProfile.model;

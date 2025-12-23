@@ -312,7 +312,6 @@ export default function HomeScreen() {
   };
 
   const handleLikeOpinion = (opinionId: string) => {
-    console.log('Liked opinion:', opinionId);
 
     const currentUser = users[currentUserIndex];
     if (!currentUser) return;
