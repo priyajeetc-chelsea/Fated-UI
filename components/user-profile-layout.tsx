@@ -350,7 +350,7 @@ export default function UserProfileLayout({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
     paddingHorizontal: 20,
   },
   mainContainer: {
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   userInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
   },
   userPhoto: {
     width: 40,
@@ -394,6 +394,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
@@ -407,6 +409,8 @@ const styles = StyleSheet.create({
   photoCardContainer: {
     backgroundColor: 'white',
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     marginBottom: 20,
     overflow: 'hidden',
     shadowColor: '#000',

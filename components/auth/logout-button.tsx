@@ -95,12 +95,12 @@ export const LogoutButton: React.FC<LogoutButtonProps> = ({ variant = 'text' }) 
     }
 
     if (variant === 'icon') {
-      return <Ionicons name="log-out-outline" size={22} color={ICON_COLOR} />;
+      return <Ionicons name="log-out-outline" size={26} color={ICON_COLOR} />;
     }
 
     return (
       <>
-        <Ionicons name="log-out-outline" size={20} color={ICON_COLOR} style={styles.icon} />
+        <Ionicons name="log-out-outline" size={26} color={ICON_COLOR} style={styles.icon} />
         <Text style={styles.text}>Logout</Text>
       </>
     );

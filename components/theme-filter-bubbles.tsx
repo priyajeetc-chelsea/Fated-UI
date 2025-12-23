@@ -19,7 +19,7 @@ export default function ThemeFilterBubbles({ tags, onThemeChange }: ThemeFilterB
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: '#f5f5f5' }]}>
+    <View style={[styles.container, { backgroundColor: '#f9f9f9' }]}>
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}

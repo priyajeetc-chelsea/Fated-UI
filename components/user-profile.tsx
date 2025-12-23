@@ -239,7 +239,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
     paddingHorizontal: 20,
   },
   mainContainer: {
@@ -284,6 +284,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     marginBottom: 20,
     overflow: 'hidden', // Prevent any content from overflowing the card
     shadowColor: '#000',

@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   topicCardSelected: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
     borderColor: '#4B164C',
   },
   topicContent: {

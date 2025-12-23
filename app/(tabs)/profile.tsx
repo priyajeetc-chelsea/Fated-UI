@@ -355,7 +355,7 @@ export default function ProfilePage() {
                   {profile.fname} {profile.lname || ''}
                 </Text>
               </View>
-              <LogoutButton variant="text" />
+              <LogoutButton variant="icon" />
             </View>
           )}
 
@@ -384,7 +384,7 @@ export default function ProfilePage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
     paddingHorizontal: 20,
   },
   mainContainer: {
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   userInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
   },
   userPhoto: {
     width: 40,
@@ -465,6 +465,8 @@ const styles = StyleSheet.create({
   profileDetailsCard: {
     backgroundColor: 'white',
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
@@ -552,6 +554,8 @@ const styles = StyleSheet.create({
   opinionCard: {
     backgroundColor: 'white',
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     padding: 20,
     marginBottom: 20,
     overflow: 'hidden',
@@ -567,6 +571,8 @@ const styles = StyleSheet.create({
   photoCardContainer: {
     backgroundColor: 'white',
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
     marginBottom: 20,
     overflow: 'hidden',
     shadowColor: '#000',

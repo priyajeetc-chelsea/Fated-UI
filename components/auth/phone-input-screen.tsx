@@ -104,21 +104,21 @@ export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
           />
 
           {/* Divider */}
-          {/* <View style={styles.divider}>
+          <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>or</Text>
             <View style={styles.dividerLine} />
-          </View> */}
+          </View>
 
           {/* Phone Number Button */}
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={styles.phoneButton}
             onPress={() => setShowPhoneInput(true)}
             disabled={isLoading}
           >
             <Ionicons name="phone-portrait" size={20} color="#FFFFFF" style={styles.icon} />
             <Text style={styles.phoneButtonText}>Continue with Phone Number</Text>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
 
           {/* Error Message */}
           {error && (

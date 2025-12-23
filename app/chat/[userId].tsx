@@ -307,7 +307,7 @@ export default function ChatScreen() {
   return (
     <SafeAreaView 
       style={styles.container}
-      edges={['top']}
+      edges={['top', 'bottom']}
     >
       <KeyboardAvoidingView 
         style={styles.keyboardView} 
@@ -444,7 +444,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
   },
   keyboardView: {
     flex: 1,

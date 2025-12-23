@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   },
   addPhotoButton: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f9f9f9',
     borderWidth: 2,
     borderColor: '#E0E0E0',
     borderStyle: 'dashed',
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
   },
   uploadingContainer: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,

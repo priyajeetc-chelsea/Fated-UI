@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f9f9f9',
     borderRadius: 8,
   },
   searchIcon: {
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F0F0F0',
   },
   selectedOption: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f9f9f9',
   },
   optionText: {
     fontSize: 16,

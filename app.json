@@ -2,7 +2,7 @@
   "expo": {
     "name": "fated",
     "slug": "fated",
-    "version": "2.1.1",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/fated.png",
     "scheme": "fated",

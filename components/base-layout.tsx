@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { usePathname, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from './app-header';
 import { LogoutButton } from './auth';
 
@@ -42,7 +42,6 @@ export default function BaseLayout({
   const resolvedShowAppHeader = showAppHeader ?? isHomePath;
   const shouldShowLogoutButton = showLogoutButton && resolvedShowAppHeader;
   const enableStickyHeader = (userName && !isHomePath) || (isHomePath && isScrolling);
-  const insets = useSafeAreaInsets();
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -56,18 +55,16 @@ export default function BaseLayout({
   useEffect(() => {
     if (enableStickyHeader) {
       Animated.parallel([
-        Animated.spring(stickyHeaderOpacity, {
-          toValue: isScrolling ? 1 : 0,
-          useNativeDriver: true, // Keep native driver for opacity and transform
-          friction: 8,
-          tension: 50,
-        }),
-        Animated.spring(contentMarginTop, {
-          toValue: isScrolling ? -5 : 0, // 50px sticky header height
-          useNativeDriver: false, // Layout property needs false
-          friction: 8,
-          tension: 50,
-        })
+      Animated.timing(stickyHeaderOpacity, {
+        toValue: isScrolling ? 1 : 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentMarginTop, {
+        toValue: isScrolling ? -5 : 0,
+        duration: 150,
+        useNativeDriver: false,
+      })
       ]).start();
     }
   }, [isScrolling, stickyHeaderOpacity, contentMarginTop, enableStickyHeader]);
@@ -90,7 +87,7 @@ export default function BaseLayout({
         >
           {showBackButton && (
             <TouchableOpacity style={styles.headerBackButton} onPress={handleBackPress}>
-              <Ionicons name="arrow-back" size={26} color="#333" />
+              <Ionicons name="arrow-back" size={22} color="#333" />
             </TouchableOpacity>
           )}
           {resolvedShowAppHeader && <AppHeader />}
@@ -107,7 +104,7 @@ export default function BaseLayout({
             style={[
               styles.stickyHeaderContainer, 
               { 
-                top: insets.top,
+                top: 0,
                 opacity: stickyHeaderOpacity,
                 transform: [{
                   translateY: stickyHeaderOpacity.interpolate({
@@ -190,12 +187,12 @@ export default function BaseLayout({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
     position: 'relative',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9f9',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -204,12 +201,12 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   headerBackButton: {
-    marginTop: 15,
-    marginRight: 15,
+    marginTop: 12,
+    marginBottom: 5,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
+    borderRadius: 30,
+    width: 30,
+    height: 30,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -218,14 +215,14 @@ const styles = StyleSheet.create({
       height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 1,
+    elevation: 2,
   },
   stickyHeaderContainer: {
     position: 'absolute',
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: '#f9f9f9',
     zIndex: 9999,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
@@ -235,8 +232,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 8,
-    minHeight: 50,
+    paddingVertical: 5,
   },
   stickyHeaderText: {
     fontSize: 24,
@@ -249,7 +245,7 @@ const styles = StyleSheet.create({
   logoutButtonWrapper: {
     position: 'absolute',
     right: 0,
-    top: 10,
+    top: 15,
   },
   stickyLogoutWrapper: {
     width: 34,

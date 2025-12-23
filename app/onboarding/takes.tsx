@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   },
   answerProgress: {
     marginBottom: 24,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f9f9f9',
     padding: 16,
     borderRadius: 12,
   },
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   topicChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f9f9f9',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,

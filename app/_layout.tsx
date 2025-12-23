@@ -45,7 +45,7 @@ export default function RootLayout() {
   }
   
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#f9f9f9' }}>
       <SafeAreaProvider>
         <AuthProvider>
           <UserProvider>
@@ -62,7 +62,7 @@ export default function RootLayout() {
                     <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
                     <Stack.Screen name="chat/[userId]" options={{ headerShown: false }} />
                   </Stack>
-                  <StatusBar style="auto" backgroundColor="#f5f5f5" />
+                  <StatusBar style="auto" backgroundColor="#f9f9f9" />
                 </AuthGuard>
               </ThemeProvider>
             </ChatProvider>

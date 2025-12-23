@@ -194,10 +194,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   opinionCard: {
-    backgroundColor: '#f9f9f9',
+   backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
+    marginBottom: 20,
+    overflow: 'hidden', // Prevent any content from overflowing the card
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   header: {
     flexDirection: 'row',
