@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Keyboard, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -83,7 +84,7 @@ export default function ThemedInput({
             onPress={handleKeyboardDismiss}
             activeOpacity={0.7}
           >
-            <Text style={styles.keyboardDismissText}>Done</Text>
+            <Ionicons name="checkmark" size={20} color="#4B164C" />
           </TouchableOpacity>
         )}
       </View>
@@ -136,7 +137,8 @@ const styles = StyleSheet.create({
     paddingBottom: 30, // Space for character counter
   },
   inputWithDismissButton: {
-    paddingTop: 40, // Space for keyboard dismiss button when multiline
+    paddingTop: 12,
+    paddingRight: 50, // Space for dismiss button on the right
   },
   characterCounter: {
     position: 'absolute',
@@ -151,17 +153,22 @@ const styles = StyleSheet.create({
   },
   keyboardDismissButton: {
     position: 'absolute',
-    top: 2,
-    right: 5,
-    backgroundColor: '#4B164C',
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderRadius: 6,
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
     zIndex: 1,
-  },
-  keyboardDismissText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
   },
 });

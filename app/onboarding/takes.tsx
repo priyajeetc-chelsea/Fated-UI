@@ -346,7 +346,7 @@ export default function TakesForm() {
                 onChangeText={(value) => updateAnswer(currentTopic.tag.id, question.id, value)}
                 placeholder="Share your thoughts..."
                 multiline
-                numberOfLines={6}
+                numberOfLines={8}
                 showCharacterCount={true}
                 maxLength={500}
                 showKeyboardDismiss={true}

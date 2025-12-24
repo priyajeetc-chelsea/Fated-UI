@@ -173,7 +173,7 @@ export default function UserProfile({ user, onLikeOpinion, onRemoveUser, onScrol
               {/* Answer */}
               <View>
                 {(() => {
-                  const { text, isTruncated } = truncateText(opinion.text, 30);
+                  const { text, isTruncated } = truncateText(opinion.text, 60);
                   return (
                     <>
                       <ThemedText style={styles.opinionText}>
@@ -263,8 +263,8 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   userName: {
-    fontSize: 25,
-    lineHeight: 34,
+    fontSize: 24,
+    lineHeight: 28,
     color: '#000',
     fontFamily: 'Playfair Display Bold',
   },
@@ -309,12 +309,12 @@ const styles = StyleSheet.create({
     flexShrink: 1, // Allow text to shrink if needed
   },
   questionText: {
-    fontSize: 23,
-    lineHeight: 30,
+    fontSize: 20,
+    lineHeight: 28,
     letterSpacing: -0.3,
     color: 'black',
     fontFamily: 'Playfair Display Bold',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   opinionText: {
     fontSize: 15,

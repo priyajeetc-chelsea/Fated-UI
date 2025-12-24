@@ -179,7 +179,7 @@ export default function PotentialMatchHome() {
           if (userBId) {
             console.log('Navigating to profile page for UserB ID:', userBId);
             router.replace({
-              pathname: '/matches/user-profile-page',
+              pathname: '/potential-matches/user-profile-page',
               params: { userBId: userBId.toString() }
             });
           } else {

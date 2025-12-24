@@ -419,6 +419,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 24,
+    lineHeight: 28,
     color: '#000',
     fontFamily: 'Playfair Display Bold',
   },
@@ -613,12 +614,12 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   questionText: {
-    fontSize: 23,
-    lineHeight: 30,
+    fontSize: 20,
+    lineHeight: 28,
     letterSpacing: -0.3,
     color: 'black',
     fontFamily: 'Playfair Display Bold',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   opinionText: {
     fontSize: 15,
