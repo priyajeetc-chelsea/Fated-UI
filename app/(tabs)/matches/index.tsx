@@ -3,16 +3,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    AppState,
-    AppStateStatus,
-    Image,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  AppState,
+  AppStateStatus,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,7 +29,7 @@ interface Match {
 const ChatPhotoWithLoader = ({ uri }: { uri: string }) => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Set a 10-second timeout for loading
@@ -161,7 +161,9 @@ export default function MatchesScreen() {
         let photoUrl = photoCache.current.get(userId);
         if (!photoUrl && m.photoUrl) {
           photoUrl = m.photoUrl;
-          photoCache.current.set(userId, photoUrl);
+          if (photoUrl) {
+            photoCache.current.set(userId, photoUrl);
+          }
         }
         
         return {

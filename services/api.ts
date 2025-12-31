@@ -752,6 +752,27 @@ class ApiService {
       throw error;
     }
   }
+
+  async updateUserLocation(latitude: number, longitude: number): Promise<any> {
+    try {
+      console.log('📍 Updating user location');
+      const response = await this.makeAuthenticatedRequest('/user/location', {
+        method: 'POST',
+        body: JSON.stringify({ latitude, longitude }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ User location updated successfully');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to update user location:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();

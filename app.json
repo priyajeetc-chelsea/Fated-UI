@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.fated.app"
+      "bundleIdentifier": "com.fated.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Fated uses your location to show you matches nearby and improve your dating experience."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +28,9 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "com.fated.app",
       "largeHeap": true,
@@ -37,6 +42,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Fated uses your location to show you matches nearby and improve your dating experience."
+        }
+      ],
       [
         "expo-image-picker",
         {

@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthGuard } from '@/components/auth';
 import { ChatProvider } from '@/contexts/ChatContext';
+import { LocationProvider } from '@/contexts/LocationContext';
 import { UserProvider } from '@/contexts/UserContext';
 import { AuthProvider } from '@/contexts/auth/AuthContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -49,23 +50,25 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <AuthProvider>
           <UserProvider>
-            <ChatProvider>
-              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <AuthGuard>
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                    }}
-                  >
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-                    <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-                    <Stack.Screen name="chat/[userId]" options={{ headerShown: false }} />
-                  </Stack>
-                  <StatusBar style="auto" backgroundColor="#f9f9f9" />
-                </AuthGuard>
-              </ThemeProvider>
-            </ChatProvider>
+            <LocationProvider>
+              <ChatProvider>
+                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                  <AuthGuard>
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                      }}
+                    >
+                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+                      <Stack.Screen name="chat/[userId]" options={{ headerShown: false }} />
+                    </Stack>
+                    <StatusBar style="auto" backgroundColor="#f9f9f9" />
+                  </AuthGuard>
+                </ThemeProvider>
+              </ChatProvider>
+            </LocationProvider>
           </UserProvider>
         </AuthProvider>
       </SafeAreaProvider>
