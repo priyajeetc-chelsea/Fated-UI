@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "fated",
+    "name": "Fated",
     "slug": "fated",
-    "version": "1.0.0",
+    "version": "0.0.1",
+    "description": "Meet your match through meaningful conversations and shared values. Fated connects you with compatible people nearby.",
     "orientation": "portrait",
     "icon": "./assets/images/fated.png",
     "scheme": "fated",
