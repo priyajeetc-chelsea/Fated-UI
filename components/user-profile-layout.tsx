@@ -1,7 +1,17 @@
-import { ThemedText } from '@/components/themed-text';
-import { Ionicons } from '@expo/vector-icons';
-import React, { useRef } from 'react';
-import { Image, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ThemedText } from "@/components/themed-text";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useRef } from "react";
+import {
+  Image,
+  KeyboardAvoidingView,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface UserProfileLayoutProps {
   userData: {
@@ -32,7 +42,7 @@ interface UserProfileLayoutProps {
   onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   onCrossPress?: () => void;
   showCrossButton?: boolean;
-  layoutType: 'full-profile' | 'opinions-only';
+  layoutType: "full-profile" | "opinions-only";
 }
 
 export default function UserProfileLayout({
@@ -41,216 +51,185 @@ export default function UserProfileLayout({
   onScroll,
   onCrossPress,
   showCrossButton = true,
-  layoutType = 'full-profile'
+  layoutType = "full-profile",
 }: UserProfileLayoutProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
   const renderPhotoCard = (photoUrl: string, index: number) => (
     <View key={`photo-${index}`} style={styles.photoCardContainer}>
-      <Image 
-        source={{ uri: photoUrl }} 
+      <Image
+        source={{ uri: photoUrl }}
         style={styles.profilePhoto}
         resizeMode="cover"
       />
     </View>
   );
 
-  const renderDetailsCard = () => (
-    <View style={styles.opinionCard}>
-      
-      {/* Horizontal scrollable grid for short fields */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.gridScrollContainer}
-        contentContainerStyle={styles.gridContentContainer}
-      >
-        {(() => {
-          const gridFields = [];
-          
-          // Helper function to check if value is short enough (less than 10 characters)
-          const isShortValue = (value: any) => {
-            return value && String(value).length < 20;
-          };
-          
-          if (isShortValue(userData.age)) {
-            gridFields.push(
-              <React.Fragment key="age">
-                <View style={styles.gridItem}>
-                  <Ionicons name="calendar" size={16} color="#666" style={styles.gridIcon} />
-                  <ThemedText style={styles.gridLabel}>Age</ThemedText>
-                  <ThemedText style={styles.gridValue}>{userData.age}</ThemedText>
-                </View>
-              </React.Fragment>
-            );
-          }
-          
-          if (isShortValue(userData.gender)) {
-            if (gridFields.length > 0) {
-              gridFields.push(<View key="sep-gender" style={styles.verticalSeparator} />);
-            }
-            gridFields.push(
-              <React.Fragment key="gender">
-                <View style={styles.gridItem}>
-                  <Ionicons name="person" size={16} color="#666" style={styles.gridIcon} />
-                  <ThemedText style={styles.gridLabel}>Gender</ThemedText>
-                  <ThemedText style={styles.gridValue}>{userData.gender}</ThemedText>
-                </View>
-              </React.Fragment>
-            );
-          }
-          
-          if (isShortValue(userData.sexuality)) {
-            if (gridFields.length > 0) {
-              gridFields.push(<View key="sep-sexuality" style={styles.verticalSeparator} />);
-            }
-            gridFields.push(
-              <React.Fragment key="sexuality">
-                <View style={styles.gridItem}>
-                  <Ionicons name="heart" size={16} color="#666" style={styles.gridIcon} />
-                  <ThemedText style={styles.gridLabel}>Sexuality</ThemedText>
-                  <ThemedText style={styles.gridValue}>{userData.sexuality}</ThemedText>
-                </View>
-              </React.Fragment>
-            );
-          }
-          
-          if (isShortValue(userData.height)) {
-            if (gridFields.length > 0) {
-              gridFields.push(<View key="sep-height" style={styles.verticalSeparator} />);
-            }
-            gridFields.push(
-              <React.Fragment key="height">
-                <View style={styles.gridItem}>
-                  <Ionicons name="resize" size={16} color="#666" style={styles.gridIcon} />
-                  <ThemedText style={styles.gridLabel}>Height</ThemedText>
-                  <ThemedText style={styles.gridValue}>{userData.height}</ThemedText>
-                </View>
-              </React.Fragment>
-            );
-          }
-          
-          if (isShortValue(userData.pronouns)) {
-            if (gridFields.length > 0) {
-              gridFields.push(<View key="sep-pronouns" style={styles.verticalSeparator} />);
-            }
-            gridFields.push(
-              <React.Fragment key="pronouns">
-                <View style={styles.gridItem}>
-                  <Ionicons name="chatbubble" size={16} color="#666" style={styles.gridIcon} />
-                  <ThemedText style={styles.gridLabel}>Pronouns</ThemedText>
-                  <ThemedText style={styles.gridValue}>{userData.pronouns}</ThemedText>
-                </View>
-              </React.Fragment>
-            );
-          }
-          
-          return gridFields;
-        })()}
-      </ScrollView>
-      
-      <View style={styles.separator} />
-      
-      {/* Longer fields displayed vertically */}
-      {(() => {
-        const detailFields = [];
-        
-        if (userData.homeTown) {
-          detailFields.push(
-            <View key="homeTown" style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="home" size={16} color="#666" style={styles.detailIcon} />
-                <ThemedText style={styles.detailLabel}>Home Town</ThemedText>
-              </View>
-              <ThemedText style={styles.detailValue}>{userData.homeTown}</ThemedText>
-            </View>
-          );
-        }
-        
-        if (userData.currentCity) {
-          detailFields.push(
-            <View key="currentCity" style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="location" size={16} color="#666" style={styles.detailIcon} />
-                <ThemedText style={styles.detailLabel}>Current City</ThemedText>
-              </View>
-              <ThemedText style={styles.detailValue}>{userData.currentCity}</ThemedText>
-            </View>
-          );
-        }
-        
-        if (userData.jobDetails) {
-          detailFields.push(
-            <View key="jobDetails" style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="briefcase" size={16} color="#666" style={styles.detailIcon} />
-                <ThemedText style={styles.detailLabel}>Job</ThemedText>
-              </View>
-              <ThemedText style={styles.detailValue}>{userData.jobDetails}</ThemedText>
-            </View>
-          );
-        }
-        
-        if (userData.college) {
-          detailFields.push(
-            <View key="college" style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="school" size={16} color="#666" style={styles.detailIcon} />
-                <ThemedText style={styles.detailLabel}>College</ThemedText>
-              </View>
-              <ThemedText style={styles.detailValue}>{userData.college}</ThemedText>
-            </View>
-          );
-        }
-        
-        if (userData.highestEducationLevel) {
-          detailFields.push(
-            <View key="education" style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="ribbon" size={16} color="#666" style={styles.detailIcon} />
-                <ThemedText style={styles.detailLabel}>Education</ThemedText>
-              </View>
-              <ThemedText style={styles.detailValue}>{userData.highestEducationLevel}</ThemedText>
-            </View>
-          );
-        }
-        
-        if (userData.religiousBeliefs) {
-          detailFields.push(
-            <View key="religious" style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="book" size={16} color="#666" style={styles.detailIcon} />
-                <ThemedText style={styles.detailLabel}>Religious Beliefs</ThemedText>
-              </View>
-              <ThemedText style={styles.detailValue}>{userData.religiousBeliefs}</ThemedText>
-            </View>
-          );
-        }
-        
-        if (userData.drinkOrSmoke) {
-          detailFields.push(
-            <View key="drinkSmoke" style={styles.detailRow}>
-              <View style={styles.detailLabelContainer}>
-                <Ionicons name="wine" size={16} color="#666" style={styles.detailIcon} />
-                <ThemedText style={styles.detailLabel}>Drink/Smoke</ThemedText>
-              </View>
-              <ThemedText style={styles.detailValue}>{userData.drinkOrSmoke}</ThemedText>
-            </View>
-          );
-        }
-        
-        // Render fields with separators only between items (not after last)
-        return detailFields.map((field, index) => (
+  const renderDetailsCard = () => {
+    // Define all possible vertical detail fields in priority order
+    const verticalFieldDefinitions = [
+      {
+        key: "homeTown",
+        value: userData.homeTown,
+        icon: "home" as const,
+        label: "Home Town",
+      },
+      {
+        key: "currentCity",
+        value: userData.currentCity,
+        icon: "location" as const,
+        label: "Current City",
+      },
+      {
+        key: "jobDetails",
+        value: userData.jobDetails,
+        icon: "briefcase" as const,
+        label: "Job",
+      },
+      {
+        key: "college",
+        value: userData.college,
+        icon: "school" as const,
+        label: "College",
+      },
+      {
+        key: "education",
+        value: userData.highestEducationLevel,
+        icon: "ribbon" as const,
+        label: "Education",
+      },
+      {
+        key: "religious",
+        value: userData.religiousBeliefs,
+        icon: "book" as const,
+        label: "Religious Beliefs",
+      },
+      {
+        key: "drinkSmoke",
+        value: userData.drinkOrSmoke,
+        icon: "wine" as const,
+        label: "Drink/Smoke",
+      },
+    ];
+
+    // Define horizontal grid field candidates
+    const horizontalFieldDefinitions = [
+      {
+        key: "age",
+        value: userData.age,
+        icon: "calendar" as const,
+        label: "Age",
+      },
+      {
+        key: "gender",
+        value: userData.gender,
+        icon: "person" as const,
+        label: "Gender",
+      },
+      {
+        key: "sexuality",
+        value: userData.sexuality,
+        icon: "heart" as const,
+        label: "Sexuality",
+      },
+      {
+        key: "height",
+        value: userData.height,
+        icon: "resize" as const,
+        label: "Height",
+      },
+      {
+        key: "pronouns",
+        value: userData.pronouns,
+        icon: "chatbubble" as const,
+        label: "Pronouns",
+      },
+    ];
+
+    // Get available vertical fields
+    const availableVerticalFields = verticalFieldDefinitions.filter(
+      (field) => field.value,
+    );
+
+    // If we need more fields to reach 4 in vertical section, take from horizontal candidates
+    const verticalFields = [...availableVerticalFields];
+    const usedInVertical = new Set(verticalFields.map((f) => f.key));
+
+    if (verticalFields.length < 4) {
+      const horizontalAvailable = horizontalFieldDefinitions.filter(
+        (field) => field.value,
+      );
+      const needed = 3 - verticalFields.length;
+      const toMove = horizontalAvailable.slice(0, needed);
+      verticalFields.push(...toMove);
+      toMove.forEach((field) => usedInVertical.add(field.key));
+    }
+
+    // Horizontal grid only shows fields not used in vertical section
+    const horizontalFields = horizontalFieldDefinitions
+      .filter((field) => field.value && !usedInVertical.has(field.key))
+      .slice(0, 4);
+
+    return (
+      <View style={styles.opinionCard}>
+        {/* Horizontal scrollable grid - only if there are fields to show */}
+        {horizontalFields.length > 0 && (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.gridScrollContainer}
+              contentContainerStyle={styles.gridContentContainer}
+            >
+              {horizontalFields.map((field, index) => (
+                <React.Fragment key={field.key}>
+                  {index > 0 && <View style={styles.verticalSeparator} />}
+                  <View style={styles.gridItem}>
+                    <Ionicons
+                      name={field.icon}
+                      size={16}
+                      color="#666"
+                      style={styles.gridIcon}
+                    />
+                    <ThemedText style={styles.gridLabel}>
+                      {field.label}
+                    </ThemedText>
+                    <ThemedText style={styles.gridValue}>
+                      {field.value}
+                    </ThemedText>
+                  </View>
+                </React.Fragment>
+              ))}
+            </ScrollView>
+            <View style={styles.separator} />
+          </>
+        )}
+
+        {/* Vertical detail fields - always try to show 4 */}
+        {verticalFields.map((field, index) => (
           <React.Fragment key={field.key}>
-            {field}
-            {index < detailFields.length - 1 && <View style={styles.separator} />}
+            <View style={styles.detailRow}>
+              <View style={styles.detailLabelContainer}>
+                <Ionicons
+                  name={field.icon}
+                  size={16}
+                  color="#666"
+                  style={styles.detailIcon}
+                />
+                <ThemedText style={styles.detailLabel}>
+                  {field.label}
+                </ThemedText>
+              </View>
+              <ThemedText style={styles.detailValue}>{field.value}</ThemedText>
+            </View>
+            {index < verticalFields.length - 1 && (
+              <View style={styles.separator} />
+            )}
           </React.Fragment>
-        ));
-      })()}
-      
-      
-    </View>
-  );
+        ))}
+      </View>
+    );
+  };
 
   const renderOpinionCard = (opinion: any, index: number) => (
     <View key={`opinion-${opinion.id}`} style={styles.opinionCard}>
@@ -267,12 +246,12 @@ export default function UserProfileLayout({
     const photoUrls = userData.photoUrls || [];
     const opinions = userData.opinions || [];
     const content: React.ReactElement[] = [];
-    
+
     // Start with first photo if available
     if (photoUrls.length > 0) {
       content.push(renderPhotoCard(photoUrls[0], 0));
     }
-    
+
     // Interleave opinions and photos
     const maxLength = Math.max(opinions.length, photoUrls.length - 1);
     for (let i = 0; i < maxLength; i++) {
@@ -280,20 +259,20 @@ export default function UserProfileLayout({
       if (i < opinions.length) {
         content.push(renderOpinionCard(opinions[i], i));
       }
-      
+
       // Add next photo if available (starting from index 1)
       if (i + 1 < photoUrls.length) {
         content.push(renderPhotoCard(photoUrls[i + 1], i + 1));
       }
     }
-    
+
     return content;
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={100}
     >
       {/* Main Content Container */}
@@ -302,24 +281,27 @@ export default function UserProfileLayout({
         {!showStickyHeader && (
           <View style={styles.containerHeader}>
             <View style={styles.userInfoRow}>
-              <Image 
-                source={{ uri: userData.photoUrls?.[0]  }} 
+              <Image
+                source={{ uri: userData.photoUrls?.[0] }}
                 style={styles.userPhoto}
               />
-              <ThemedText style={[styles.userName, { color: '#000' }]}>
-                {userData.firstName} {userData.lname || ''}
+              <ThemedText style={[styles.userName, { color: "#000" }]}>
+                {userData.firstName} {userData.lname || ""}
               </ThemedText>
             </View>
           </View>
         )}
 
         {/* Cards List */}
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
-          style={[styles.opinionsContainer, showStickyHeader && { marginTop: -5 }]}
+          style={[
+            styles.opinionsContainer,
+            showStickyHeader && { marginTop: -5 },
+          ]}
           contentContainerStyle={[
             styles.opinionsContent,
-            { paddingBottom: 50 }
+            { paddingBottom: 50 },
           ]}
           keyboardShouldPersistTaps="handled"
           onScroll={onScroll}
@@ -328,20 +310,23 @@ export default function UserProfileLayout({
           scrollEnabled={true}
           removeClippedSubviews={false}
         >
-          {layoutType === 'full-profile' && (
+          {layoutType === "full-profile" && (
             <>
               {renderDetailsCard()}
               {renderInterleavedContent()}
             </>
           )}
-          {layoutType === 'opinions-only' && userData.opinions.map((opinion, index) => renderOpinionCard(opinion, index))}
+          {layoutType === "opinions-only" &&
+            userData.opinions.map((opinion, index) =>
+              renderOpinionCard(opinion, index),
+            )}
         </ScrollView>
       </View>
 
       {/* Cross Button */}
       {showCrossButton && onCrossPress && (
-        <TouchableOpacity 
-          style={styles.crossButton} 
+        <TouchableOpacity
+          style={styles.crossButton}
           onPress={onCrossPress}
           activeOpacity={0.7}
         >
@@ -355,25 +340,25 @@ export default function UserProfileLayout({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     paddingHorizontal: 20,
   },
   mainContainer: {
     flex: 1,
   },
   containerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
     marginTop: 10,
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: "rgba(0,0,0,0.1)",
   },
   userInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
   },
   userPhoto: {
@@ -381,29 +366,29 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: "#fff",
   },
   userName: {
     fontSize: 24,
     lineHeight: 28,
-    color: '#000',
-    fontFamily: 'Playfair Display Bold',
+    color: "#000",
+    fontFamily: "Playfair Display Bold",
   },
   opinionsContainer: {
     flex: 1,
   },
   opinionsContent: {
-    minHeight: '100%',
+    minHeight: "100%",
   },
   opinionCard: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-    overflow: 'hidden',
-    shadowColor: '#000',
+    borderColor: "#E5E5E5",
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -413,13 +398,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   photoCardContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: "#E5E5E5",
     marginBottom: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -427,53 +412,53 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    height: '500',
+    height: "500",
   },
   themeTag: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 16,
     marginBottom: 12,
-    maxWidth: '70%',
-    backgroundColor:'#FFCF00',//bumble yellow
-    overflow: 'hidden',
+    maxWidth: "70%",
+    backgroundColor: "#FFCF00", //bumble yellow
+    overflow: "hidden",
   },
   themeText: {
-    color: '#000',
+    color: "#000",
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     flexShrink: 1,
   },
   questionText: {
     fontSize: 20,
     lineHeight: 28,
     letterSpacing: -0.3,
-    color: 'black',
-    fontFamily: 'Playfair Display Bold',
+    color: "black",
+    fontFamily: "Playfair Display Bold",
     marginBottom: 5,
   },
   opinionText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#000',
+    color: "#000",
     marginBottom: 16,
   },
   profilePhoto: {
-    width: '100%',
+    width: "100%",
     height: 500,
     borderRadius: 16,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     paddingVertical: 8,
   },
   detailLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   detailIcon: {
@@ -481,23 +466,23 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   detailValue: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     flex: 1.5,
-    textAlign: 'right',
+    textAlign: "right",
   },
   separator: {
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     marginVertical: 4,
   },
   gridScrollContainer: {
     maxHeight: 100,
-    width: '100%',
+    width: "100%",
     marginVertical: 4,
   },
   gridContentContainer: {
@@ -505,14 +490,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     paddingVertical: 8,
   },
   gridItem: {
     minWidth: 80,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
@@ -521,34 +506,34 @@ const styles = StyleSheet.create({
   },
   gridLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 4,
-    textAlign: 'center',
+    textAlign: "center",
   },
   gridValue: {
     fontSize: 13,
-    color: '#333',
-    fontWeight: '500',
-    textAlign: 'center',
+    color: "#333",
+    fontWeight: "500",
+    textAlign: "center",
   },
   verticalSeparator: {
     width: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     marginHorizontal: 8,
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
   crossButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 40,
     left: 40,
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#333',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    backgroundColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 4,

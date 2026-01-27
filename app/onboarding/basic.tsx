@@ -1,51 +1,62 @@
-import DatePicker from '@/components/onboarding/date-picker';
-import OnboardingButton from '@/components/onboarding/onboarding-button';
-import PrivacyToggle from '@/components/onboarding/privacy-toggle';
-import ProgressIndicator from '@/components/onboarding/progress-indicator';
-import SimpleThemedPicker from '@/components/onboarding/simple-themed-picker';
-import ThemedInput from '@/components/onboarding/themed-input';
-import ThemedPicker from '@/components/onboarding/themed-picker';
-import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
-import { apiService } from '@/services/api';
+import DatePicker from "@/components/onboarding/date-picker";
+import OnboardingButton from "@/components/onboarding/onboarding-button";
+import PrivacyToggle from "@/components/onboarding/privacy-toggle";
+import ProgressIndicator from "@/components/onboarding/progress-indicator";
+import SimpleThemedPicker from "@/components/onboarding/simple-themed-picker";
+import ThemedInput from "@/components/onboarding/themed-input";
+import ThemedPicker from "@/components/onboarding/themed-picker";
+import { useApiErrorHandler } from "@/hooks/use-api-error-handler";
+import { apiService } from "@/services/api";
 import {
   BasicDetailsFormData,
   GENDER_OPTIONS,
   INTERESTED_IN_OPTIONS,
   PRONOUNS_OPTIONS,
-  SEXUALITY_OPTIONS
-} from '@/types/onboarding';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+} from "@/types/onboarding";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
-const BASIC_FORM_STORAGE_KEY = '@fated_onboarding_basic_form';
+const BASIC_FORM_STORAGE_KEY = "@fated_onboarding_basic_form";
 
 export default function BasicDetailsForm() {
   const [loading, setLoading] = useState(false);
   const { handleError } = useApiErrorHandler();
   const [formData, setFormData] = useState<BasicDetailsFormData>({
-    fname: '',
-    lname: '',
-    phone: '',
-    email: '',
-    dob: '',
+    fname: "",
+    lname: "",
+    phone: "",
+    email: "",
+    dob: "",
     gender: {
       value: 0, // Initialize as number
       visibleOnProfile: true,
     },
-    sexuality: {
-      value: '',
-      visibleOnProfile: true,
-    },
+    // sexuality: {
+    //   value: "",
+    //   visibleOnProfile: true,
+    // },
     pronouns: {
-      value: '',
+      value: "",
       visibleOnProfile: true,
     },
     interestedIn: [], // Will contain numbers
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof BasicDetailsFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof BasicDetailsFormData, string>>
+  >({});
 
   // Load saved form data on mount
   useEffect(() => {
@@ -54,11 +65,11 @@ export default function BasicDetailsForm() {
         const savedData = await AsyncStorage.getItem(BASIC_FORM_STORAGE_KEY);
         if (savedData) {
           const parsedData = JSON.parse(savedData);
-          console.log('📝 Basic Form: Loaded saved data from storage');
+          console.log("📝 Basic Form: Loaded saved data from storage");
           setFormData(parsedData);
         }
       } catch (error) {
-        console.error('📝 Basic Form: Failed to load saved data:', error);
+        console.error("📝 Basic Form: Failed to load saved data:", error);
       }
     };
     loadSavedData();
@@ -68,9 +79,12 @@ export default function BasicDetailsForm() {
   useEffect(() => {
     const saveData = async () => {
       try {
-        await AsyncStorage.setItem(BASIC_FORM_STORAGE_KEY, JSON.stringify(formData));
+        await AsyncStorage.setItem(
+          BASIC_FORM_STORAGE_KEY,
+          JSON.stringify(formData),
+        );
       } catch (error) {
-        console.error('📝 Basic Form: Failed to save data:', error);
+        console.error("📝 Basic Form: Failed to save data:", error);
       }
     };
     saveData();
@@ -80,58 +94,58 @@ export default function BasicDetailsForm() {
     const newErrors: Partial<Record<keyof BasicDetailsFormData, string>> = {};
 
     if (!formData.fname.trim()) {
-      newErrors.fname = 'First name is required';
+      newErrors.fname = "First name is required";
     }
 
     // Last name is optional - no validation needed
 
     // Phone number validation
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
-      newErrors.phone = 'Please enter a valid 10-digit phone number';
+      newErrors.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ""))) {
+      newErrors.phone = "Please enter a valid 10-digit phone number";
     }
 
     // Email is optional - only validate format if provided
     if (formData.email.trim() && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = "Please enter a valid email";
     }
 
     if (!formData.dob.trim()) {
-      newErrors.dob = 'Date of birth is required';
+      newErrors.dob = "Date of birth is required";
     } else {
       // Basic date validation (YYYY-MM-DD format)
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(formData.dob)) {
-        newErrors.dob = 'Please enter date in YYYY-MM-DD format';
+        newErrors.dob = "Please enter date in YYYY-MM-DD format";
       } else {
         const date = new Date(formData.dob);
         const now = new Date();
         if (date > now) {
-          newErrors.dob = 'Date of birth cannot be in the future';
+          newErrors.dob = "Date of birth cannot be in the future";
         }
         // Check if user is at least 18
         const age = now.getFullYear() - date.getFullYear();
         if (age < 18) {
-          newErrors.dob = 'You must be at least 18 years old';
+          newErrors.dob = "You must be at least 18 years old";
         }
       }
     }
 
     if (!formData.gender.value || formData.gender.value === 0) {
-      newErrors.gender = 'Gender is required';
+      newErrors.gender = "Gender is required";
     }
 
-    if (!formData.sexuality.value) {
-      newErrors.sexuality = 'Sexuality is required';
-    }
+    // if (!formData.sexuality.value) {
+    //   newErrors.sexuality = "Sexuality is required";
+    // }
 
     if (!formData.pronouns.value.trim()) {
-      newErrors.pronouns = 'Pronouns are required';
+      newErrors.pronouns = "Pronouns are required";
     }
 
     if (formData.interestedIn.length === 0) {
-      newErrors.interestedIn = 'Please select who you&rsquo;re interested in';
+      newErrors.interestedIn = "Please select who you&rsquo;re interested in";
     }
 
     setErrors(newErrors);
@@ -150,69 +164,75 @@ export default function BasicDetailsForm() {
         ...formData,
         gender: {
           ...formData.gender,
-          value: typeof formData.gender.value === 'string' 
-            ? parseInt(formData.gender.value) 
-            : formData.gender.value
+          value:
+            typeof formData.gender.value === "string"
+              ? parseInt(formData.gender.value)
+              : formData.gender.value,
         },
-        interestedIn: formData.interestedIn.map(item => 
-          typeof item === 'string' ? parseInt(item) : item
-        )
+        interestedIn: formData.interestedIn.map((item) =>
+          typeof item === "string" ? parseInt(item) : item,
+        ),
       };
-      
-      console.log('📤 Submitting payload:', payload);
+
+      console.log("📤 Submitting payload:", payload);
       const response = await apiService.submitBasicDetails(payload);
-      
+
       if (response.code === 200) {
         // Clear saved form data after successful submission
         await AsyncStorage.removeItem(BASIC_FORM_STORAGE_KEY);
-        console.log('📝 Basic Form: Cleared saved data after successful submission');
-        
+        console.log(
+          "📝 Basic Form: Cleared saved data after successful submission",
+        );
+
         // Navigate to next step based on response
         const nextStep = response.model.step;
         switch (nextStep) {
           case 2:
-            router.push('/onboarding/lifestyle');
+            router.push("/onboarding/lifestyle");
             break;
           case 3:
-            router.push('/onboarding/takes');
+            router.push("/onboarding/takes");
             break;
           case 4:
-            router.push('/onboarding/photos');
+            router.push("/onboarding/photos");
             break;
           case 5:
-            router.replace('/(tabs)/homepage');
+            router.replace("/(tabs)/homepage");
             break;
           default:
-            router.push('/onboarding/lifestyle');
+            router.push("/onboarding/lifestyle");
         }
       } else {
-        Alert.alert('Error', response.msg || 'Failed to save basic details');
+        Alert.alert("Error", response.msg || "Failed to save basic details");
       }
     } catch (error) {
-      console.error('Error submitting basic details:', error);
+      console.error("Error submitting basic details:", error);
       handleError(error);
-      Alert.alert('Error', 'Failed to save your details. Please try again.');
+      Alert.alert("Error", "Failed to save your details. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const updateFormData = (field: keyof BasicDetailsFormData, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         [field]: undefined,
       }));
     }
   };
 
-  const updatePrivacyToggle = (field: 'gender' | 'sexuality' | 'pronouns', visible: boolean) => {
-    setFormData(prev => ({
+  const updatePrivacyToggle = (
+    field: "gender" | "pronouns",
+    visible: boolean,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
       [field]: {
         ...prev[field],
@@ -223,12 +243,12 @@ export default function BasicDetailsForm() {
 
   const handlePronounsChange = (values: (string | number)[]) => {
     // Limit to maximum 4 selections and convert to strings for pronouns
-    const stringValues = values.map(v => String(v));
+    const stringValues = values.map((v) => String(v));
     const limitedValues = stringValues.slice(0, 4);
     // Join the values with "/" separator
-    const joinedValue = limitedValues.join('/');
-    
-    setFormData(prev => ({
+    const joinedValue = limitedValues.join("/");
+
+    setFormData((prev) => ({
       ...prev,
       pronouns: {
         ...prev.pronouns,
@@ -242,59 +262,68 @@ export default function BasicDetailsForm() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <TouchableWithoutFeedback onPress={Platform.OS === 'web' ? undefined : Keyboard.dismiss}>
-        <ScrollView 
+      <TouchableWithoutFeedback
+        onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
+      >
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-        <ProgressIndicator 
-          currentStep={1} 
-          totalSteps={5} 
-          stepNames={['Basic Details', 'Lifestyle', 'Topics', 'Your Takes', 'Photos']}
-        />
+          <ProgressIndicator
+            currentStep={1}
+            totalSteps={5}
+            stepNames={[
+              "Basic Details",
+              "Lifestyle",
+              "Topics",
+              "Your Takes",
+              "Photos",
+            ]}
+          />
 
-        <Text style={styles.title}>Tell us about yourself</Text>
-        <Text style={styles.subtitle}>
-          Let&rsquo;s start with some basic information to create your profile.
-        </Text>
+          <Text style={styles.title}>Tell us about yourself</Text>
+          <Text style={styles.subtitle}>
+            Let&rsquo;s start with some basic information to create your
+            profile.
+          </Text>
 
-        <ThemedInput
-          label="First Name"
-          value={formData.fname}
-          onChangeText={(value) => updateFormData('fname', value)}
-          placeholder="Enter your first name"
-          error={errors.fname}
-          required
-        />
+          <ThemedInput
+            label="First Name"
+            value={formData.fname}
+            onChangeText={(value) => updateFormData("fname", value)}
+            placeholder="Enter your first name"
+            error={errors.fname}
+            required
+          />
 
-        <ThemedInput
-          label="Last Name"
-          value={formData.lname}
-          onChangeText={(value) => updateFormData('lname', value)}
-          placeholder="Enter your last name"
-          error={errors.lname}
-        />
-        <ThemedInput
-          label="Phone Number"
-          value={formData.phone}
-          onChangeText={(value) => {
-            // Remove non-digits and limit to 10 characters
-            const digits = value.replace(/\D/g, '').slice(0, 10);
-            updateFormData('phone', digits);
-          }}
-          placeholder="Enter your phone number"
-          keyboardType="numeric"
-          autoCapitalize="none"
-          error={errors.phone}
-          required
-        />
+          <ThemedInput
+            label="Last Name"
+            value={formData.lname}
+            onChangeText={(value) => updateFormData("lname", value)}
+            placeholder="Enter your last name"
+            error={errors.lname}
+          />
+          <ThemedInput
+            label="Phone Number"
+            value={formData.phone}
+            onChangeText={(value) => {
+              // Remove non-digits and limit to 10 characters
+              const digits = value.replace(/\D/g, "").slice(0, 10);
+              updateFormData("phone", digits);
+            }}
+            placeholder="Enter your phone number"
+            keyboardType="numeric"
+            autoCapitalize="none"
+            error={errors.phone}
+            required
+          />
 
-        {/* <ThemedInput
+          {/* <ThemedInput
           label="Email"
           value={formData.email}
           onChangeText={(value) => updateFormData('email', value)}
@@ -304,32 +333,34 @@ export default function BasicDetailsForm() {
           error={errors.email}
         /> */}
 
-        <DatePicker
-          label="Date of Birth"
-          value={formData.dob}
-          onDateChange={(value) => updateFormData('dob', value)}
-          error={errors.dob}
-          required
-        />
-
-        <View style={styles.fieldContainer}>
-          <SimpleThemedPicker
-            label="Gender"
-            value={formData.gender.value}
-            onValueChange={(value) => updateFormData('gender', { ...formData.gender, value })}
-            options={GENDER_OPTIONS}
-            placeholder="Select your gender"
-            error={errors.gender}
+          <DatePicker
+            label="Date of Birth"
+            value={formData.dob}
+            onDateChange={(value) => updateFormData("dob", value)}
+            error={errors.dob}
             required
           />
-          <PrivacyToggle
-            label="Show on profile"
-            value={formData.gender.visibleOnProfile}
-            onToggle={(visible) => updatePrivacyToggle('gender', visible)}
-          />
-        </View>
 
-        <View style={styles.fieldContainer}>
+          <View style={styles.fieldContainer}>
+            <SimpleThemedPicker
+              label="Gender"
+              value={formData.gender.value}
+              onValueChange={(value) =>
+                updateFormData("gender", { ...formData.gender, value })
+              }
+              options={GENDER_OPTIONS}
+              placeholder="Select your gender"
+              error={errors.gender}
+              required
+            />
+            <PrivacyToggle
+              label="Show on profile"
+              value={formData.gender.visibleOnProfile}
+              onToggle={(visible) => updatePrivacyToggle("gender", visible)}
+            />
+          </View>
+
+          {/* <View style={styles.fieldContainer}>
           <ThemedPicker
             label="Sexuality"
             value={formData.sexuality.value}
@@ -344,50 +375,56 @@ export default function BasicDetailsForm() {
             value={formData.sexuality.visibleOnProfile}
             onToggle={(visible) => updatePrivacyToggle('sexuality', visible)}
           />
-        </View>
+        </View> */}
 
-        <View style={styles.fieldContainer}>
+          <View style={styles.fieldContainer}>
+            <ThemedPicker
+              label="Pronouns (Select up to 4)"
+              value={getPronounsDisplayValue()}
+              onValueChange={() => {}} // Not used for multiple selection
+              options={PRONOUNS_OPTIONS}
+              placeholder="Select your pronouns"
+              error={errors.pronouns}
+              required
+              multiple
+              selectedValues={
+                formData.pronouns.value
+                  ? formData.pronouns.value.split("/")
+                  : []
+              }
+              onMultiValueChange={handlePronounsChange}
+              maxSelections={4}
+            />
+            <PrivacyToggle
+              label="Show on profile"
+              value={formData.pronouns.visibleOnProfile}
+              onToggle={(visible) => updatePrivacyToggle("pronouns", visible)}
+            />
+          </View>
+
           <ThemedPicker
-            label="Pronouns (Select up to 4)"
-            value={getPronounsDisplayValue()}
-            onValueChange={() => {}} // Not used for multiple selection
-            options={PRONOUNS_OPTIONS}
-            placeholder="Select your pronouns"
-            error={errors.pronouns}
+            label="Interested In"
+            value=""
+            onValueChange={() => {}}
+            options={INTERESTED_IN_OPTIONS}
+            placeholder="Select who you&rsquo;re interested in"
+            error={errors.interestedIn}
             required
             multiple
-            selectedValues={formData.pronouns.value ? formData.pronouns.value.split('/') : []}
-            onMultiValueChange={handlePronounsChange}
-            maxSelections={4}
+            selectedValues={formData.interestedIn}
+            onMultiValueChange={(values) =>
+              updateFormData("interestedIn", values)
+            }
           />
-          <PrivacyToggle
-            label="Show on profile"
-            value={formData.pronouns.visibleOnProfile}
-            onToggle={(visible) => updatePrivacyToggle('pronouns', visible)}
-          />
-        </View>
 
-        <ThemedPicker
-          label="Interested In"
-          value=""
-          onValueChange={() => {}}
-          options={INTERESTED_IN_OPTIONS}
-          placeholder="Select who you&rsquo;re interested in"
-          error={errors.interestedIn}
-          required
-          multiple
-          selectedValues={formData.interestedIn}
-          onMultiValueChange={(values) => updateFormData('interestedIn', values)}
-        />
-
-        <View style={styles.buttonContainer}>
-          <OnboardingButton
-            title="Continue"
-            onPress={handleSubmit}
-            loading={loading}
-            disabled={loading}
-          />
-        </View>
+          <View style={styles.buttonContainer}>
+            <OnboardingButton
+              title="Continue"
+              onPress={handleSubmit}
+              loading={loading}
+              disabled={loading}
+            />
+          </View>
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
@@ -397,7 +434,7 @@ export default function BasicDetailsForm() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   scrollView: {
     flex: 1,
@@ -408,16 +445,16 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginBottom: 32,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
   },
   fieldContainer: {
@@ -425,6 +462,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 32,
-    marginBottom: 16
+    marginBottom: 16,
   },
 });
