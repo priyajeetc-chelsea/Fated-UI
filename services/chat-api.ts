@@ -1,10 +1,10 @@
-import { authApiService } from './auth/api';
+import { authApiService } from "./auth/api";
 
 export interface ChatMessage {
   id: number;
   content: string;
   isSent: boolean;
-  status: 'sending' | 'delivered' | 'read' | 'failed';
+  status: "sending" | "delivered" | "read" | "failed";
   isRead: boolean;
   readAt: string;
   timestamp: Date;
@@ -16,14 +16,16 @@ export interface ChatHistoryResponse {
   code: number;
   msg: string;
   model: {
-    messageContents: {
-      id: number;
-      content: string;
-      isSent: boolean;
-      status: string;
-      isRead: boolean;
-      readAt: string;
-    }[] | null; // messageContents can be null when no chat history exists
+    messageContents:
+      | {
+          id: number;
+          content: string;
+          isSent: boolean;
+          status: string;
+          isRead: boolean;
+          readAt: string;
+        }[]
+      | null; // messageContents can be null when no chat history exists
   };
 }
 
@@ -50,7 +52,8 @@ export interface MatchesResponse {
 }
 
 class ChatApiService {
-  private readonly API_BASE_URL = 'https://xfcy5ocgsl.execute-api.ap-south-1.amazonaws.com/staging';
+  private readonly API_BASE_URL =
+    "https://bhv0zjocic.execute-api.ap-south-1.amazonaws.com/prod";
 
   /**
    * Fetch chat history with pagination support
@@ -60,9 +63,9 @@ class ChatApiService {
    * @param lastMessageId - Used for pagination. Use empty string for initial request, then oldest message ID
    */
   async getChatHistory(
-    otherUserId: number, 
-    limit: number = 10, 
-    lastMessageId: string = ""
+    otherUserId: number,
+    limit: number = 10,
+    lastMessageId: string = "",
   ): Promise<ChatHistoryResponse> {
     try {
       const params = new URLSearchParams({
@@ -74,8 +77,8 @@ class ChatApiService {
       const response = await authApiService.createAuthenticatedRequest(
         `${this.API_BASE_URL}/messages/history?${params}`,
         {
-          method: 'GET',
-        }
+          method: "GET",
+        },
       );
 
       if (!response.ok) {
@@ -85,7 +88,7 @@ class ChatApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('❌ Failed to fetch chat history:', error);
+      console.error("❌ Failed to fetch chat history:", error);
       throw error;
     }
   }
@@ -97,24 +100,27 @@ class ChatApiService {
    * @param senderId - The ID of the person whose messages are being read (the chat partner)
    * @param lastReadMessageId - The ID of the last message read in the conversation
    */
-  async markMessagesAsRead(senderId: number, lastReadMessageId: number): Promise<void> {
+  async markMessagesAsRead(
+    senderId: number,
+    lastReadMessageId: number,
+  ): Promise<void> {
     try {
       const response = await authApiService.createAuthenticatedRequest(
         `${this.API_BASE_URL}/messages/read`,
         {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify({
             senderId,
             lastReadMessageId,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Failed to mark messages as read:', error);
+      console.error("Failed to mark messages as read:", error);
       throw error;
     }
   }
@@ -129,8 +135,8 @@ class ChatApiService {
       const response = await authApiService.createAuthenticatedRequest(
         `${this.API_BASE_URL}/matches/all`,
         {
-          method: 'GET',
-        }
+          method: "GET",
+        },
       );
 
       if (!response.ok) {
@@ -140,7 +146,7 @@ class ChatApiService {
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Failed to fetch matches:', error);
+      console.error("Failed to fetch matches:", error);
       throw error;
     }
   }
