@@ -557,9 +557,12 @@ class ApiService {
   async getOnboardingStep(): Promise<any> {
     try {
       console.log("📋 Fetching current onboarding step");
-      const response = await this.makeAuthenticatedRequest("/onboarding/step", {
-        method: "GET",
-      });
+      const response = await this.makeAuthenticatedRequest(
+        "/onboarding/takes",
+        {
+          method: "GET",
+        },
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
