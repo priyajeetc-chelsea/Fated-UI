@@ -38,7 +38,7 @@ export default function TakesForm() {
 
   const params = useLocalSearchParams();
   const MINIMUM_ANSWERS_REQUIRED = 3;
-  const MINIMUM_CHARACTERS_PER_ANSWER = 50;
+  const MINIMUM_CHARACTERS_PER_ANSWER = 1;
 
   // Load saved form data on mount
   useEffect(() => {
