@@ -38,7 +38,7 @@ export default function TakesForm() {
 
   const params = useLocalSearchParams();
   const MINIMUM_ANSWERS_REQUIRED = 3;
-  const MINIMUM_CHARACTERS_PER_ANSWER = 50;
+  const MINIMUM_CHARACTERS_PER_ANSWER = 0;
 
   // Load saved form data on mount
   useEffect(() => {
@@ -212,7 +212,7 @@ export default function TakesForm() {
     if (validAnswerCount < MINIMUM_ANSWERS_REQUIRED) {
       Alert.alert(
         "More Answers Needed",
-        `Please provide at least ${MINIMUM_ANSWERS_REQUIRED} meaningful answers (minimum ${MINIMUM_CHARACTERS_PER_ANSWER} characters each). You have ${validAnswerCount} valid answers.`,
+        `Please provide at least ${MINIMUM_ANSWERS_REQUIRED} answers. You have ${validAnswerCount} valid answers.`,
       );
       return;
     }
@@ -322,8 +322,7 @@ export default function TakesForm() {
           <View style={styles.answerProgress}>
             <Text style={styles.answerProgressText}>
               You have {validAnswerCount} out of {MINIMUM_ANSWERS_REQUIRED}{" "}
-              required meaningful answers (min {MINIMUM_CHARACTERS_PER_ANSWER}{" "}
-              chars)
+              required answers
             </Text>
             <View style={styles.progressBar}>
               <View
@@ -405,7 +404,6 @@ export default function TakesForm() {
                 numberOfLines={8}
                 showCharacterCount={true}
                 showKeyboardDismiss={true}
-                minimumCharacters={MINIMUM_CHARACTERS_PER_ANSWER}
               />
             </View>
           ))}
