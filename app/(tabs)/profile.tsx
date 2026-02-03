@@ -110,7 +110,7 @@ export default function ProfilePage() {
   const renderDetailsCard = () => {
     if (!profile) return null;
 
-    // Define all possible vertical detail fields in priority order
+    // Define all possible vertical detail fields in priority order (respecting privacy settings)
     const verticalFieldDefinitions = [
       {
         key: "homeTown",
@@ -133,19 +133,19 @@ export default function ProfilePage() {
       },
       {
         key: "education",
-        value: profile.highestEducationLevel,
+        value: profile.showEducationLevel ? profile.highestEducationLevel : null,
         icon: "ribbon" as const,
         label: "Education",
       },
       {
         key: "religious",
-        value: profile.religiousBeliefs,
+        value: profile.showReligiousBeliefs ? profile.religiousBeliefs : null,
         icon: "book" as const,
         label: "Religious Beliefs",
       },
       {
         key: "drinkSmoke",
-        value: profile.drinkOrSmoke,
+        value: profile.showDrinkOrSmoke ? profile.drinkOrSmoke : null,
         icon: "wine" as const,
         label: "Drink/Smoke",
       },
@@ -155,13 +155,13 @@ export default function ProfilePage() {
     const horizontalFieldDefinitions = [
       {
         key: "gender",
-        value: profile.showGender ? profile.gender : null,
+        value: profile.gender?.Show ? profile.gender.value : null,
         icon: "person" as const,
         label: "Gender",
       },
       {
         key: "sexuality",
-        value: profile.showSexuality ? profile.sexuality : null,
+        value: profile.sexuality?.Show ? profile.sexuality.value : null,
         icon: "heart" as const,
         label: "Sexuality",
       },
@@ -173,29 +173,37 @@ export default function ProfilePage() {
       },
       {
         key: "pronouns",
-        value: profile.showPronouns ? profile.pronouns : null,
+        value: profile.pronouns?.Show ? profile.pronouns.value : null,
         icon: "chatbubble" as const,
         label: "Pronouns",
       },
       {
         key: "height",
-        value: profile.height,
+        value: profile.showHeight ? profile.height : null,
         icon: "resize" as const,
         label: "Height",
       },
     ];
 
+    // Define a common field type for easier manipulation
+    type ProfileField = {
+      key: string;
+      value: string | null | undefined;
+      icon: keyof typeof Ionicons.glyphMap;
+      label: string;
+    };
+
     // Get available vertical fields
-    const availableVerticalFields = verticalFieldDefinitions.filter(
+    const availableVerticalFields: ProfileField[] = verticalFieldDefinitions.filter(
       (field) => field.value,
     );
 
     // If we need more fields to reach 4 in vertical section, take from horizontal candidates
-    const verticalFields = [...availableVerticalFields];
+    const verticalFields: ProfileField[] = [...availableVerticalFields];
     const usedInVertical = new Set(verticalFields.map((f) => f.key));
 
     if (verticalFields.length < 4) {
-      const horizontalAvailable = horizontalFieldDefinitions.filter(
+      const horizontalAvailable: ProfileField[] = horizontalFieldDefinitions.filter(
         (field) => field.value,
       );
       const needed = 3 - verticalFields.length;
@@ -205,7 +213,7 @@ export default function ProfilePage() {
     }
 
     // Horizontal grid only shows fields not used in vertical section
-    const horizontalFields = horizontalFieldDefinitions
+    const horizontalFields: ProfileField[] = horizontalFieldDefinitions
       .filter((field) => field.value && !usedInVertical.has(field.key))
       .slice(0, 4);
 

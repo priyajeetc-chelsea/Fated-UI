@@ -106,12 +106,21 @@ export default function UserProfilePage() {
 
         const profileData = userProfile.model;
         
+        // Helper to extract value from showable fields
+        const getShowableValue = (field: any): string => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          // New format: {value: string, Show: boolean}
+          if (field.Show && field.value) return field.value;
+          return '';
+        };
+        
         // Convert API response to ApiUser format
         const convertedUser: ApiUser = {
           id: profileData.userId?.toString() || userBId.toString(),
           name: `${profileData.fname || ''} ${profileData.lname || ''}`.trim(),
           age: profileData.age,
-          gender: profileData.gender,
+          gender: getShowableValue(profileData.gender),
           photo: profileData.photoUrls?.[0] || `https://picsum.photos/200/200?random=${userBId}`,
           opinions: profileData.opinions?.map((opinion: any) => ({
             id: opinion.takeId?.toString() || Math.random().toString(),
@@ -124,16 +133,16 @@ export default function UserProfilePage() {
           profileData: {
             fname: profileData.fname,
             lname: profileData.lname,
-            sexuality: profileData.sexuality,
-            pronouns: profileData.pronouns,
+            sexuality: getShowableValue(profileData.sexuality),
+            pronouns: getShowableValue(profileData.pronouns),
             homeTown: profileData.homeTown,
             currentCity: profileData.currentCity,
             jobDetails: profileData.jobDetails,
             college: profileData.colllege, // Note: API has typo "colllege"
-            highestEducationLevel: profileData.highestEducationLevel,
-            religiousBeliefs: profileData.religiousBeliefs,
-            drinkOrSmoke: profileData.drinkOrSmoke,
-            height: profileData.height,
+            highestEducationLevel: profileData.showEducationLevel ? profileData.highestEducationLevel : '',
+            religiousBeliefs: profileData.showReligiousBeliefs ? profileData.religiousBeliefs : '',
+            drinkOrSmoke: profileData.showDrinkOrSmoke ? profileData.drinkOrSmoke : '',
+            height: profileData.showHeight ? profileData.height : '',
             photoUrls: profileData.photoUrls || []
           }
         };

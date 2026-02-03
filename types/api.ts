@@ -185,19 +185,23 @@ export interface CurrentUserOpinion {
   tag: {
     id: number;
     name: string;
+    description?: string;
   };
+}
+
+// Field with Show property (new API format)
+export interface ShowableField {
+  value: string;
+  Show: boolean;
 }
 
 export interface CurrentUserProfile {
   fname: string;
   lname: string;
   age: number;
-  gender: string;
-  showGender: boolean;
-  sexuality: string;
-  showSexuality: boolean;
-  pronouns: string;
-  showPronouns: boolean;
+  gender: ShowableField;
+  sexuality: ShowableField;
+  pronouns: ShowableField;
   homeTown: string;
   currentCity: string;
   jobDetails: string;
