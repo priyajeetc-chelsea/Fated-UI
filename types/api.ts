@@ -36,7 +36,6 @@ export interface ApiMatch {
   opinions: RawApiOpinion[];
 }
 
-
 // New Potential Match Types
 export interface PotentialMatchLike {
   userId: number;
@@ -122,21 +121,23 @@ export interface MatchResponse {
     all: Tag[];
   };
   trendingTags?: TrendingTag[];
-  matches: {
-    userId: number;
-    firstName: string;
-    age: number;
-    gender: string;
-    opinions: {
-      takeId: number;
-      question: string;
-      answer: string;
-      tag: {
-        tagId: number;
-        tagValue: string;
-      };
-    }[];
-  }[] | null; // Can be null during onboarding
+  matches:
+    | {
+        userId: number;
+        firstName: string;
+        age: number;
+        gender: string;
+        opinions: {
+          takeId: number;
+          question: string;
+          answer: string;
+          tag: {
+            tagId: number;
+            tagValue: string;
+          };
+        }[];
+      }[]
+    | null; // Can be null during onboarding
   hasMore: boolean;
   onboardingStep?: {
     step: number;

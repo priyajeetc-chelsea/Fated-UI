@@ -133,7 +133,9 @@ export default function ProfilePage() {
       },
       {
         key: "education",
-        value: profile.showEducationLevel ? profile.highestEducationLevel : null,
+        value: profile.showEducationLevel
+          ? profile.highestEducationLevel
+          : null,
         icon: "ribbon" as const,
         label: "Education",
       },
@@ -194,18 +196,16 @@ export default function ProfilePage() {
     };
 
     // Get available vertical fields
-    const availableVerticalFields: ProfileField[] = verticalFieldDefinitions.filter(
-      (field) => field.value,
-    );
+    const availableVerticalFields: ProfileField[] =
+      verticalFieldDefinitions.filter((field) => field.value);
 
     // If we need more fields to reach 4 in vertical section, take from horizontal candidates
     const verticalFields: ProfileField[] = [...availableVerticalFields];
     const usedInVertical = new Set(verticalFields.map((f) => f.key));
 
     if (verticalFields.length < 4) {
-      const horizontalAvailable: ProfileField[] = horizontalFieldDefinitions.filter(
-        (field) => field.value,
-      );
+      const horizontalAvailable: ProfileField[] =
+        horizontalFieldDefinitions.filter((field) => field.value);
       const needed = 3 - verticalFields.length;
       const toMove = horizontalAvailable.slice(0, needed);
       verticalFields.push(...toMove);
