@@ -1,72 +1,146 @@
-import OnboardingButton from '@/components/onboarding/onboarding-button';
-import ProgressIndicator from '@/components/onboarding/progress-indicator';
-import { TagAndQuestion } from '@/types/onboarding';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import OnboardingButton from "@/components/onboarding/onboarding-button";
+import ProgressIndicator from "@/components/onboarding/progress-indicator";
+import { apiService } from "@/services/api";
+import { TagAndQuestion } from "@/types/onboarding";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+const SELECTED_TOPICS_STORAGE_KEY = "@fated_selected_topics";
 
 export default function TopicSelectionScreen() {
   const [tagAndQuestions, setTagAndQuestions] = useState<TagAndQuestion[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<number[]>([]);
-  const params = useLocalSearchParams();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get the tagAndQuestion data from route params
-    if (params.tagAndQuestionData && typeof params.tagAndQuestionData === 'string') {
+    const loadTopics = async () => {
       try {
-        const parsedData: TagAndQuestion[] = JSON.parse(params.tagAndQuestionData);
-        setTagAndQuestions(parsedData);
+        // Fetch from takes API
+        console.log("Fetching topics from takes API...");
+        const response = await apiService.getTakesQuestions();
+
+        if (
+          response.code === 200 &&
+          response.model &&
+          Array.isArray(response.model)
+        ) {
+          // Filter out topics with null or empty questions
+          const validTopics = response.model.filter(
+            (taq: TagAndQuestion) => taq.questions && taq.questions.length > 0,
+          );
+          setTagAndQuestions(validTopics);
+
+          // Check if there are previously selected topic IDs in storage
+          const savedSelectedTopics = await AsyncStorage.getItem(
+            SELECTED_TOPICS_STORAGE_KEY,
+          );
+          if (savedSelectedTopics) {
+            try {
+              const preSelectedIds: number[] = JSON.parse(savedSelectedTopics);
+              // Only set topics that exist in the valid topics list
+              const validPreSelected = preSelectedIds.filter((id) =>
+                validTopics.some((taq: TagAndQuestion) => taq.tag.id === id),
+              );
+              setSelectedTopics(validPreSelected);
+            } catch (e) {
+              console.error("Error parsing saved selected topics:", e);
+            }
+          }
+        } else {
+          Alert.alert("Error", "Failed to load topics. Please try again.");
+        }
       } catch (error) {
-        console.error('Error parsing tagAndQuestion data:', error);
-        Alert.alert('Error', 'Failed to load topics. Please try again.');
-        router.back();
+        console.error("Error loading topics:", error);
+        Alert.alert("Error", "Failed to load topics. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [params.tagAndQuestionData]);
+    };
+
+    loadTopics();
+  }, []);
 
   const toggleTopic = (tagId: number) => {
-    setSelectedTopics(prev => {
+    setSelectedTopics((prev) => {
       if (prev.includes(tagId)) {
-        return prev.filter(id => id !== tagId);
+        return prev.filter((id) => id !== tagId);
       } else {
         return [...prev, tagId];
       }
     });
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedTopics.length === 0) {
-      Alert.alert('Select Topics', 'Please select at least one topic to continue.');
+      Alert.alert(
+        "Select Topics",
+        "Please select at least one topic to continue.",
+      );
       return;
     }
 
-    // Filter tagAndQuestions to only include selected topics
-    const selectedData = tagAndQuestions.filter(taq => selectedTopics.includes(taq.tag.id));
+    try {
+      console.log("Saving selected topic IDs:", selectedTopics);
 
-    // Navigate to questions flow with selected topics
-    router.push({
-      pathname: '/onboarding/takes',
-      params: {
-        tagAndQuestionData: JSON.stringify(selectedData)
-      }
-    });
+      // Save selected topic IDs to AsyncStorage
+      await AsyncStorage.setItem(
+        SELECTED_TOPICS_STORAGE_KEY,
+        JSON.stringify(selectedTopics),
+      );
+
+      // Verify data was saved
+      const verify = await AsyncStorage.getItem(SELECTED_TOPICS_STORAGE_KEY);
+      console.log("Verified saved topic IDs:", verify);
+
+      // Navigate to takes page
+      router.push("/onboarding/takes");
+    } catch (error) {
+      console.error("Error saving topics:", error);
+      Alert.alert("Error", "Failed to save topics. Please try again.");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4B164C" />
+        <Text style={styles.loadingText}>Loading topics...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        <ProgressIndicator 
-          currentStep={3} 
-          totalSteps={5} 
-          stepNames={['Basic Details', 'Lifestyle', 'Topics', 'Your Takes', 'Photos']}
+        <ProgressIndicator
+          currentStep={3}
+          totalSteps={5}
+          stepNames={[
+            "Basic Details",
+            "Lifestyle",
+            "Topics",
+            "Your Takes",
+            "Photos",
+          ]}
         />
 
         <Text style={styles.title}>Choose Topics</Text>
         <Text style={styles.subtitle}>
-          Select the topics you&apos;d like to share your opinions on. You can choose one or more topics.
+          Select the topics you&apos;d like to share your opinions on. You can
+          choose one or more topics.
         </Text>
 
         <View style={styles.topicsContainer}>
@@ -75,28 +149,49 @@ export default function TopicSelectionScreen() {
               key={taq.tag.id}
               style={[
                 styles.topicCard,
-                selectedTopics.includes(taq.tag.id) && styles.topicCardSelected
+                selectedTopics.includes(taq.tag.id) && styles.topicCardSelected,
               ]}
               onPress={() => toggleTopic(taq.tag.id)}
             >
               <View style={styles.topicContent}>
-                <Text style={[
-                  styles.topicName,
-                  selectedTopics.includes(taq.tag.id) && styles.topicNameSelected
-                ]}>
+                <Text
+                  style={[
+                    styles.topicName,
+                    selectedTopics.includes(taq.tag.id) &&
+                      styles.topicNameSelected,
+                  ]}
+                >
                   {taq.tag.name}
                 </Text>
-                <Text style={[
-                  styles.questionCount,
-                  selectedTopics.includes(taq.tag.id) && styles.questionCountSelected
-                ]}>
-                  {taq.questions.length} question{taq.questions.length !== 1 ? 's' : ''}
+                {taq.tag.description && (
+                  <Text
+                    style={[
+                      styles.topicDescription,
+                      selectedTopics.includes(taq.tag.id) &&
+                        styles.topicDescriptionSelected,
+                    ]}
+                  >
+                    {taq.tag.description}
+                  </Text>
+                )}
+                <Text
+                  style={[
+                    styles.questionCount,
+                    selectedTopics.includes(taq.tag.id) &&
+                      styles.questionCountSelected,
+                  ]}
+                >
+                  {taq.questions?.length || 0} question
+                  {taq.questions?.length !== 1 ? "s" : ""}
                 </Text>
               </View>
-              <View style={[
-                styles.checkbox,
-                selectedTopics.includes(taq.tag.id) && styles.checkboxSelected
-              ]}>
+              <View
+                style={[
+                  styles.checkbox,
+                  selectedTopics.includes(taq.tag.id) &&
+                    styles.checkboxSelected,
+                ]}
+              >
                 {selectedTopics.includes(taq.tag.id) && (
                   <Text style={styles.checkmark}>✓</Text>
                 )}
@@ -107,7 +202,8 @@ export default function TopicSelectionScreen() {
 
         <View style={styles.selectedCount}>
           <Text style={styles.selectedCountText}>
-            {selectedTopics.length} topic{selectedTopics.length !== 1 ? 's' : ''} selected
+            {selectedTopics.length} topic
+            {selectedTopics.length !== 1 ? "s" : ""} selected
           </Text>
         </View>
 
@@ -126,7 +222,18 @@ export default function TopicSelectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#666",
   },
   scrollView: {
     flex: 1,
@@ -137,83 +244,93 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '400',
+    color: "#666",
+    fontWeight: "400",
     marginBottom: 32,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
   },
   topicsContainer: {
     marginBottom: 24,
   },
   topicCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FAFAFA',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#FAFAFA",
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
   },
   topicCardSelected: {
-    backgroundColor: '#f9f9f9',
-    borderColor: '#4B164C',
+    backgroundColor: "#f9f9f9",
+    borderColor: "#4B164C",
   },
   topicContent: {
     flex: 1,
   },
   topicName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: 6,
   },
   topicNameSelected: {
-    color: '#4B164C',
+    color: "#4B164C",
+  },
+  topicDescription: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  topicDescriptionSelected: {
+    color: "#555",
   },
   questionCount: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: "#999",
+    fontWeight: "500",
   },
   questionCountSelected: {
-    color: '#000',
+    color: "#000",
   },
   checkbox: {
     width: 28,
     height: 28,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FFF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   checkboxSelected: {
-    backgroundColor: '#4B164C',
-    borderColor: '#4B164C',
+    backgroundColor: "#4B164C",
+    borderColor: "#4B164C",
   },
   checkmark: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   selectedCount: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 16,
   },
   selectedCountText: {
     fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
+    color: "#666",
+    fontWeight: "500",
   },
   buttonContainer: {
     marginTop: 16,

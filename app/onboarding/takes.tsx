@@ -10,7 +10,7 @@ import {
   TopicTake,
 } from "@/types/onboarding";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -26,6 +26,7 @@ import {
 } from "react-native";
 
 const TAKES_FORM_STORAGE_KEY = "@fated_onboarding_takes_form";
+const SELECTED_TOPICS_KEY = "@fated_selected_topics";
 
 export default function TakesForm() {
   const [loading, setLoading] = useState(false);
@@ -36,7 +37,6 @@ export default function TakesForm() {
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
   const [visitedTopics, setVisitedTopics] = useState<Set<number>>(new Set([0]));
 
-  const params = useLocalSearchParams();
   const MINIMUM_ANSWERS_REQUIRED = 3;
   const MINIMUM_CHARACTERS_PER_ANSWER = 1;
 
@@ -87,65 +87,124 @@ export default function TakesForm() {
     saveFormData();
   }, [answers, currentTopicIndex, visitedTopics]);
 
-  // Fetch tagAndQuestions from route params OR from API
+  // Fetch tagAndQuestions from API and filter by selected topics
   useEffect(() => {
     const loadTagAndQuestions = async () => {
       try {
-        // First, try to get from route params
+        console.log("Fetching takes questions from API...");
+
+        // Fetch all topics with questions from the API
+        const response = await apiService.getTakesQuestions();
+        console.log("API response code:", response.code);
+
         if (
-          params.tagAndQuestionData &&
-          typeof params.tagAndQuestionData === "string"
+          response.code !== 200 ||
+          !response.model ||
+          !Array.isArray(response.model)
         ) {
-          const parsedData: TagAndQuestion[] = JSON.parse(
-            params.tagAndQuestionData,
-          );
-          setTagAndQuestions(parsedData);
-          setIsInitializing(false);
+          console.error("Failed to fetch takes questions");
+          Alert.alert("Error", "Failed to load questions. Please try again.");
+          router.replace("/onboarding/topic-selection");
           return;
         }
 
-        // If no params, fetch from onboarding step API
-        console.log("No route params, fetching from onboarding step API...");
-        const response = await apiService.getOnboardingStep();
-
-        // Check if we got tagAndQuestion data from onboarding step
-        if (
-          response.code === 200 &&
-          response.model?.tagAndQuestion &&
-          response.model.tagAndQuestion.length > 0
-        ) {
-          setTagAndQuestions(response.model.tagAndQuestion);
-          setIsInitializing(false);
-          return;
-        }
-
-        // If onboarding step has no questions (0 questions), fetch from takes API
-        console.log(
-          "No questions from onboarding step, fetching from takes API...",
+        // Filter out topics with null or empty questions
+        const allTopics: TagAndQuestion[] = response.model.filter(
+          (taq: TagAndQuestion) => taq.questions && taq.questions.length > 0,
         );
-        const takesResponse = await apiService.getTakesQuestions();
+        console.log("All valid topics from API:", allTopics.length);
 
-        if (
-          takesResponse.code === 200 &&
-          takesResponse.model &&
-          Array.isArray(takesResponse.model)
-        ) {
-          setTagAndQuestions(takesResponse.model);
-          setIsInitializing(false);
-        } else {
-          Alert.alert("Error", "Failed to load topics. Please try again.");
-          router.back();
+        // Get selected topic IDs from AsyncStorage
+        const savedSelectedTopics =
+          await AsyncStorage.getItem(SELECTED_TOPICS_KEY);
+        console.log("Saved selected topics:", savedSelectedTopics);
+
+        if (!savedSelectedTopics) {
+          console.log(
+            "No selected topics found, redirecting to topic selection...",
+          );
+          router.replace("/onboarding/topic-selection");
+          return;
         }
+
+        const selectedTopicIds: number[] = JSON.parse(savedSelectedTopics);
+        console.log("Selected topic IDs:", selectedTopicIds);
+
+        if (selectedTopicIds.length === 0) {
+          console.log(
+            "Empty selected topics, redirecting to topic selection...",
+          );
+          router.replace("/onboarding/topic-selection");
+          return;
+        }
+
+        // Filter to only include selected topics
+        const filteredTopics = allTopics.filter((taq) =>
+          selectedTopicIds.includes(taq.tag.id),
+        );
+        console.log("Filtered topics count:", filteredTopics.length);
+
+        if (filteredTopics.length === 0) {
+          console.log(
+            "No matching topics found, redirecting to topic selection...",
+          );
+          router.replace("/onboarding/topic-selection");
+          return;
+        }
+
+        // Clean up answers for topics that are no longer selected
+        const validKeys = new Set<string>();
+        filteredTopics.forEach((taq) => {
+          taq.questions?.forEach((question) => {
+            validKeys.add(`${taq.tag.id}-${question.id}`);
+          });
+        });
+
+        setAnswers((prev) => {
+          const cleanedAnswers = new Map<string, string>();
+          prev.forEach((value, key) => {
+            if (validKeys.has(key)) {
+              cleanedAnswers.set(key, value);
+            }
+          });
+          return cleanedAnswers;
+        });
+
+        // Also reset visitedTopics if they exceed the new topic count
+        setVisitedTopics((prev) => {
+          const cleaned = new Set<number>();
+          prev.forEach((index) => {
+            if (index < filteredTopics.length) {
+              cleaned.add(index);
+            }
+          });
+          // Always include index 0
+          cleaned.add(0);
+          return cleaned;
+        });
+
+        // Reset currentTopicIndex if it's out of bounds
+        setCurrentTopicIndex((prev) =>
+          prev >= filteredTopics.length ? 0 : prev,
+        );
+
+        setTagAndQuestions(filteredTopics);
+        setIsInitializing(false);
+        console.log(
+          "Successfully loaded",
+          filteredTopics.length,
+          "topics with questions",
+        );
       } catch (error) {
         console.error("Error loading tagAndQuestion data:", error);
         handleError(error);
         Alert.alert("Error", "Failed to load topics. Please try again.");
-        router.back();
+        router.replace("/onboarding/topic-selection");
       }
     };
 
     loadTagAndQuestions();
-  }, [params.tagAndQuestionData, handleError]);
+  }, [handleError]);
 
   const getQuestionKey = (tagId: number, questionId: number): string => {
     return `${tagId}-${questionId}`;
@@ -155,20 +214,31 @@ export default function TakesForm() {
     return answer.trim().length >= MINIMUM_CHARACTERS_PER_ANSWER;
   };
 
+  // Get valid answer count only for currently selected topics
   const getValidAnswerCount = (): number => {
     let validCount = 0;
-    answers.forEach((answer) => {
-      if (isAnswerValid(answer)) {
+
+    // Get all valid question keys for current topics
+    const validKeys = new Set<string>();
+    tagAndQuestions.forEach((taq) => {
+      taq.questions?.forEach((question) => {
+        validKeys.add(getQuestionKey(taq.tag.id, question.id));
+      });
+    });
+
+    // Only count answers that belong to current topics
+    answers.forEach((answer, key) => {
+      if (validKeys.has(key) && isAnswerValid(answer)) {
         validCount++;
       }
     });
+
     return validCount;
   };
 
   const currentTopic = tagAndQuestions[currentTopicIndex];
   const isLastTopic = currentTopicIndex === tagAndQuestions.length - 1;
   const validAnswerCount = getValidAnswerCount();
-  const canSubmit = validAnswerCount >= MINIMUM_ANSWERS_REQUIRED && isLastTopic;
 
   const updateAnswer = (tagId: number, questionId: number, answer: string) => {
     const key = getQuestionKey(tagId, questionId);
@@ -202,10 +272,16 @@ export default function TakesForm() {
     }
   };
 
-  const handleSkip = () => {
-    if (!isLastTopic) {
-      handleNext();
-    }
+  const handleBackToTopicSelection = async () => {
+    // Save currently selected topic IDs to AsyncStorage so they're pre-selected
+    const currentSelectedTopicIds = tagAndQuestions.map((taq) => taq.tag.id);
+    await AsyncStorage.setItem(
+      "@fated_selected_topics",
+      JSON.stringify(currentSelectedTopicIds),
+    );
+
+    // Navigate back to topic selection - it will fetch topics from API
+    router.replace("/onboarding/topic-selection");
   };
 
   const handleSubmit = async () => {
@@ -319,11 +395,31 @@ export default function TakesForm() {
             ]}
           />
 
-          <View style={styles.answerProgress}>
+          <TouchableOpacity
+            style={styles.changeTopicsButton}
+            onPress={handleBackToTopicSelection}
+          >
+            <Text style={styles.changeTopicsButtonText}>
+              ← Change Selected Topics
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.instructionBanner}>
+            <Text style={styles.instructionText}>
+              💡 You only need to answer{" "}
+              <Text style={styles.instructionBold}>3 questions</Text> across all
+              topics.
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.answerProgress,
+              validAnswerCount > 0 && styles.answerProgressActive,
+            ]}
+          >
             <Text style={styles.answerProgressText}>
-              You have {validAnswerCount} out of {MINIMUM_ANSWERS_REQUIRED}{" "}
-              required meaningful answers (min {MINIMUM_CHARACTERS_PER_ANSWER}{" "}
-              chars)
+              {validAnswerCount} of {MINIMUM_ANSWERS_REQUIRED} answers completed
             </Text>
             <View style={styles.progressBar}>
               <View
@@ -382,10 +478,6 @@ export default function TakesForm() {
           </View>
 
           <Text style={styles.title}>{currentTopic.tag.name}</Text>
-          <Text style={styles.subtitle}>
-            Answer the questions you find interesting. You can skip any
-            question.
-          </Text>
 
           {currentTopic.questions.map((question, questionIndex) => (
             <View key={question.id} style={styles.questionContainer}>
@@ -411,6 +503,15 @@ export default function TakesForm() {
           ))}
 
           <View style={styles.navigationContainer}>
+            {validAnswerCount >= MINIMUM_ANSWERS_REQUIRED && (
+              <View style={styles.successBannerBottom}>
+                <Text style={styles.successBannerText}>
+                  Great! You have answered {validAnswerCount} questions. You can
+                  submit now or keep answering more!
+                </Text>
+              </View>
+            )}
+
             <View style={styles.buttonRow}>
               {currentTopicIndex > 0 && (
                 <TouchableOpacity
@@ -424,31 +525,32 @@ export default function TakesForm() {
               )}
 
               {!isLastTopic && (
-                <TouchableOpacity
-                  style={[
-                    styles.secondaryButton,
-                    currentTopicIndex === 0 && styles.secondaryButtonFull,
-                  ]}
-                  onPress={handleSkip}
-                >
-                  <Text style={styles.secondaryButtonText}>Skip Topic →</Text>
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={handleNext}
+                  >
+                    <Text style={styles.secondaryButtonText}>Next Topic →</Text>
+                  </TouchableOpacity>
+                </>
               )}
             </View>
 
             <View style={styles.buttonContainer}>
-              {!isLastTopic ? (
-                <OnboardingButton title="Next Topic" onPress={handleNext} />
-              ) : (
+              {validAnswerCount >= MINIMUM_ANSWERS_REQUIRED && (
                 <OnboardingButton
-                  title={
-                    validAnswerCount >= MINIMUM_ANSWERS_REQUIRED
-                      ? "Submit & Continue"
-                      : `Need ${MINIMUM_ANSWERS_REQUIRED - validAnswerCount} More Valid Answers`
-                  }
+                  title="Submit & Continue"
                   onPress={handleSubmit}
                   loading={loading}
-                  disabled={loading || !canSubmit}
+                  disabled={loading}
+                />
+              )}
+              {isLastTopic && validAnswerCount < MINIMUM_ANSWERS_REQUIRED && (
+                <OnboardingButton
+                  title={`Need ${MINIMUM_ANSWERS_REQUIRED - validAnswerCount} More Answers to Continue`}
+                  onPress={handleSubmit}
+                  loading={loading}
+                  disabled={true}
                 />
               )}
             </View>
@@ -477,14 +579,72 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 50,
   },
+  instructionBanner: {
+    backgroundColor: "#FFF9E6",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#FFD700",
+  },
+  instructionText: {
+    fontSize: 15,
+    color: "#333",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  instructionBold: {
+    fontWeight: "700",
+    color: "#4B164C",
+  },
+  changeTopicsButton: {
+    alignSelf: "flex-start",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  changeTopicsButtonText: {
+    fontSize: 14,
+    color: "#4B164C",
+    fontWeight: "600",
+  },
+  successBanner: {
+    backgroundColor: "#E8F5E9",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+  },
+  successBannerText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#2E7D32",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  successBannerBottom: {
+    backgroundColor: "#E8F5E9",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+  },
   answerProgress: {
     marginBottom: 24,
     backgroundColor: "#f9f9f9",
     padding: 16,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  answerProgressActive: {
+    backgroundColor: "#F3E5F5",
+    borderColor: "#9C27B0",
   },
   answerProgressText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
     color: "#333",
     textAlign: "center",

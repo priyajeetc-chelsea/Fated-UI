@@ -92,6 +92,7 @@ export interface OnboardingResponse {
 export interface Tag {
   id: number;
   name: string;
+  description?: string;
 }
 
 export interface Question {
@@ -193,7 +194,6 @@ export const INTERESTED_IN_OPTIONS: IntPickerOption[] = [
 
 export const EDUCATION_LEVELS: PickerOption[] = [
   { label: "High School", value: "High School" },
-  { label: "Some College", value: "Some College" },
   { label: "Bachelor's", value: "Bachelor's" },
   { label: "Master's", value: "Master's" },
   { label: "PhD", value: "PhD" },

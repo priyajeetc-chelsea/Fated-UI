@@ -1,6 +1,5 @@
 import DatePicker from "@/components/onboarding/date-picker";
 import OnboardingButton from "@/components/onboarding/onboarding-button";
-import PrivacyToggle from "@/components/onboarding/privacy-toggle";
 import ProgressIndicator from "@/components/onboarding/progress-indicator";
 import SimpleThemedPicker from "@/components/onboarding/simple-themed-picker";
 import ThemedInput from "@/components/onboarding/themed-input";
@@ -8,24 +7,24 @@ import ThemedPicker from "@/components/onboarding/themed-picker";
 import { useApiErrorHandler } from "@/hooks/use-api-error-handler";
 import { apiService } from "@/services/api";
 import {
-  BasicDetailsFormData,
-  GENDER_OPTIONS,
-  INTERESTED_IN_OPTIONS,
-  PRONOUNS_OPTIONS,
+    BasicDetailsFormData,
+    GENDER_OPTIONS,
+    INTERESTED_IN_OPTIONS,
+    PRONOUNS_OPTIONS,
 } from "@/types/onboarding";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 
 const BASIC_FORM_STORAGE_KEY = "@fated_onboarding_basic_form";
@@ -341,24 +340,22 @@ export default function BasicDetailsForm() {
             required
           />
 
-          <View style={styles.fieldContainer}>
-            <SimpleThemedPicker
-              label="Gender"
-              value={formData.gender.value}
-              onValueChange={(value) =>
-                updateFormData("gender", { ...formData.gender, value })
-              }
-              options={GENDER_OPTIONS}
-              placeholder="Select your gender"
-              error={errors.gender}
-              required
-            />
-            <PrivacyToggle
-              label="Show on profile"
-              value={formData.gender.visibleOnProfile}
-              onToggle={(visible) => updatePrivacyToggle("gender", visible)}
-            />
-          </View>
+          <SimpleThemedPicker
+            label="Gender"
+            value={formData.gender.value}
+            onValueChange={(value) =>
+              updateFormData("gender", { ...formData.gender, value })
+            }
+            options={GENDER_OPTIONS}
+            placeholder="Select your gender"
+            error={errors.gender}
+            required
+            showPrivacyToggle={true}
+            privacyValue={formData.gender.visibleOnProfile}
+            onPrivacyToggle={(visible) =>
+              updatePrivacyToggle("gender", visible)
+            }
+          />
 
           {/* <View style={styles.fieldContainer}>
           <ThemedPicker
@@ -377,30 +374,26 @@ export default function BasicDetailsForm() {
           />
         </View> */}
 
-          <View style={styles.fieldContainer}>
-            <ThemedPicker
-              label="Pronouns (Select up to 4)"
-              value={getPronounsDisplayValue()}
-              onValueChange={() => {}} // Not used for multiple selection
-              options={PRONOUNS_OPTIONS}
-              placeholder="Select your pronouns"
-              error={errors.pronouns}
-              required
-              multiple
-              selectedValues={
-                formData.pronouns.value
-                  ? formData.pronouns.value.split("/")
-                  : []
-              }
-              onMultiValueChange={handlePronounsChange}
-              maxSelections={4}
-            />
-            <PrivacyToggle
-              label="Show on profile"
-              value={formData.pronouns.visibleOnProfile}
-              onToggle={(visible) => updatePrivacyToggle("pronouns", visible)}
-            />
-          </View>
+          <ThemedPicker
+            label="Pronouns (Select up to 4)"
+            value={getPronounsDisplayValue()}
+            onValueChange={() => {}} // Not used for multiple selection
+            options={PRONOUNS_OPTIONS}
+            placeholder="Select your pronouns"
+            error={errors.pronouns}
+            required
+            multiple
+            selectedValues={
+              formData.pronouns.value ? formData.pronouns.value.split("/") : []
+            }
+            onMultiValueChange={handlePronounsChange}
+            maxSelections={4}
+            showPrivacyToggle={true}
+            privacyValue={formData.pronouns.visibleOnProfile}
+            onPrivacyToggle={(visible) =>
+              updatePrivacyToggle("pronouns", visible)
+            }
+          />
 
           <ThemedPicker
             label="Interested In"

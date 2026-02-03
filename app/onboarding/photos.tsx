@@ -20,7 +20,7 @@ import {
 
 const PHOTOS_STORAGE_KEY = "@fated_onboarding_photos";
 const MAX_PHOTOS = 6;
-const MIN_PHOTOS = 3;
+const MIN_PHOTOS = 2;
 
 interface PhotoData {
   localUri: string;

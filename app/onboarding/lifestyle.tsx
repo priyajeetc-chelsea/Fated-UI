@@ -1,30 +1,29 @@
 import OnboardingButton from "@/components/onboarding/onboarding-button";
-import PrivacyToggle from "@/components/onboarding/privacy-toggle";
 import ProgressIndicator from "@/components/onboarding/progress-indicator";
 import ThemedInput from "@/components/onboarding/themed-input";
 import ThemedPicker from "@/components/onboarding/themed-picker";
 import { useApiErrorHandler } from "@/hooks/use-api-error-handler";
 import { apiService } from "@/services/api";
 import {
-  DRINK_SMOKE_OPTIONS,
-  EDUCATION_LEVELS,
-  HEIGHT_OPTIONS,
-  LifestyleFormData,
-  RELIGIOUS_BELIEFS,
+    DRINK_SMOKE_OPTIONS,
+    EDUCATION_LEVELS,
+    HEIGHT_OPTIONS,
+    LifestyleFormData,
+    RELIGIOUS_BELIEFS,
 } from "@/types/onboarding";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 
 const LIFESTYLE_FORM_STORAGE_KEY = "@fated_onboarding_lifestyle_form";
@@ -120,9 +119,7 @@ export default function LifestyleForm() {
       newErrors.religiousBeliefs = "Religious beliefs are required";
     }
 
-    if (!formData.drinkOrSmoke.value) {
-      newErrors.drinkOrSmoke = "Please select your drinking/smoking habits";
-    }
+    // drinkOrSmoke is optional, no validation needed
 
     if (!formData.height.value) {
       newErrors.height = "Height is required";
@@ -269,95 +266,81 @@ export default function LifestyleForm() {
             error={errors.college}
           />
 
-          <View style={styles.fieldContainer}>
-            <ThemedPicker
-              label="Highest Education Level"
-              value={formData.highestEducationLevel.value}
-              onValueChange={(value) =>
-                updateFormData("highestEducationLevel", {
-                  ...formData.highestEducationLevel,
-                  value,
-                })
-              }
-              options={EDUCATION_LEVELS}
-              placeholder="Select your education level"
-              error={errors.highestEducationLevel}
-              required
-            />
-            <PrivacyToggle
-              label="Show on profile"
-              value={formData.highestEducationLevel.visibleOnProfile}
-              onToggle={(visible) =>
-                updatePrivacyToggle("highestEducationLevel", visible)
-              }
-            />
-          </View>
+          <ThemedPicker
+            label="Highest Education Level"
+            value={formData.highestEducationLevel.value}
+            onValueChange={(value) =>
+              updateFormData("highestEducationLevel", {
+                ...formData.highestEducationLevel,
+                value,
+              })
+            }
+            options={EDUCATION_LEVELS}
+            placeholder="Select your education level"
+            error={errors.highestEducationLevel}
+            required
+            showPrivacyToggle={true}
+            privacyValue={formData.highestEducationLevel.visibleOnProfile}
+            onPrivacyToggle={(visible) =>
+              updatePrivacyToggle("highestEducationLevel", visible)
+            }
+          />
 
-          <View style={styles.fieldContainer}>
-            <ThemedPicker
-              label="Religious Beliefs"
-              value={formData.religiousBeliefs.value}
-              onValueChange={(value) =>
-                updateFormData("religiousBeliefs", {
-                  ...formData.religiousBeliefs,
-                  value,
-                })
-              }
-              options={RELIGIOUS_BELIEFS}
-              placeholder="Select your religious beliefs"
-              error={errors.religiousBeliefs}
-              required
-            />
-            <PrivacyToggle
-              label="Show on profile"
-              value={formData.religiousBeliefs.visibleOnProfile}
-              onToggle={(visible) =>
-                updatePrivacyToggle("religiousBeliefs", visible)
-              }
-            />
-          </View>
+          <ThemedPicker
+            label="Religious Beliefs"
+            value={formData.religiousBeliefs.value}
+            onValueChange={(value) =>
+              updateFormData("religiousBeliefs", {
+                ...formData.religiousBeliefs,
+                value,
+              })
+            }
+            options={RELIGIOUS_BELIEFS}
+            placeholder="Select your religious beliefs"
+            error={errors.religiousBeliefs}
+            required
+            showPrivacyToggle={true}
+            privacyValue={formData.religiousBeliefs.visibleOnProfile}
+            onPrivacyToggle={(visible) =>
+              updatePrivacyToggle("religiousBeliefs", visible)
+            }
+          />
 
-          <View style={styles.fieldContainer}>
-            <ThemedPicker
-              label="Drinking & Smoking"
-              value={formData.drinkOrSmoke.value}
-              onValueChange={(value) =>
-                updateFormData("drinkOrSmoke", {
-                  ...formData.drinkOrSmoke,
-                  value,
-                })
-              }
-              options={DRINK_SMOKE_OPTIONS}
-              placeholder="Select your habits"
-              error={errors.drinkOrSmoke}
-            />
-            <PrivacyToggle
-              label="Show on profile"
-              value={formData.drinkOrSmoke.visibleOnProfile}
-              onToggle={(visible) =>
-                updatePrivacyToggle("drinkOrSmoke", visible)
-              }
-            />
-          </View>
+          <ThemedPicker
+            label="Drinking & Smoking"
+            value={formData.drinkOrSmoke.value}
+            onValueChange={(value) =>
+              updateFormData("drinkOrSmoke", {
+                ...formData.drinkOrSmoke,
+                value,
+              })
+            }
+            options={DRINK_SMOKE_OPTIONS}
+            placeholder="Select your habits"
+            error={errors.drinkOrSmoke}
+            showPrivacyToggle={true}
+            privacyValue={formData.drinkOrSmoke.visibleOnProfile}
+            onPrivacyToggle={(visible) =>
+              updatePrivacyToggle("drinkOrSmoke", visible)
+            }
+          />
 
-          <View style={styles.fieldContainer}>
-            <ThemedPicker
-              label="Height"
-              value={formData.height.value}
-              onValueChange={(value) =>
-                updateFormData("height", { ...formData.height, value })
-              }
-              options={HEIGHT_OPTIONS}
-              placeholder="Select your height"
-              error={errors.height}
-              required
-            />
-            <PrivacyToggle
-              label="Show on profile"
-              value={formData.height.visibleOnProfile}
-              onToggle={(visible) => updatePrivacyToggle("height", visible)}
-            />
-          </View>
+          <ThemedPicker
+            label="Height"
+            value={formData.height.value}
+            onValueChange={(value) =>
+              updateFormData("height", { ...formData.height, value })
+            }
+            options={HEIGHT_OPTIONS}
+            placeholder="Select your height"
+            error={errors.height}
+            required
+            showPrivacyToggle={true}
+            privacyValue={formData.height.visibleOnProfile}
+            onPrivacyToggle={(visible) =>
+              updatePrivacyToggle("height", visible)
+            }
+          />
 
           <View style={styles.buttonContainer}>
             <OnboardingButton
