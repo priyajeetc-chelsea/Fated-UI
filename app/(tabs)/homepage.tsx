@@ -1,17 +1,24 @@
-import BaseLayout from '@/components/base-layout';
-import OpinionModal from '@/components/opinion-modal';
-import ThemeFilterBubbles from '@/components/theme-filter-bubbles';
-import { ThemedText } from '@/components/themed-text';
-import UserProfile from '@/components/user-profile';
-import { clearStoredChatUser } from '@/contexts/ChatContext';
-import { clearStoredUser, useUser } from '@/contexts/UserContext';
-import { useApiErrorHandler } from '@/hooks/use-api-error-handler';
-import { apiService } from '@/services/api';
-import { authApiService } from '@/services/auth/api';
-import { ApiOpinion, ApiUser, MatchRequest, Tag } from '@/types/api';
-import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, AppState, AppStateStatus, StyleSheet, View } from 'react-native';
+import BaseLayout from "@/components/base-layout";
+import OpinionModal from "@/components/opinion-modal";
+import ThemeFilterBubbles from "@/components/theme-filter-bubbles";
+import { ThemedText } from "@/components/themed-text";
+import UserProfile from "@/components/user-profile";
+import { clearStoredChatUser } from "@/contexts/ChatContext";
+import { clearStoredUser, useUser } from "@/contexts/UserContext";
+import { useApiErrorHandler } from "@/hooks/use-api-error-handler";
+import { apiService } from "@/services/api";
+import { authApiService } from "@/services/auth/api";
+import { ApiOpinion, ApiUser, MatchRequest, Tag } from "@/types/api";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    Animated,
+    AppState,
+    AppStateStatus,
+    StyleSheet,
+    View,
+} from "react-native";
 
 export default function HomeScreen() {
   const { setCurrentUser, currentUser } = useUser();
@@ -21,16 +28,20 @@ export default function HomeScreen() {
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentRequest, setCurrentRequest] = useState<MatchRequest>(apiService.getDefaultRequest());
+  const [currentRequest, setCurrentRequest] = useState<MatchRequest>(
+    apiService.getDefaultRequest(),
+  );
 
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedOpinion, setSelectedOpinion] = useState<ApiOpinion | null>(null);
-  const [selectedUserName, setSelectedUserName] = useState('');
+  const [selectedOpinion, setSelectedOpinion] = useState<ApiOpinion | null>(
+    null,
+  );
+  const [selectedUserName, setSelectedUserName] = useState("");
 
   // Animation state for like/cross feedback
   const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackType, setFeedbackType] = useState<'like' | 'cross'>('like');
+  const [feedbackType, setFeedbackType] = useState<"like" | "cross">("like");
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0));
 
@@ -46,21 +57,27 @@ export default function HomeScreen() {
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
       // When app comes back to foreground, check onboarding status
-      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
-        console.log('🔄 App came to foreground, checking onboarding status...');
-        console.log('🔍 isScreenFocused.current =', isScreenFocused.current);
-        console.log('🔍 isOnOnboardingScreen.current =', isOnOnboardingScreen.current);
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        console.log("🔄 App came to foreground, checking onboarding status...");
+        console.log("🔍 isScreenFocused.current =", isScreenFocused.current);
+        console.log(
+          "🔍 isOnOnboardingScreen.current =",
+          isOnOnboardingScreen.current,
+        );
 
         // Skip if homepage is not the currently focused screen
         if (!isScreenFocused.current) {
-          console.log('⏭️ Homepage not focused, skipping status check');
+          console.log("⏭️ Homepage not focused, skipping status check");
           appStateRef.current = nextAppState;
           return;
         }
 
         // Skip if we're already on an onboarding screen
         if (isOnOnboardingScreen.current) {
-          console.log('⏭️ Already on onboarding screen, skipping status check');
+          console.log("⏭️ Already on onboarding screen, skipping status check");
           appStateRef.current = nextAppState;
           return;
         }
@@ -68,49 +85,82 @@ export default function HomeScreen() {
         try {
           const response = await apiService.getOnboardingStatus();
 
-          if (response.model?.onboardingStep && response.model.onboardingStep.step < 5) {
-            console.log('🚧 User needs to complete onboarding, redirecting to step:', response.model.onboardingStep.step);
+          if (
+            response.model?.onboardingStep &&
+            response.model.onboardingStep.step < 5
+          ) {
+            const backendStep = response.model.onboardingStep.step;
+            console.log(
+              "🚧 User needs to complete onboarding, backend step:",
+              backendStep,
+            );
 
-            const { router } = await import('expo-router');
-            const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+            const { router } = await import("expo-router");
+            const AsyncStorage = (
+              await import("@react-native-async-storage/async-storage")
+            ).default;
 
-            // Check cached page first
-            const cachedPage = await AsyncStorage.getItem('@current_onboarding_page');
-            const effectiveStep = cachedPage
-              ? Math.max(parseInt(cachedPage, 10), response.model.onboardingStep.step)
-              : response.model.onboardingStep.step;
+            // Use backend step as source of truth, clear stale cache
+            const cachedPage = await AsyncStorage.getItem(
+              "@current_onboarding_page",
+            );
+            if (cachedPage && parseInt(cachedPage, 10) !== backendStep) {
+              console.log("🗑️ Clearing stale cache (was:", cachedPage, ")");
+              await AsyncStorage.removeItem("@current_onboarding_page");
+            }
 
-            console.log('📍 Using effective step:', effectiveStep, '(cached:', cachedPage, ', backend:', response.model.onboardingStep.step, ')');
+            console.log("📍 Using backend step:", backendStep);
 
             // Mark that we're redirecting to onboarding
             isOnOnboardingScreen.current = true;
 
             // Determine target route and redirect
-            switch (effectiveStep) {
+            switch (backendStep) {
               case 1:
-                console.log('🔀 Redirecting to: /onboarding/basic');
-                router.replace('/onboarding/basic');
+                console.log("🔀 Redirecting to: /onboarding/basic");
+                router.replace("/onboarding/basic");
                 break;
               case 2:
-                console.log('🔀 Redirecting to: /onboarding/lifestyle');
-                router.replace('/onboarding/lifestyle');
+                console.log("🔀 Redirecting to: /onboarding/lifestyle");
+                router.replace("/onboarding/lifestyle");
                 break;
               case 3:
-                console.log('🔀 Redirecting to: /onboarding/takes');
-                router.replace('/onboarding/takes');
+                // Check if user has selected topics - if so, go to takes
+                const selectedTopics = await AsyncStorage.getItem(
+                  "@fated_selected_topics",
+                );
+                if (selectedTopics) {
+                  try {
+                    const topicIds = JSON.parse(selectedTopics);
+                    if (Array.isArray(topicIds) && topicIds.length > 0) {
+                      console.log(
+                        "🔀 Found selected topics, redirecting to: /onboarding/takes",
+                      );
+                      router.replace("/onboarding/takes");
+                      break;
+                    }
+                  } catch (e) {
+                    console.error("Error parsing selected topics:", e);
+                  }
+                }
+                console.log("🔀 Redirecting to: /onboarding/topic-selection");
+                router.replace("/onboarding/topic-selection");
                 break;
               case 4:
-                console.log('🔀 Redirecting to: /onboarding/photos');
-                router.replace('/onboarding/photos');
+                console.log("🔀 Redirecting to: /onboarding/photos");
+                router.replace("/onboarding/photos");
                 break;
             }
           } else {
-            console.log('✅ Onboarding complete, staying on homepage');
+            console.log("✅ Onboarding complete, staying on homepage");
             // Reset the flag when onboarding is complete
             isOnOnboardingScreen.current = false;
           }
         } catch (error) {
-          console.error('❌ Failed to check onboarding status on app resume:', error);
+          console.error(
+            "❌ Failed to check onboarding status on app resume:",
+            error,
+          );
           handleError(error);
         }
       }
@@ -118,43 +168,60 @@ export default function HomeScreen() {
       appStateRef.current = nextAppState;
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange,
+    );
     return () => subscription?.remove();
   }, [handleError]);
 
   // Fetch user profile for tab icon (only if not already cached)
   const fetchUserProfileForTabIcon = async (userId: number) => {
     // Skip if we already have photos cached in current user context
-    if (currentUser?.photoUrls && currentUser.photoUrls.length > 0 && currentUser.id === userId) {
-      console.log('📸 Profile photos already cached for user', userId, 'skipping fetch');
+    if (
+      currentUser?.photoUrls &&
+      currentUser.photoUrls.length > 0 &&
+      currentUser.id === userId
+    ) {
+      console.log(
+        "📸 Profile photos already cached for user",
+        userId,
+        "skipping fetch",
+      );
       return;
     }
 
     try {
-      console.log('📸 Fetching user profile for tab icon for user', userId);
+      console.log("📸 Fetching user profile for tab icon for user", userId);
       const response = await apiService.getCurrentUserProfile();
-      
-      if (response.code === 200 && response.model.photoUrls && response.model.photoUrls.length > 0) {
+
+      if (
+        response.code === 200 &&
+        response.model.photoUrls &&
+        response.model.photoUrls.length > 0
+      ) {
         setCurrentUser({
           id: userId,
-          name: `${response.model.fname} ${response.model.lname || ''}`.trim(),
-          photoUrls: response.model.photoUrls
+          name: `${response.model.fname} ${response.model.lname || ""}`.trim(),
+          photoUrls: response.model.photoUrls,
         });
-        console.log('📸 User profile updated with photos for tab icon');
+        console.log("📸 User profile updated with photos for tab icon");
       } else {
-        console.log('📸 No photos found in user profile, keeping basic user data');
+        console.log(
+          "📸 No photos found in user profile, keeping basic user data",
+        );
         // Still set basic user data even if no photos
         setCurrentUser({
           id: userId,
-          name: currentUser?.name || 'Current User'
+          name: currentUser?.name || "Current User",
         });
       }
     } catch (error) {
-      console.error('📸 Failed to fetch user profile for tab icon:', error);
+      console.error("📸 Failed to fetch user profile for tab icon:", error);
       // Set basic user data even on error
       setCurrentUser({
         id: userId,
-        name: currentUser?.name || 'Current User'
+        name: currentUser?.name || "Current User",
       });
     }
   };
@@ -172,7 +239,7 @@ export default function HomeScreen() {
 
       // Only load on the first focus, not every time user navigates back
       if (!hasInitiallyLoaded.current) {
-        console.log('🏠 Homepage: Starting initial load...');
+        console.log("🏠 Homepage: Starting initial load...");
         hasInitiallyLoaded.current = true;
 
         const defaultRequest = apiService.getDefaultRequest();
@@ -181,22 +248,30 @@ export default function HomeScreen() {
         // Load matches
         loadMatches(defaultRequest);
       } else {
-        console.log('🏠 Homepage: Focused again, skipping reload to prevent infinite loop');
+        console.log(
+          "🏠 Homepage: Focused again, skipping reload to prevent infinite loop",
+        );
       }
 
       // Return cleanup function to mark screen as unfocused
       return () => {
         isScreenFocused.current = false;
-        console.log('🏠 Homepage: Screen unfocused, setting isScreenFocused = false');
+        console.log(
+          "🏠 Homepage: Screen unfocused, setting isScreenFocused = false",
+        );
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, []),
   );
 
-  const loadMatches = async (request: MatchRequest, isThemeChange = false, appendToExisting = false) => {
+  const loadMatches = async (
+    request: MatchRequest,
+    isThemeChange = false,
+    appendToExisting = false,
+  ) => {
     // Don't load if we're redirecting
     if (isRedirecting.current) {
-      console.log('⚠️ loadMatches: Redirecting in progress, skipping API call');
+      console.log("⚠️ loadMatches: Redirecting in progress, skipping API call");
       return;
     }
 
@@ -205,72 +280,118 @@ export default function HomeScreen() {
     }
 
     try {
-      console.log('📡 loadMatches: Calling /home API with request:', request);
+      console.log("📡 loadMatches: Calling /home API with request:", request);
       const response = await apiService.fetchMatches(request);
-      console.log('📡 loadMatches: Received response:', {
+      console.log("📡 loadMatches: Received response:", {
         userId: response.userId,
         onboardingStep: response.onboardingStep,
-        matchesCount: response.matches?.length
+        matchesCount: response.matches?.length,
       });
 
       // Store current user's ID from the response
       if (response.userId) {
-        console.log('🏠 Homepage: Setting currentUser with userId =', response.userId);
-        
+        console.log(
+          "🏠 Homepage: Setting currentUser with userId =",
+          response.userId,
+        );
+
         // Only fetch profile if we don't have it cached or if it's a different user
-        if (!currentUser || currentUser.id !== response.userId || !currentUser.photoUrls) {
+        if (
+          !currentUser ||
+          currentUser.id !== response.userId ||
+          !currentUser.photoUrls
+        ) {
           fetchUserProfileForTabIcon(response.userId);
         } else {
-          console.log('📸 User profile already cached for user', response.userId);
+          console.log(
+            "📸 User profile already cached for user",
+            response.userId,
+          );
         }
       } else {
-        console.warn('⚠️ Homepage: API response missing userId!', response);
+        console.warn("⚠️ Homepage: API response missing userId!", response);
       }
 
       // Check if user needs to complete onboarding
       if (response.onboardingStep && response.onboardingStep.step < 5) {
         // Only redirect once
         if (hasCheckedOnboarding.current) {
-          console.log('⚠️ Homepage (loadMatches): Already checked onboarding, not redirecting again');
+          console.log(
+            "⚠️ Homepage (loadMatches): Already checked onboarding, not redirecting again",
+          );
           setIsLoading(false);
           return;
         }
 
-        console.log('⚠️ Homepage (loadMatches): User in onboarding step', response.onboardingStep.step, '- redirecting');
+        console.log(
+          "⚠️ Homepage (loadMatches): User in onboarding step",
+          response.onboardingStep.step,
+          "- redirecting",
+        );
         hasCheckedOnboarding.current = true;
         isRedirecting.current = true; // Mark that we're redirecting
         isOnOnboardingScreen.current = true; // Set the flag to prevent AppState handler from redirecting
         const step = response.onboardingStep.step;
 
-        // Check cached page first for more accurate routing
-        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-        const cachedPage = await AsyncStorage.getItem('@current_onboarding_page');
-        const effectiveStep = cachedPage
-          ? Math.max(parseInt(cachedPage, 10), step)
-          : step;
+        // Use backend step as source of truth, clear stale cache
+        const AsyncStorage = (
+          await import("@react-native-async-storage/async-storage")
+        ).default;
+        const cachedPage = await AsyncStorage.getItem(
+          "@current_onboarding_page",
+        );
+        if (cachedPage && parseInt(cachedPage, 10) !== step) {
+          console.log("🗑️ Clearing stale cache (was:", cachedPage, ")");
+          await AsyncStorage.removeItem("@current_onboarding_page");
+        }
 
-        console.log('📍 Homepage: Using effective step:', effectiveStep, '(cached:', cachedPage, ', backend:', step, ')');
+        console.log("📍 Homepage: Using backend step:", step);
 
         // Route to the appropriate onboarding screen
+        // For step 3, check if user has selected topics
+        if (step === 3) {
+          const selectedTopics = await AsyncStorage.getItem(
+            "@fated_selected_topics",
+          );
+          if (selectedTopics) {
+            try {
+              const topicIds = JSON.parse(selectedTopics);
+              if (Array.isArray(topicIds) && topicIds.length > 0) {
+                console.log(
+                  "🔀 Found selected topics, redirecting to: /onboarding/takes",
+                );
+                router.replace("/onboarding/takes");
+                setIsLoading(false);
+                return;
+              }
+            } catch (e) {
+              console.error("Error parsing selected topics:", e);
+            }
+          }
+          console.log("🔀 Redirecting to: /onboarding/topic-selection");
+          router.replace("/onboarding/topic-selection");
+          setIsLoading(false);
+          return;
+        }
+
         const onboardingRoutes: Record<number, string> = {
-          1: '/onboarding/basic',
-          2: '/onboarding/lifestyle',
-          3: '/onboarding/takes',
-          4: '/onboarding/photos',
+          1: "/onboarding/basic",
+          2: "/onboarding/lifestyle",
+          4: "/onboarding/photos",
         };
 
-        router.replace(onboardingRoutes[effectiveStep] as any || '/onboarding/basic');
+        router.replace((onboardingRoutes[step] as any) || "/onboarding/basic");
         setIsLoading(false);
         return;
       }
 
       // If we reach here, onboarding is complete (step >= 5)
       // Reset the flag so AppState handler can work correctly for future sessions
-      console.log('✅ Onboarding complete, resetting flag');
+      console.log("✅ Onboarding complete, resetting flag");
       isOnOnboardingScreen.current = false;
 
       if (!response.matches || response.matches.length === 0) {
-        console.log('⚠️ No matches available');
+        console.log("⚠️ No matches available");
         setUsers([]);
         if (!appendToExisting) {
           setTags(response.tags?.all || []);
@@ -282,7 +403,7 @@ export default function HomeScreen() {
       const convertedUsers = apiService.convertToAppUsers(response.matches);
 
       if (appendToExisting) {
-        setUsers(prevUsers => [...prevUsers, ...convertedUsers]);
+        setUsers((prevUsers) => [...prevUsers, ...convertedUsers]);
       } else {
         setUsers(convertedUsers);
         setCurrentUserIndex(0);
@@ -292,17 +413,17 @@ export default function HomeScreen() {
         setTags(response.tags.all);
       }
     } catch (error) {
-      console.error('Failed to load matches:', error);
+      console.error("Failed to load matches:", error);
       handleError(error);
-      
+
       // If this is the initial load and we got an error, redirect to login
       if (!appendToExisting && !hasInitiallyLoaded.current) {
-        console.log('❌ Initial homepage load failed, redirecting to login');
+        console.log("❌ Initial homepage load failed, redirecting to login");
         await authApiService.clearAuthData();
         await clearStoredUser();
         await clearStoredChatUser();
         // Navigate to root to trigger auth guard
-        router.replace('/' as any);
+        router.replace("/" as any);
       }
     } finally {
       if (!appendToExisting) {
@@ -312,11 +433,10 @@ export default function HomeScreen() {
   };
 
   const handleLikeOpinion = (opinionId: string) => {
-
     const currentUser = users[currentUserIndex];
     if (!currentUser) return;
 
-    const opinion = currentUser.opinions.find(op => op.id === opinionId);
+    const opinion = currentUser.opinions.find((op) => op.id === opinionId);
     if (!opinion) return;
 
     setSelectedOpinion(opinion);
@@ -324,7 +444,7 @@ export default function HomeScreen() {
     setModalVisible(true);
   };
 
-  const showFeedbackAnimation = (type: 'like' | 'cross') => {
+  const showFeedbackAnimation = (type: "like" | "cross") => {
     setFeedbackType(type);
     setShowFeedback(true);
     fadeAnim.setValue(0);
@@ -355,7 +475,11 @@ export default function HomeScreen() {
     });
   };
 
-  const performSwipeAction = async (takeId: number, swipeRight: boolean, comment?: string) => {
+  const performSwipeAction = async (
+    takeId: number,
+    swipeRight: boolean,
+    comment?: string,
+  ) => {
     try {
       await apiService.sendSwipe(takeId, swipeRight, comment);
 
@@ -368,7 +492,7 @@ export default function HomeScreen() {
         setCurrentUserIndex(0);
       }
     } catch (error) {
-      console.error('Failed to perform swipe action:', error);
+      console.error("Failed to perform swipe action:", error);
       const newUsers = users.filter((_, index) => index !== currentUserIndex);
       setUsers(newUsers);
 
@@ -384,11 +508,11 @@ export default function HomeScreen() {
 
     setModalVisible(false);
     setSelectedOpinion(null);
-    setSelectedUserName('');
+    setSelectedUserName("");
 
     const takeId = parseInt(selectedOpinion.id);
 
-    showFeedbackAnimation('like');
+    showFeedbackAnimation("like");
 
     setTimeout(async () => {
       await performSwipeAction(takeId, true, comment.trim() || undefined);
@@ -398,11 +522,11 @@ export default function HomeScreen() {
   const handleModalClose = () => {
     setModalVisible(false);
     setSelectedOpinion(null);
-    setSelectedUserName('');
+    setSelectedUserName("");
   };
 
   const handleRemoveUser = async () => {
-    showFeedbackAnimation('cross');
+    showFeedbackAnimation("cross");
 
     // Call swipe API with false (reject) before removing user
     const currentUser = users[currentUserIndex];
@@ -414,10 +538,10 @@ export default function HomeScreen() {
 
         if (takeId && !isNaN(takeId)) {
           await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
-          console.log('User rejected via swipe API');
+          console.log("User rejected via swipe API");
         }
       } catch (error) {
-        console.error('Failed to send reject swipe:', error);
+        console.error("Failed to send reject swipe:", error);
       }
     }
 
@@ -431,7 +555,7 @@ export default function HomeScreen() {
 
       // Check if we have 2 or fewer users left, then fetch more
       if (newUsers.length <= 2) {
-        console.log('Low on users, fetching more...');
+        console.log("Low on users, fetching more...");
         loadMatches(currentRequest, false, true); // appendToExisting = true
       }
     }, 1000);
@@ -458,13 +582,12 @@ export default function HomeScreen() {
       <BaseLayout showAppHeader>
         <View style={styles.emptyContainer}>
           <View style={styles.emptyThemeContainer}>
-            <ThemeFilterBubbles
-              tags={tags}
-              onThemeChange={handleThemeChange}
-            />
+            <ThemeFilterBubbles tags={tags} onThemeChange={handleThemeChange} />
           </View>
           <View style={styles.emptyMessageContainer}>
-            <ThemedText style={styles.emptyMessageTitle}>That&apos;s all for today! ✨</ThemedText>
+            <ThemedText style={styles.emptyMessageTitle}>
+              That&apos;s all for today! ✨
+            </ThemedText>
             <ThemedText style={styles.emptyMessageSubtitle}>
               Come back after 72 hours to discover new opinions and matches.
             </ThemedText>
@@ -484,10 +607,7 @@ export default function HomeScreen() {
       scaleAnim={scaleAnim}
       showAppHeader
     >
-      <ThemeFilterBubbles
-        tags={tags}
-        onThemeChange={handleThemeChange}
-      />
+      <ThemeFilterBubbles tags={tags} onThemeChange={handleThemeChange} />
 
       {displayUser && (
         <UserProfile
@@ -511,39 +631,39 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   centerContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    justifyContent: "flex-start",
+    alignItems: "center",
     paddingTop: 20,
   },
   emptyThemeContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 20,
   },
   emptyMessageContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 30,
     marginTop: -60, // Offset to center better on mobile
   },
   emptyMessageTitle: {
     fontSize: 25,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
     marginBottom: 16,
     letterSpacing: -0.5,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyMessageSubtitle: {
     fontSize: 16,
-    fontWeight: '400',
-    color: '#666',
-    textAlign: 'center',
+    fontWeight: "400",
+    color: "#666",
+    textAlign: "center",
     lineHeight: 24,
   },
 });

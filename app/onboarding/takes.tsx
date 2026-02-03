@@ -357,9 +357,9 @@ export default function TakesForm() {
   };
 
   const jumpToTopic = (index: number) => {
-    if (visitedTopics.has(index)) {
-      setCurrentTopicIndex(index);
-    }
+    // Allow jumping to any topic and mark it as visited
+    setCurrentTopicIndex(index);
+    setVisitedTopics((prev) => new Set([...prev, index]));
   };
 
   if (isInitializing || !currentTopic) {
@@ -450,10 +450,8 @@ export default function TakesForm() {
                     style={[
                       styles.topicChip,
                       currentTopicIndex === index && styles.topicChipActive,
-                      !visitedTopics.has(index) && styles.topicChipDisabled,
                     ]}
                     onPress={() => jumpToTopic(index)}
-                    disabled={!visitedTopics.has(index)}
                   >
                     <Text
                       style={[

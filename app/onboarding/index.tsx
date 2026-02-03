@@ -4,6 +4,8 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
+const SELECTED_TOPICS_KEY = "@fated_selected_topics";
+
 export default function OnboardingIndex() {
   const [loading, setLoading] = useState(true);
 
@@ -17,24 +19,26 @@ export default function OnboardingIndex() {
       const response = await apiService.getOnboardingStatus();
 
       if (response.model?.onboardingStep) {
-        let step = response.model.onboardingStep.step;
+        // Use backend step as source of truth
+        const step = response.model.onboardingStep.step;
 
-        // Check cached page for more accurate routing
+        // Check cached page and clear if stale
         const cachedPage = await AsyncStorage.getItem(
           "@current_onboarding_page",
         );
         if (cachedPage) {
           const cachedStep = parseInt(cachedPage, 10);
-          step = Math.max(cachedStep, step);
           console.log(
-            "📍 OnboardingIndex: Using effective step:",
+            "📍 OnboardingIndex: Using backend step:",
             step,
-            "(cached:",
+            "(cached was:",
             cachedStep,
-            ", backend:",
-            response.model.onboardingStep.step,
             ")",
           );
+          // Clear stale cache
+          if (cachedStep !== step) {
+            await AsyncStorage.removeItem("@current_onboarding_page");
+          }
         }
 
         // Navigate based on step
@@ -46,6 +50,21 @@ export default function OnboardingIndex() {
             router.replace("/onboarding/lifestyle");
             break;
           case 3:
+            // Check if user has already selected topics - if so, go to takes
+            const selectedTopics =
+              await AsyncStorage.getItem(SELECTED_TOPICS_KEY);
+            if (selectedTopics) {
+              try {
+                const topicIds = JSON.parse(selectedTopics);
+                if (Array.isArray(topicIds) && topicIds.length > 0) {
+                  console.log("📍 Found selected topics, routing to takes");
+                  router.replace("/onboarding/takes");
+                  break;
+                }
+              } catch (e) {
+                console.error("Error parsing selected topics:", e);
+              }
+            }
             router.replace("/onboarding/topic-selection");
             break;
           case 4:
