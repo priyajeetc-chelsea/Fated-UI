@@ -1,4 +1,5 @@
 import BaseLayout from "@/components/base-layout";
+import FeedbackModal from "@/components/feedback-modal";
 import OpinionModal from "@/components/opinion-modal";
 import ThemeFilterBubbles from "@/components/theme-filter-bubbles";
 import { ThemedText } from "@/components/themed-text";
@@ -12,12 +13,13 @@ import { ApiOpinion, ApiUser, MatchRequest, Tag } from "@/types/api";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Animated,
-    AppState,
-    AppStateStatus,
-    StyleSheet,
-    View,
+  ActivityIndicator,
+  Animated,
+  AppState,
+  AppStateStatus,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function HomeScreen() {
@@ -38,6 +40,7 @@ export default function HomeScreen() {
     null,
   );
   const [selectedUserName, setSelectedUserName] = useState("");
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // Animation state for like/cross feedback
   const [showFeedback, setShowFeedback] = useState(false);
@@ -591,8 +594,21 @@ export default function HomeScreen() {
             <ThemedText style={styles.emptyMessageSubtitle}>
               Come back after 72 hours to discover new opinions and matches.
             </ThemedText>
+            <TouchableOpacity
+              style={styles.feedbackButton}
+              onPress={() => setShowFeedbackModal(true)}
+            >
+              <ThemedText style={styles.feedbackButtonText}>
+                Help us shape Fated while you wait
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
+
+        <FeedbackModal
+          visible={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+        />
       </BaseLayout>
     );
   }
@@ -665,5 +681,19 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     lineHeight: 24,
+    marginBottom: 24,
+  },
+  feedbackButton: {
+    backgroundColor: "#4B164C",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  feedbackButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });

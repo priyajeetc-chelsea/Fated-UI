@@ -1,3 +1,4 @@
+import FeedbackModal from "@/components/feedback-modal";
 import OnboardingButton from "@/components/onboarding/onboarding-button";
 import ProgressIndicator from "@/components/onboarding/progress-indicator";
 import ThemedInput from "@/components/onboarding/themed-input";
@@ -36,6 +37,7 @@ export default function TakesForm() {
   const [currentTopicIndex, setCurrentTopicIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
   const [visitedTopics, setVisitedTopics] = useState<Set<number>>(new Set([0]));
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const MINIMUM_ANSWERS_REQUIRED = 3;
   const MINIMUM_CHARACTERS_PER_ANSWER = 1;
@@ -327,23 +329,12 @@ export default function TakesForm() {
         await AsyncStorage.removeItem(TAKES_FORM_STORAGE_KEY);
         console.log("Cleared takes form data from storage");
 
+        // Save next step for navigation after feedback modal
         const nextStep = response.model.step;
-        switch (nextStep) {
-          case 4:
-            // Mark that we're moving to step 4 before navigating
-            await AsyncStorage.setItem("@current_onboarding_page", "4");
-            router.push("/onboarding/photos");
-            break;
-          case 5:
-            // Onboarding complete, clear the page marker
-            await AsyncStorage.removeItem("@current_onboarding_page");
-            router.replace("/(tabs)/homepage");
-            break;
-          default:
-            // Default to photos
-            await AsyncStorage.setItem("@current_onboarding_page", "4");
-            router.push("/onboarding/photos");
-        }
+        await AsyncStorage.setItem("@takes_next_step", nextStep.toString());
+
+        // Show feedback modal first
+        setShowFeedbackModal(true);
       } else {
         Alert.alert("Error", response.msg || "Failed to save your takes");
       }
@@ -360,6 +351,31 @@ export default function TakesForm() {
     // Allow jumping to any topic and mark it as visited
     setCurrentTopicIndex(index);
     setVisitedTopics((prev) => new Set([...prev, index]));
+  };
+
+  const handleFeedbackClose = async () => {
+    setShowFeedbackModal(false);
+
+    // Navigate to next step after modal closes
+    const savedStep = await AsyncStorage.getItem("@takes_next_step");
+    if (savedStep) {
+      const nextStep = parseInt(savedStep, 10);
+      await AsyncStorage.removeItem("@takes_next_step");
+
+      switch (nextStep) {
+        case 4:
+          await AsyncStorage.setItem("@current_onboarding_page", "4");
+          router.push("/onboarding/photos");
+          break;
+        case 5:
+          await AsyncStorage.removeItem("@current_onboarding_page");
+          router.replace("/(tabs)/homepage");
+          break;
+        default:
+          await AsyncStorage.setItem("@current_onboarding_page", "4");
+          router.push("/onboarding/photos");
+      }
+    }
   };
 
   if (isInitializing || !currentTopic) {
@@ -553,6 +569,13 @@ export default function TakesForm() {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
+
+      <FeedbackModal
+        visible={showFeedbackModal}
+        onClose={handleFeedbackClose}
+        title="Great answers! 🎉"
+        placeholder="Have suggestions for our questions?"
+      />
     </KeyboardAvoidingView>
   );
 }

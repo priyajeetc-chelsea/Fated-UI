@@ -1,5 +1,6 @@
 import { LogoutButton } from "@/components/auth";
 import BaseLayout from "@/components/base-layout";
+import FeedbackModal from "@/components/feedback-modal";
 import { useUser } from "@/contexts/UserContext";
 import { apiService } from "@/services/api";
 import { CurrentUserProfile } from "@/types/api";
@@ -54,6 +55,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const lastScrollY = useRef(0);
 
@@ -366,6 +368,20 @@ export default function ProfilePage() {
             </View>
           )}
 
+          {/* Help Shape Fated Section */}
+          {!showStickyHeader && (
+            <TouchableOpacity
+              style={styles.feedbackSection}
+              onPress={() => setShowFeedbackModal(true)}
+            >
+              <View style={styles.feedbackContent}>
+                <Ionicons name="bulb-outline" size={20} color="#4B164C" />
+                <Text style={styles.feedbackText}>Help Shape Fated</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
+          )}
+
           {/* Cards List */}
           <ScrollView
             ref={scrollViewRef}
@@ -385,6 +401,11 @@ export default function ProfilePage() {
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
+
+      <FeedbackModal
+        visible={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
     </BaseLayout>
   );
 }
@@ -412,6 +433,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+  },
+  feedbackSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+  feedbackContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  feedbackText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#000",
   },
   userPhoto: {
     width: 40,

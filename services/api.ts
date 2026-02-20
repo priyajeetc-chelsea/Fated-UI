@@ -855,6 +855,30 @@ class ApiService {
       throw error;
     }
   }
+
+  async submitFeedback(data: {
+    tag?: string;
+    suggestion?: string;
+  }): Promise<any> {
+    try {
+      console.log("💬 Submitting user feedback");
+      const response = await this.makeAuthenticatedRequest("/suggestion", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Feedback submitted successfully");
+      return result;
+    } catch (error) {
+      console.error("❌ Failed to submit feedback:", error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();
