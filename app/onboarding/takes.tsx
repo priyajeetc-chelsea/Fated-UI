@@ -404,13 +404,11 @@ export default function TakesForm() {
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.instructionBanner}>
-            <Text style={styles.instructionText}>
-              💡 You only need to answer{" "}
-              <Text style={styles.instructionBold}>3 questions</Text> across all
-              topics.
-            </Text>
-          </View>
+          <Text style={styles.instructionText}>
+            💡 Answer at least{" "}
+            <Text style={styles.instructionBold}>3 questions</Text> across all
+            topics
+          </Text>
 
           <View
             style={[
@@ -485,7 +483,7 @@ export default function TakesForm() {
               <Text style={styles.questionText}>{question.val}</Text>
 
               <ThemedInput
-                label="Your answer (optional)"
+                label=""
                 value={getAnswer(currentTopic.tag.id, question.id)}
                 onChangeText={(value) =>
                   updateAnswer(currentTopic.tag.id, question.id, value)
@@ -577,19 +575,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 50,
   },
-  instructionBanner: {
-    backgroundColor: "#FFF9E6",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#FFD700",
-  },
   instructionText: {
-    fontSize: 15,
-    color: "#333",
+    fontSize: 14,
+    color: "#666",
     textAlign: "center",
-    lineHeight: 22,
+    marginBottom: 16,
   },
   instructionBold: {
     fontWeight: "700",
@@ -742,6 +732,7 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 12,
     lineHeight: 24,
+    fontFamily: "Playfair Display Bold",
   },
   navigationContainer: {
     marginTop: 32,

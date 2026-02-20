@@ -50,21 +50,9 @@ export default function OnboardingIndex() {
             router.replace("/onboarding/lifestyle");
             break;
           case 3:
-            // Check if user has already selected topics - if so, go to takes
-            const selectedTopics =
-              await AsyncStorage.getItem(SELECTED_TOPICS_KEY);
-            if (selectedTopics) {
-              try {
-                const topicIds = JSON.parse(selectedTopics);
-                if (Array.isArray(topicIds) && topicIds.length > 0) {
-                  console.log("📍 Found selected topics, routing to takes");
-                  router.replace("/onboarding/takes");
-                  break;
-                }
-              } catch (e) {
-                console.error("Error parsing selected topics:", e);
-              }
-            }
+            // Clear any stale topic selections when returning to step 3 from backend
+            // This ensures fresh start, but preserves selections during back navigation
+            await AsyncStorage.removeItem(SELECTED_TOPICS_KEY);
             router.replace("/onboarding/topic-selection");
             break;
           case 4:

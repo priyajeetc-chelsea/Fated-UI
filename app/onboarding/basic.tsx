@@ -7,24 +7,24 @@ import ThemedPicker from "@/components/onboarding/themed-picker";
 import { useApiErrorHandler } from "@/hooks/use-api-error-handler";
 import { apiService } from "@/services/api";
 import {
-    BasicDetailsFormData,
-    GENDER_OPTIONS,
-    INTERESTED_IN_OPTIONS,
-    PRONOUNS_OPTIONS,
+  BasicDetailsFormData,
+  GENDER_OPTIONS,
+  INTERESTED_IN_OPTIONS,
+  PRONOUNS_OPTIONS,
 } from "@/types/onboarding";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 const BASIC_FORM_STORAGE_KEY = "@fated_onboarding_basic_form";
@@ -287,8 +287,7 @@ export default function BasicDetailsForm() {
 
           <Text style={styles.title}>Tell us about yourself</Text>
           <Text style={styles.subtitle}>
-            Let&rsquo;s start with some basic information to create your
-            profile.
+            Let&rsquo;s start with some basic information for your profile.
           </Text>
 
           <ThemedInput

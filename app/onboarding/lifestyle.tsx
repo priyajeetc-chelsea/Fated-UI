@@ -5,25 +5,25 @@ import ThemedPicker from "@/components/onboarding/themed-picker";
 import { useApiErrorHandler } from "@/hooks/use-api-error-handler";
 import { apiService } from "@/services/api";
 import {
-    DRINK_SMOKE_OPTIONS,
-    EDUCATION_LEVELS,
-    HEIGHT_OPTIONS,
-    LifestyleFormData,
-    RELIGIOUS_BELIEFS,
+  DRINK_SMOKE_OPTIONS,
+  EDUCATION_LEVELS,
+  HEIGHT_OPTIONS,
+  LifestyleFormData,
+  RELIGIOUS_BELIEFS,
 } from "@/types/onboarding";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 const LIFESTYLE_FORM_STORAGE_KEY = "@fated_onboarding_lifestyle_form";
@@ -230,7 +230,7 @@ export default function LifestyleForm() {
 
           <Text style={styles.title}>Your Lifestyle</Text>
           <Text style={styles.subtitle}>
-            Tell us about your background and lifestyle preferences.
+            Tell us about your background and lifestyle.
           </Text>
 
           <ThemedInput
