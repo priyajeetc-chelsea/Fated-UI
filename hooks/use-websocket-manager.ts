@@ -1,28 +1,27 @@
-import { webSocketService } from '@/services/websocket';
-import { useEffect, useRef } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { webSocketService } from "@/services/websocket";
+import { useEffect, useRef } from "react";
+import { AppState, AppStateStatus } from "react-native";
 
 /**
  * Global WebSocket connection manager
  * Handles app lifecycle events and connection state
+ *
+ * NOTE: Individual chat screens manage their own connections via use-chat hook
+ * This is just a global manager for monitoring
  */
 export const useWebSocketManager = () => {
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App came to foreground - ensure connection is active
-        webSocketService.connect().catch(console.error);
-      } else if (nextAppState.match(/inactive|background/)) {
-        // App went to background - keep connection but reduce activity
-      }
+      console.log("🌐 Global WebSocket Manager - App state:", nextAppState);
       appStateRef.current = nextAppState;
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    // Don't automatically connect - let individual chat screens manage connections
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange,
+    );
 
     return () => {
       subscription?.remove();
@@ -59,7 +58,7 @@ export const useWebSocketCleanup = () => {
   useEffect(() => {
     return () => {
       // Cleanup all listeners when component unmounts
-      listenersRef.current.forEach(listener => {
+      listenersRef.current.forEach((listener) => {
         webSocketService.removeListener(listener);
       });
       listenersRef.current = [];

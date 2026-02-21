@@ -1,55 +1,73 @@
-import { useChatContext } from '@/contexts/ChatContext';
-import { useUser } from '@/contexts/UserContext';
-import { useChat } from '@/hooks/use-chat';
-import { ChatMessage } from '@/services/chat-api';
-import { webSocketService } from '@/services/websocket';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useChatContext } from "@/contexts/ChatContext";
+import { useUser } from "@/contexts/UserContext";
+import { useChat } from "@/hooks/use-chat";
+import { ChatMessage } from "@/services/chat-api";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const HeaderPhotoWithLoader = ({ uri }: { uri: string }) => {
   const [loading, setLoading] = useState(true);
-  
-  if (!uri || uri.trim() === '') {
+
+  if (!uri || uri.trim() === "") {
     return (
       <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
         <Ionicons name="person" size={20} color="#999" />
       </View>
     );
   }
-  
+
   // Properly encode the URI to handle special characters in AWS S3 URLs
-  const encodedUri = uri.split('?')[0] + (uri.includes('?') ? '?' + uri.split('?')[1].split('&').map(param => {
-    const [key, value] = param.split('=');
-    return `${key}=${encodeURIComponent(decodeURIComponent(value || ''))}`;
-  }).join('&') : '');
-  
+  const encodedUri =
+    uri.split("?")[0] +
+    (uri.includes("?")
+      ? "?" +
+        uri
+          .split("?")[1]
+          .split("&")
+          .map((param) => {
+            const [key, value] = param.split("=");
+            return `${key}=${encodeURIComponent(decodeURIComponent(value || ""))}`;
+          })
+          .join("&")
+      : "");
+
   return (
     <>
-      <Image 
-        source={{ uri: encodedUri }} 
+      <Image
+        source={{ uri: encodedUri }}
         style={styles.headerPhoto}
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}
         onError={() => setLoading(false)}
       />
       {loading && (
-        <View style={[styles.headerPhoto, { position: 'absolute', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
+        <View
+          style={[
+            styles.headerPhoto,
+            {
+              position: "absolute",
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "#f0f0f0",
+            },
+          ]}
+        >
           <ActivityIndicator size="small" color="#4B164C" />
         </View>
       )}
@@ -60,27 +78,35 @@ const HeaderPhotoWithLoader = ({ uri }: { uri: string }) => {
 export default function ChatScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  
+
   // Get current user and chat context
   const { currentUser } = useUser();
   const { activeChatUser, setActiveChatUser } = useChatContext();
-  
+
   // Parse params - prefer stored values from context if available
   const paramUserId = params.userId ? parseInt(params.userId as string) : 0;
   const paramUserName = params.userName as string;
   const paramUserPhoto = params.userPhoto as string;
-  const paramMatchUserId = params.matchUserId ? parseInt(params.matchUserId as string) : paramUserId;
-  const paramIsFinalMatch = params.isFinalMatch === 'true';
-  const paramIsPotentialMatch = params.isPotentialMatch === 'true';
-  
+  const paramMatchUserId = params.matchUserId
+    ? parseInt(params.matchUserId as string)
+    : paramUserId;
+  const paramIsFinalMatch = params.isFinalMatch === "true";
+  const paramIsPotentialMatch = params.isPotentialMatch === "true";
+
   // Use context values if params are missing/invalid (happens when returning to chat)
-  const otherUserId = paramUserId > 0 ? paramUserId : (activeChatUser?.userId || 0);
-  const otherUserName = paramUserName || activeChatUser?.userName || 'User';
-  const otherUserPhoto = paramUserPhoto || activeChatUser?.userPhoto || '';
-  const matchUserId = paramMatchUserId > 0 ? paramMatchUserId : (activeChatUser?.matchUserId || otherUserId);
-  const isFinalMatch = paramIsFinalMatch || (activeChatUser?.isFinalMatch || false);
-  const isPotentialMatch = paramIsPotentialMatch || (activeChatUser?.isPotentialMatch || false);
-  
+  const otherUserId =
+    paramUserId > 0 ? paramUserId : activeChatUser?.userId || 0;
+  const otherUserName = paramUserName || activeChatUser?.userName || "User";
+  const otherUserPhoto = paramUserPhoto || activeChatUser?.userPhoto || "";
+  const matchUserId =
+    paramMatchUserId > 0
+      ? paramMatchUserId
+      : activeChatUser?.matchUserId || otherUserId;
+  const isFinalMatch =
+    paramIsFinalMatch || activeChatUser?.isFinalMatch || false;
+  const isPotentialMatch =
+    paramIsPotentialMatch || activeChatUser?.isPotentialMatch || false;
+
   // Store chat user info when params are valid (first navigation to chat)
   useEffect(() => {
     if (paramUserId > 0 && paramUserName) {
@@ -94,15 +120,22 @@ export default function ChatScreen() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramUserId, paramUserName, paramUserPhoto, paramMatchUserId, paramIsFinalMatch, paramIsPotentialMatch]);
-  
-  
+  }, [
+    paramUserId,
+    paramUserName,
+    paramUserPhoto,
+    paramMatchUserId,
+    paramIsFinalMatch,
+    paramIsPotentialMatch,
+  ]);
+
   // Use currentUser.id directly - will be set from homepage response
   // Show loading screen if user is not yet loaded
   const currentUserId = currentUser?.id || 0;
 
-  const [inputText, setInputText] = useState('');
-  const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const [showScrollToBottomButton, setShowScrollToBottomButton] =
+    useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const previousMessageCountRef = useRef(0);
   const isNearBottomRef = useRef(true);
@@ -112,7 +145,14 @@ export default function ChatScreen() {
   // Also ensure we have a valid otherUserId from either params or storage
   const chatEnabled = currentUserId > 0 && otherUserId > 0;
 
-  console.log('💬 ChatScreen: currentUserId =', currentUserId, 'otherUserId =', otherUserId, 'chatEnabled =', chatEnabled);
+  console.log(
+    "💬 ChatScreen: currentUserId =",
+    currentUserId,
+    "otherUserId =",
+    otherUserId,
+    "chatEnabled =",
+    chatEnabled,
+  );
 
   const {
     messages,
@@ -146,21 +186,26 @@ export default function ChatScreen() {
   // Scroll to bottom only when NEW messages arrive (not when loading old ones)
   useEffect(() => {
     if (!chatEnabled || messages.length === 0) return;
-    
+
     const previousCount = previousMessageCountRef.current;
     const currentCount = messages.length;
-    
+
     // Only scroll if:
     // 1. Message count increased (new message, not initial load)
     // 2. User is near the bottom of the chat
     // 3. Not loading more messages (which adds to the beginning)
-    if (currentCount > previousCount && previousCount > 0 && isNearBottomRef.current && !isLoadingMore) {
+    if (
+      currentCount > previousCount &&
+      previousCount > 0 &&
+      isNearBottomRef.current &&
+      !isLoadingMore
+    ) {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
         setShowScrollToBottomButton(false);
       }, 100);
     }
-    
+
     previousMessageCountRef.current = currentCount;
   }, [messages.length, chatEnabled, isLoadingMore]);
 
@@ -180,12 +225,15 @@ export default function ChatScreen() {
     if (!inputText.trim() || isSending) return;
 
     const message = inputText.trim();
-    setInputText('');
+    setInputText("");
     setShowScrollToBottomButton(false); // Hide button when sending
-    
+
     const success = await sendMessage(message);
     if (!success) {
-      Alert.alert('Failed to send message', 'Please check your connection and try again.');
+      Alert.alert(
+        "Failed to send message",
+        "Please check your connection and try again.",
+      );
     }
   };
 
@@ -196,22 +244,11 @@ export default function ChatScreen() {
       setTimeout(() => {
         markMessagesAsRead();
       }, 500);
-    }, [markMessagesAsRead])
+    }, [markMessagesAsRead]),
   );
 
-  // Force cleanup when component unmounts (navigating away)
-  useEffect(() => {
-    return () => {
-      webSocketService.forceDisconnectAndReset();
-      // Note: We intentionally DON'T clear activeChatUser here
-      // so it persists when user comes back to chat
-    };
-  }, []);
-
-  // Handle back navigation with forced cleanup
+  // Handle back navigation
   const handleBackPress = () => {
-    console.log('📱 Back button pressed - forcing WebSocket cleanup');
-    webSocketService.forceDisconnectAndReset();
     router.back();
   };
 
@@ -220,27 +257,28 @@ export default function ChatScreen() {
     if (isFinalMatch) {
       // For confirmed matches, navigate to their profile
       router.push({
-        pathname: '/matches/user-profile-page',
+        pathname: "/matches/user-profile-page",
         params: {
           userBId: matchUserId.toString(),
-          isConfirmedMatch: 'true', // Flag to hide action buttons
+          isConfirmedMatch: "true", // Flag to hide action buttons
         },
       });
     }
   };
 
-
-
   const renderMessage = (message: ChatMessage, index: number) => {
     const isLastMessage = index === messages.length - 1;
-    const isConsecutive = index > 0 && messages[index - 1].isSent === message.isSent;
+    const isConsecutive =
+      index > 0 && messages[index - 1].isSent === message.isSent;
 
     return (
       <View
         key={message.id}
         style={[
           styles.messageContainer,
-          message.isSent ? styles.sentMessageContainer : styles.receivedMessageContainer,
+          message.isSent
+            ? styles.sentMessageContainer
+            : styles.receivedMessageContainer,
           !isConsecutive && styles.messageSpacing,
         ]}
       >
@@ -250,18 +288,24 @@ export default function ChatScreen() {
             message.isSent ? styles.sentMessage : styles.receivedMessage,
           ]}
         >
-          <Text style={[
-            styles.messageText,
-            message.isSent ? styles.sentMessageText : styles.receivedMessageText,
-          ]}>
+          <Text
+            style={[
+              styles.messageText,
+              message.isSent
+                ? styles.sentMessageText
+                : styles.receivedMessageText,
+            ]}
+          >
             {message.content}
           </Text>
-
         </View>
-        
+
         {isLastMessage && message.isSent && (
           <Text style={styles.timestamp}>
-            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {message.timestamp.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </Text>
         )}
       </View>
@@ -270,21 +314,26 @@ export default function ChatScreen() {
 
   if (isLoading || !chatEnabled) {
     return (
-      <SafeAreaView 
+      <SafeAreaView
         style={styles.container}
-        edges={Platform.OS === 'android' ? ['top', 'bottom'] : ['top']}
+        edges={Platform.OS === "android" ? ["top", "bottom"] : ["top"]}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          
+
           <View style={styles.headerUserInfo}>
             <View style={{ marginRight: 12 }}>
-              {otherUserPhoto && otherUserPhoto.trim() !== '' ? (
+              {otherUserPhoto && otherUserPhoto.trim() !== "" ? (
                 <HeaderPhotoWithLoader uri={otherUserPhoto} />
               ) : (
-                <View style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}>
+                <View
+                  style={[styles.headerPhoto, styles.headerPhotoPlaceholder]}
+                >
                   <Ionicons name="person" size={20} color="#999" />
                 </View>
               )}
@@ -297,7 +346,7 @@ export default function ChatScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4B164C" />
           <Text style={styles.loadingText}>
-            {!chatEnabled ? 'Setting up chat...' : 'Loading chat...'}
+            {!chatEnabled ? "Setting up chat..." : "Loading chat..."}
           </Text>
         </View>
       </SafeAreaView>
@@ -305,13 +354,10 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView 
-      style={styles.container}
-      edges={['top', 'bottom']}
-    >
-      <KeyboardAvoidingView 
-        style={styles.keyboardView} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
         {/* Header */}
@@ -319,9 +365,9 @@ export default function ChatScreen() {
           <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          
+
           {/* User Photo and Name - Clickable for confirmed matches */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.headerUserInfo}
             onPress={handleProfilePress}
             disabled={!isFinalMatch}
@@ -337,11 +383,9 @@ export default function ChatScreen() {
               )}
             </View>
           </TouchableOpacity>
-          
+
           {__DEV__ && (
-            <Text style={{ fontSize: 10, color: '#999' }}>
-              {otherUserId}
-            </Text>
+            <Text style={{ fontSize: 10, color: "#999" }}>{otherUserId}</Text>
           )}
         </View>
 
@@ -355,14 +399,18 @@ export default function ChatScreen() {
               refreshing={isLoadingMore}
               onRefresh={loadMoreMessages}
               enabled={hasMoreMessages}
-              colors={['#4B164C']}
+              colors={["#4B164C"]}
               tintColor="#4B164C"
             />
           }
           onScroll={(event) => {
-            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            const { contentOffset, contentSize, layoutMeasurement } =
+              event.nativeEvent;
             const isAtTop = contentOffset.y <= 0;
-            const bottomThreshold = Math.max(contentSize.height - layoutMeasurement.height - 100, 0);
+            const bottomThreshold = Math.max(
+              contentSize.height - layoutMeasurement.height - 100,
+              0,
+            );
             const isAtBottom = contentOffset.y >= bottomThreshold;
 
             // Track if user is near bottom (for auto-scroll on new messages)
@@ -384,12 +432,14 @@ export default function ChatScreen() {
               <ActivityIndicator size="small" color="#4B164C" />
             </View>
           )}
-          
+
           {messages.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="chatbubbles-outline" size={48} color="#999" />
               <Text style={styles.emptyStateText}>No messages yet</Text>
-              <Text style={styles.emptyStateSubtext}>Send a message to start the conversation!</Text>
+              <Text style={styles.emptyStateSubtext}>
+                Send a message to start the conversation!
+              </Text>
             </View>
           ) : (
             messages.map(renderMessage)
@@ -423,7 +473,8 @@ export default function ChatScreen() {
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                (!inputText.trim() || isSending || !isConnected) && styles.sendButtonDisabled
+                (!inputText.trim() || isSending || !isConnected) &&
+                  styles.sendButtonDisabled,
               ]}
               onPress={handleSendMessage}
               disabled={!inputText.trim() || isSending || !isConnected}
@@ -444,53 +495,53 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
   },
   keyboardView: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   backButton: {
     marginRight: 16,
   },
   headerUserInfo: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerPhoto: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
   },
   headerPhotoPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTextContainer: {
     flex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#666',
+    color: "#666",
     marginTop: 2,
   },
   connectionIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -499,23 +550,23 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginRight: 6,
   },
   connectionText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   messagesContainer: {
     flex: 1,
@@ -525,7 +576,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   loadMoreIndicator: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 16,
   },
   messageContainer: {
@@ -535,27 +586,27 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   sentMessageContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   receivedMessageContainer: {
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: "80%",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
   sentMessage: {
-    backgroundColor: '#4B164C',
+    backgroundColor: "#4B164C",
     borderBottomRightRadius: 4,
   },
   receivedMessage: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomLeftRadius: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -567,10 +618,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sentMessageText: {
-    color: '#fff',
+    color: "#fff",
   },
   receivedMessageText: {
-    color: '#000',
+    color: "#000",
   },
   messageStatus: {
     marginLeft: 8,
@@ -578,40 +629,40 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: '#999',
+    color: "#999",
     marginTop: 4,
     marginRight: 8,
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 64,
   },
   emptyStateText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: "600",
+    color: "#666",
     marginTop: 16,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: "#999",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: "#e0e0e0",
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingBottom: 24, // Added extra bottom padding for better spacing
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#f8f8f8',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    backgroundColor: "#f8f8f8",
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -623,31 +674,31 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     maxHeight: 80,
     paddingVertical: 8,
-    color: '#000',
+    color: "#000",
   },
   sendButton: {
-    backgroundColor: '#4B164C',
+    backgroundColor: "#4B164C",
     borderRadius: 20,
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginLeft: 8,
   },
   sendButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   scrollToBottomButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 100,
     right: 16,
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'grey',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    backgroundColor: "grey",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
