@@ -369,32 +369,24 @@ export default function ProfilePage() {
             </View>
           )}
 
-          {/* Invite & Earn Section */}
+          {/* Quick Actions Row */}
           {!showStickyHeader && (
-            <TouchableOpacity
-              style={styles.feedbackSection}
-              onPress={() => router.push("/invite-earn")}
-            >
-              <View style={styles.feedbackContent}>
-                <Ionicons name="gift-outline" size={20} color="#4B164C" />
-                <Text style={styles.feedbackText}>Invite & Earn</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </TouchableOpacity>
-          )}
-
-          {/* Help Shape Fated Section */}
-          {!showStickyHeader && (
-            <TouchableOpacity
-              style={styles.feedbackSection}
-              onPress={() => setShowFeedbackModal(true)}
-            >
-              <View style={styles.feedbackContent}>
-                <Ionicons name="bulb-outline" size={20} color="#4B164C" />
-                <Text style={styles.feedbackText}>Help Shape Fated</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </TouchableOpacity>
+            <View style={styles.quickActionsRow}>
+              <TouchableOpacity
+                style={styles.quickActionButton}
+                onPress={() => router.push("/invite-earn")}
+              >
+                <Ionicons name="gift-outline" size={18} color="#4B164C" />
+                <Text style={styles.quickActionText}>Invite & Earn</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionButton}
+                onPress={() => setShowFeedbackModal(true)}
+              >
+                <Ionicons name="bulb-outline" size={18} color="#4B164C" />
+                <Text style={styles.quickActionText}>Help Shape Fated</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           {/* Cards List */}
@@ -449,24 +441,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
   },
-  feedbackSection: {
+  quickActionsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 16,
+  },
+  quickActionButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    gap: 8,
     backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: "#E5E5E5",
   },
-  feedbackContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  feedbackText: {
-    fontSize: 15,
+  quickActionText: {
+    fontSize: 13,
     fontWeight: "600",
     color: "#000",
   },
