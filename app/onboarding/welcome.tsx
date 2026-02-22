@@ -1,9 +1,27 @@
 import OnboardingButton from '@/components/onboarding/onboarding-button';
+import ReferralCodeModal from '@/components/referral-code-modal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const REFERRAL_APPLIED_KEY = "@fated_referral_applied";
 
 export default function WelcomeScreen() {
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [referralApplied, setReferralApplied] = useState(false);
+
+  useEffect(() => {
+    checkReferralStatus();
+  }, []);
+
+  const checkReferralStatus = async () => {
+    const applied = await AsyncStorage.getItem(REFERRAL_APPLIED_KEY);
+    if (applied === 'true') {
+      setReferralApplied(true);
+    }
+  };
+
   const handleGetStarted = () => {
     router.push('/onboarding/basic');
   };
@@ -13,11 +31,11 @@ export default function WelcomeScreen() {
       <View style={styles.content}>
         <Text style={styles.welcomeText}>Welcome to</Text>
         <Text style={styles.appName}>FATED</Text>
-        
+
         <Text style={styles.subtitle}>
           Let&rsquo;s create your profile and find meaningful connections based on what matters to you.
         </Text>
-        
+
         <View style={styles.stepsContainer}>
           <View style={styles.step}>
             <View style={styles.stepNumber}>
@@ -25,21 +43,21 @@ export default function WelcomeScreen() {
             </View>
             <Text style={styles.stepText}>Share your basic details</Text>
           </View>
-          
+
           <View style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>2</Text>
             </View>
             <Text style={styles.stepText}>Tell us about your lifestyle</Text>
           </View>
-          
+
           <View style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>3</Text>
             </View>
             <Text style={styles.stepText}>Express your thoughts & values</Text>
           </View>
-          
+
           <View style={styles.step}>
             <View style={styles.stepNumber}>
               <Text style={styles.stepNumberText}>4</Text>
@@ -48,17 +66,36 @@ export default function WelcomeScreen() {
           </View>
         </View>
       </View>
-      
+
       <View style={styles.buttonContainer}>
         <OnboardingButton
           title="Get Started"
           onPress={handleGetStarted}
         />
-        
+
+        {referralApplied ? (
+          <View style={styles.referralChip}>
+            <Text style={styles.referralChipText}>Referral applied</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => setShowReferralModal(true)}
+            style={styles.referralLink}
+          >
+            <Text style={styles.referralLinkText}>Have a referral code?</Text>
+          </TouchableOpacity>
+        )}
+
         <Text style={styles.timeEstimate}>
           Takes about 5-10 minutes to complete
         </Text>
       </View>
+
+      <ReferralCodeModal
+        visible={showReferralModal}
+        onClose={() => setShowReferralModal(false)}
+        onSuccess={() => setReferralApplied(true)}
+      />
     </View>
   );
 }
@@ -127,6 +164,28 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     alignItems: 'center',
+  },
+  referralLink: {
+    marginTop: 16,
+    padding: 4,
+  },
+  referralLinkText: {
+    fontSize: 14,
+    color: '#4B164C',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  referralChip: {
+    marginTop: 16,
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  referralChipText: {
+    fontSize: 13,
+    color: '#2E7D32',
+    fontWeight: '600',
   },
   timeEstimate: {
     fontSize: 14,

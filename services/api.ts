@@ -856,6 +856,50 @@ class ApiService {
     }
   }
 
+  // Referral API methods
+  async getReferralCode(): Promise<any> {
+    try {
+      const response = await this.makeAuthenticatedRequest("/refer/code", {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("❌ Failed to get referral code:", error);
+      throw error;
+    }
+  }
+
+  async applyReferralCode(code: string): Promise<any> {
+    try {
+      const response = await this.makeAuthenticatedRequest("/refer", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        const error: any = new Error(
+          errorData?.msg || `HTTP error! status: ${response.status}`,
+        );
+        error.status = response.status;
+        error.data = errorData;
+        throw error;
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("❌ Failed to apply referral code:", error);
+      throw error;
+    }
+  }
+
   async submitFeedback(data: {
     tag?: string;
     suggestion?: string;
