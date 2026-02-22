@@ -5,6 +5,7 @@ import { useUser } from "@/contexts/UserContext";
 import { apiService } from "@/services/api";
 import { CurrentUserProfile } from "@/types/api";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -366,6 +367,20 @@ export default function ProfilePage() {
               </View>
               <LogoutButton variant="icon" />
             </View>
+          )}
+
+          {/* Invite & Earn Section */}
+          {!showStickyHeader && (
+            <TouchableOpacity
+              style={styles.feedbackSection}
+              onPress={() => router.push("/invite-earn")}
+            >
+              <View style={styles.feedbackContent}>
+                <Ionicons name="gift-outline" size={20} color="#4B164C" />
+                <Text style={styles.feedbackText}>Invite & Earn</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
           )}
 
           {/* Help Shape Fated Section */}
