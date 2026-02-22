@@ -26,8 +26,8 @@ interface FeedbackModalProps {
 export default function FeedbackModal({
   visible,
   onClose,
-  title = "Help Shape Fated",
-  placeholder = "Share your thoughts, suggestions, or feedback...",
+  title = "Suggest Topics & Questions",
+  placeholder = "What would you want your future partner to answer or share their thoughts on?",
   onSuccess,
 }: FeedbackModalProps) {
   const [tag, setTag] = useState("");
@@ -123,9 +123,7 @@ export default function FeedbackModal({
 
                 {/* Suggestion Input */}
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>
-                    Your Suggestion
-                  </Text>
+                  <Text style={styles.inputLabel}>Your Suggestion</Text>
                   <TextInput
                     style={[styles.input, styles.textArea]}
                     value={suggestion}
