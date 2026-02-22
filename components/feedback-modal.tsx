@@ -2,17 +2,17 @@ import { apiService } from "@/services/api";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 interface FeedbackModalProps {
@@ -26,8 +26,8 @@ interface FeedbackModalProps {
 export default function FeedbackModal({
   visible,
   onClose,
-  title = "Help Shape Fated",
-  placeholder = "Share your thoughts, suggestions, or feedback...",
+  title = "Suggest Topics & Questions",
+  placeholder = "What would you want your future partner to answer or share their thoughts on?",
   onSuccess,
 }: FeedbackModalProps) {
   const [tag, setTag] = useState("");
@@ -110,12 +110,12 @@ export default function FeedbackModal({
 
                 {/* Tag Input */}
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Tag (Optional)</Text>
+                  <Text style={styles.inputLabel}>Topic Name</Text>
                   <TextInput
                     style={styles.input}
                     value={tag}
                     onChangeText={setTag}
-                    placeholder="e.g., Questions, Topics, Features"
+                    placeholder=""
                     placeholderTextColor="#999"
                     maxLength={100}
                   />
@@ -123,9 +123,7 @@ export default function FeedbackModal({
 
                 {/* Suggestion Input */}
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>
-                    Your Suggestion (Optional)
-                  </Text>
+                  <Text style={styles.inputLabel}>Your Suggestion</Text>
                   <TextInput
                     style={[styles.input, styles.textArea]}
                     value={suggestion}
@@ -152,7 +150,7 @@ export default function FeedbackModal({
                   disabled={isSubmitting}
                 >
                   <Text style={styles.submitButtonText}>
-                    {isSubmitting ? "Sending..." : "Send Feedback"}
+                    {isSubmitting ? "Sending..." : "Submit Suggestion"}
                   </Text>
                 </TouchableOpacity>
               </View>

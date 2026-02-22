@@ -63,6 +63,7 @@ export default function RootLayout() {
                       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
                       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
                       <Stack.Screen name="chat/[userId]" options={{ headerShown: false }} />
+                      <Stack.Screen name="invite-earn" options={{ headerShown: false }} />
                     </Stack>
                     <StatusBar style="auto" backgroundColor="#f9f9f9" />
                   </AuthGuard>

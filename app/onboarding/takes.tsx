@@ -573,8 +573,8 @@ export default function TakesForm() {
       <FeedbackModal
         visible={showFeedbackModal}
         onClose={handleFeedbackClose}
-        title="Great answers! 🎉"
-        placeholder="Have suggestions for our questions?"
+        title="Suggest Topics & Questions"
+        placeholder="What would you want your future partner to answer or share their thoughts on?"
       />
     </KeyboardAvoidingView>
   );
