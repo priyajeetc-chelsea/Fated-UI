@@ -1,7 +1,7 @@
 import { chatApiService, ChatMessage } from "@/services/chat-api";
 import { webSocketService } from "@/services/websocket";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppState, AppStateStatus } from "react-native";
+import { AppState, AppStateStatus, Platform } from "react-native";
 
 interface UseChatOptions {
   currentUserId: number;
@@ -360,9 +360,12 @@ export const useChat = ({
   }, [enabled, currentUserId, otherUserId, ensureConnection]);
 
   /**
-   * Handle app state changes for proper connection lifecycle
+   * Handle app state changes for proper connection lifecycle (Mobile)
    */
   useEffect(() => {
+    // Only use AppState on mobile platforms
+    if (Platform.OS === "web") return;
+
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       console.log(
         "📱 App state changed from",
@@ -398,6 +401,38 @@ export const useChat = ({
       handleAppStateChange,
     );
     return () => subscription?.remove();
+  }, [markMessagesAsRead, ensureConnection, loadChatHistory]);
+
+  /**
+   * Handle page visibility changes for proper connection lifecycle (Web)
+   */
+  useEffect(() => {
+    // Only use Page Visibility API on web
+    if (Platform.OS !== "web") return;
+    if (typeof document === "undefined") return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Page became visible - reconnect WebSocket and refresh
+        console.log("🌐 Page became visible, reconnecting...");
+        ensureConnection().then(() => {
+          // Load latest messages after reconnection
+          loadChatHistory(true).then(() => {
+            markMessagesAsRead();
+          });
+        });
+      } else if (document.visibilityState === "hidden") {
+        // Page became hidden - disconnect to save resources
+        console.log("💤 Page hidden, disconnecting...");
+        webSocketService.forceDisconnectAndReset();
+        setIsConnected(false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [markMessagesAsRead, ensureConnection, loadChatHistory]);
 
   /**
