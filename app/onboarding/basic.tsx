@@ -374,7 +374,7 @@ export default function BasicDetailsForm() {
         </View> */}
 
           <ThemedPicker
-            label="Pronouns (Select up to 4)"
+            label="Pronouns"
             value={getPronounsDisplayValue()}
             onValueChange={() => {}} // Not used for multiple selection
             options={PRONOUNS_OPTIONS}

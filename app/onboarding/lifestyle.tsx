@@ -267,7 +267,7 @@ export default function LifestyleForm() {
           />
 
           <ThemedPicker
-            label="Highest Education Level"
+            label="Highest Education"
             value={formData.highestEducationLevel.value}
             onValueChange={(value) =>
               updateFormData("highestEducationLevel", {
