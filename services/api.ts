@@ -875,11 +875,11 @@ class ApiService {
     }
   }
 
-  async applyReferralCode(code: string): Promise<any> {
+  async applyReferralCode(referalCode: string): Promise<any> {
     try {
       const response = await this.makeAuthenticatedRequest("/refer", {
         method: "POST",
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ referalCode }),
       });
 
       if (!response.ok) {
