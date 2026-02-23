@@ -4,6 +4,7 @@ import ProgressIndicator from "@/components/onboarding/progress-indicator";
 import SimpleThemedPicker from "@/components/onboarding/simple-themed-picker";
 import ThemedInput from "@/components/onboarding/themed-input";
 import ThemedPicker from "@/components/onboarding/themed-picker";
+import ReferralCodeModal from "@/components/referral-code-modal";
 import { useApiErrorHandler } from "@/hooks/use-api-error-handler";
 import { apiService } from "@/services/api";
 import {
@@ -23,14 +24,18 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 
 const BASIC_FORM_STORAGE_KEY = "@fated_onboarding_basic_form";
+const REFERRAL_APPLIED_KEY = "@fated_referral_applied";
 
 export default function BasicDetailsForm() {
   const [loading, setLoading] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [referralApplied, setReferralApplied] = useState(false);
   const { handleError } = useApiErrorHandler();
   const [formData, setFormData] = useState<BasicDetailsFormData>({
     fname: "",
@@ -57,7 +62,7 @@ export default function BasicDetailsForm() {
     Partial<Record<keyof BasicDetailsFormData, string>>
   >({});
 
-  // Load saved form data on mount
+  // Load saved form data and referral status on mount
   useEffect(() => {
     const loadSavedData = async () => {
       try {
@@ -66,6 +71,10 @@ export default function BasicDetailsForm() {
           const parsedData = JSON.parse(savedData);
           console.log("📝 Basic Form: Loaded saved data from storage");
           setFormData(parsedData);
+        }
+        const applied = await AsyncStorage.getItem(REFERRAL_APPLIED_KEY);
+        if (applied === "true") {
+          setReferralApplied(true);
         }
       } catch (error) {
         console.error("📝 Basic Form: Failed to load saved data:", error);
@@ -273,6 +282,20 @@ export default function BasicDetailsForm() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Referral Code */}
+          {referralApplied ? (
+            <View style={styles.referralChip}>
+              <Text style={styles.referralChipText}>Referral applied</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => setShowReferralModal(true)}
+              style={styles.referralLink}
+            >
+              <Text style={styles.referralLinkText}>Have a referral code?</Text>
+            </TouchableOpacity>
+          )}
+
           <ProgressIndicator
             currentStep={1}
             totalSteps={5}
@@ -419,6 +442,12 @@ export default function BasicDetailsForm() {
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
+
+      <ReferralCodeModal
+        visible={showReferralModal}
+        onClose={() => setShowReferralModal(false)}
+        onSuccess={() => setReferralApplied(true)}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -451,6 +480,30 @@ const styles = StyleSheet.create({
   },
   fieldContainer: {
     marginBottom: 20,
+  },
+  referralLink: {
+    alignSelf: "center",
+    marginBottom: 12,
+    padding: 4,
+  },
+  referralLinkText: {
+    fontSize: 13,
+    color: "#4B164C",
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
+  referralChip: {
+    alignSelf: "center",
+    marginBottom: 12,
+    backgroundColor: "#E8F5E9",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  referralChipText: {
+    fontSize: 12,
+    color: "#2E7D32",
+    fontWeight: "600",
   },
   buttonContainer: {
     marginTop: 32,
