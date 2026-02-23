@@ -26,9 +26,12 @@ export class GoogleAuthService {
     try {
       console.log("🌐 Starting Google Sign-In for Web...");
 
-      const redirectUri = AuthSession.makeRedirectUri({
-        path: "auth/callback",
-      });
+      // Get the current origin and construct redirect URI manually to avoid trailing dots
+      const origin =
+        typeof window !== "undefined" ? window.location.origin : "";
+      // Remove any trailing dots from the origin
+      const cleanOrigin = origin.replace(/\.+$/, "");
+      const redirectUri = `${cleanOrigin}/auth/callback`;
 
       console.log("📍 Redirect URI:", redirectUri);
 
