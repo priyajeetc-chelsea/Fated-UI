@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  ScrollView,
   Share,
   StyleSheet,
   Text,
@@ -84,7 +85,7 @@ export default function InviteEarnScreen() {
         <View style={styles.backButton} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.iconCircle}>
@@ -163,7 +164,7 @@ export default function InviteEarnScreen() {
             <Text style={styles.stepText}>Both of you get rewarded!</Text>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -197,7 +198,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
+  },
+  contentContainer: {
     paddingTop: 24,
+    paddingBottom: 40,
   },
   heroSection: {
     alignItems: "center",
