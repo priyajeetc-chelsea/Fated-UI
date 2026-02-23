@@ -923,6 +923,35 @@ class ApiService {
       throw error;
     }
   }
+
+  /**
+   * Register device token with backend for push notifications
+   */
+  async registerDeviceToken(data: {
+    deviceToken: string;
+    deviceType: "android" | "ios" | "web";
+    deviceId: string;
+    appVersion: string;
+  }): Promise<any> {
+    try {
+      console.log("📱 Registering device token with backend");
+      const response = await this.makeAuthenticatedRequest("/device/register", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("✅ Device token registered successfully");
+      return result;
+    } catch (error) {
+      console.error("❌ Failed to register device token:", error);
+      throw error;
+    }
+  }
 }
 
 export const apiService = new ApiService();

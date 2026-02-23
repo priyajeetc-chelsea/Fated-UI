@@ -172,7 +172,7 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({
 
   // Check permission status on mount and when auth changes
   useEffect(() => {
-    const checkAndRequestPermission = async () => {
+    const checkPermission = async () => {
       const { status } = await Location.getForegroundPermissionsAsync();
       const granted = status === "granted";
       setHasPermission(granted);
@@ -181,25 +181,12 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({
         // Already have permission, start tracking
         await getCurrentLocationAndSend();
         startWatchingLocation();
-      } else {
-        // Don't have permission, request it directly (OS dialog)
-        // Wait 2 seconds after login to request permission
-        setTimeout(async () => {
-          const { status: newStatus } =
-            await Location.requestForegroundPermissionsAsync();
-          const newGranted = newStatus === "granted";
-          setHasPermission(newGranted);
-
-          if (newGranted) {
-            await getCurrentLocationAndSend();
-            startWatchingLocation();
-          }
-        }, 2000);
       }
+      // Removed automatic permission request - let the UI prompt handle it
     };
 
     if (isAuthenticated) {
-      checkAndRequestPermission();
+      checkPermission();
     } else {
       // Clean up when user logs out
       if (locationSubscriptionRef.current) {

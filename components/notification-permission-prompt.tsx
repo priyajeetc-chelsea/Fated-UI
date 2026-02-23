@@ -1,57 +1,66 @@
-import { useLocation } from "@/contexts/LocationContext";
+import { useNotification } from "@/contexts/NotificationContext";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Modal,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
+const NOTIFICATION_PERMISSION_ASKED_KEY = "@notification_permission_asked";
+const NOTIFICATION_PERMISSION_DENIED_KEY = "@notification_permission_denied";
 const LOCATION_PERMISSION_ASKED_KEY = "@location_permission_asked";
-const LOCATION_PERMISSION_DENIED_KEY = "@location_permission_denied";
 
-export const LocationPermissionPrompt: React.FC = () => {
+export const NotificationPermissionPrompt: React.FC = () => {
   const [showPrompt, setShowPrompt] = useState(false);
-  const { hasPermission, requestPermission } = useLocation();
+  const { hasPermission, requestPermission } = useNotification();
 
   useEffect(() => {
     const checkIfShouldShowPrompt = async () => {
-      // Don't show if already have permission
-      if (hasPermission === true) {
-        // Clear the asked flag if user granted permission elsewhere
-        await AsyncStorage.removeItem(LOCATION_PERMISSION_ASKED_KEY);
-        await AsyncStorage.removeItem(LOCATION_PERMISSION_DENIED_KEY);
+      // Don't show on web - web notifications require different handling
+      if (Platform.OS === "web") {
         return;
       }
 
-      // For web, check if user denied previously
-      if (Platform.OS === "web") {
-        const denied = await AsyncStorage.getItem(
-          LOCATION_PERMISSION_DENIED_KEY,
+      // Don't show if already have permission
+      if (hasPermission === true) {
+        // Clear the asked flag if user granted permission elsewhere
+        await AsyncStorage.removeItem(NOTIFICATION_PERMISSION_ASKED_KEY);
+        await AsyncStorage.removeItem(NOTIFICATION_PERMISSION_DENIED_KEY);
+        return;
+      }
+
+      // Check if user denied previously
+      const denied = await AsyncStorage.getItem(
+        NOTIFICATION_PERMISSION_DENIED_KEY,
+      );
+      if (denied === "true") {
+        console.log(
+          "⏭️ User previously denied notifications, not showing prompt",
         );
-        if (denied === "true") {
-          console.log(
-            "⏭️ User previously denied location on web, not showing prompt",
-          );
-          return;
-        }
+        return;
       }
 
       // Check if we've already asked before
       const hasAsked = await AsyncStorage.getItem(
+        NOTIFICATION_PERMISSION_ASKED_KEY,
+      );
+
+      // Don't show notification prompt until location prompt has been handled
+      const locationAsked = await AsyncStorage.getItem(
         LOCATION_PERMISSION_ASKED_KEY,
       );
 
-      // Show prompt after 2 seconds if we haven't asked before
-      if (!hasAsked) {
+      // Show prompt after 5 seconds if we haven't asked before and location was already asked
+      if (!hasAsked && locationAsked) {
         setTimeout(() => {
           setShowPrompt(true);
-        }, 2000);
+        }, 5000);
       }
     };
 
@@ -60,35 +69,31 @@ export const LocationPermissionPrompt: React.FC = () => {
 
   const handleAllow = async () => {
     setShowPrompt(false);
-    await AsyncStorage.setItem(LOCATION_PERMISSION_ASKED_KEY, "true");
+    await AsyncStorage.setItem(NOTIFICATION_PERMISSION_ASKED_KEY, "true");
 
     const granted = await requestPermission();
 
     if (!granted) {
       // Mark as denied so we don't keep asking
-      await AsyncStorage.setItem(LOCATION_PERMISSION_DENIED_KEY, "true");
+      await AsyncStorage.setItem(NOTIFICATION_PERMISSION_DENIED_KEY, "true");
 
       // Show alert if user denied permission
       Alert.alert(
-        "Location Access",
-        "Location access helps us show you better matches nearby. You can enable it later in Settings.",
+        "Notification Access",
+        "Notifications help you stay updated on new matches and messages. You can enable them later in Settings.",
         [{ text: "OK" }],
       );
     } else {
       // Clear denied flag if permission was granted
-      await AsyncStorage.removeItem(LOCATION_PERMISSION_DENIED_KEY);
+      await AsyncStorage.removeItem(NOTIFICATION_PERMISSION_DENIED_KEY);
     }
   };
 
   const handleNotNow = async () => {
     setShowPrompt(false);
-    await AsyncStorage.setItem(LOCATION_PERMISSION_ASKED_KEY, "true");
-
-    // For web and Android "this time" permissions, mark as soft denial
-    // We won't ask again until they clear storage or reinstall
-    if (Platform.OS === "web") {
-      await AsyncStorage.setItem(LOCATION_PERMISSION_DENIED_KEY, "true");
-    }
+    await AsyncStorage.setItem(NOTIFICATION_PERMISSION_ASKED_KEY, "true");
+    // Mark as soft denial - we won't ask again
+    await AsyncStorage.setItem(NOTIFICATION_PERMISSION_DENIED_KEY, "true");
   };
 
   if (!showPrompt || hasPermission === true) {
@@ -105,17 +110,17 @@ export const LocationPermissionPrompt: React.FC = () => {
       <View style={styles.overlay}>
         <View style={styles.promptContainer}>
           <View style={styles.iconContainer}>
-            <Ionicons name="location" size={48} color="#4B164C" />
+            <Ionicons name="notifications" size={48} color="#4B164C" />
           </View>
 
-          <Text style={styles.title}>Enable Location</Text>
+          <Text style={styles.title}>Enable Notifications</Text>
           <Text style={styles.description}>
-            Find matches near you! We&apos;ll show you people in your area to
-            make connections easier.
+            Stay updated on new matches and messages! We&apos;ll notify you when
+            someone likes you or sends a message.
           </Text>
 
           <TouchableOpacity style={styles.allowButton} onPress={handleAllow}>
-            <Text style={styles.allowButtonText}>Allow Location</Text>
+            <Text style={styles.allowButtonText}>Allow Notifications</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.notNowButton} onPress={handleNotNow}>

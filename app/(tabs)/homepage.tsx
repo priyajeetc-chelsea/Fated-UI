@@ -1,5 +1,7 @@
 import BaseLayout from "@/components/base-layout";
 import FeedbackModal from "@/components/feedback-modal";
+import { LocationPermissionPrompt } from "@/components/location-permission-prompt";
+import { NotificationPermissionPrompt } from "@/components/notification-permission-prompt";
 import OpinionModal from "@/components/opinion-modal";
 import ThemeFilterBubbles from "@/components/theme-filter-bubbles";
 import { ThemedText } from "@/components/themed-text";
@@ -13,13 +15,13 @@ import { ApiOpinion, ApiUser, MatchRequest, Tag } from "@/types/api";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  AppState,
-  AppStateStatus,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    AppState,
+    AppStateStatus,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function HomeScreen() {
@@ -640,6 +642,10 @@ export default function HomeScreen() {
         onSubmit={handleModalSubmit}
         onClose={handleModalClose}
       />
+
+      {/* Permission prompts - shown once to user */}
+      <LocationPermissionPrompt />
+      <NotificationPermissionPrompt />
     </BaseLayout>
   );
 }
