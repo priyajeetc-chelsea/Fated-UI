@@ -460,7 +460,10 @@ export default function ChatScreen() {
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                Platform.OS === "web" && ({ outline: "none" } as any),
+              ]}
               value={inputText}
               onChangeText={setInputText}
               onFocus={handleInputFocus}
@@ -667,6 +670,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     maxHeight: 120,
+    ...Platform.select({ web: { paddingVertical: 4 } }),
   },
   textInput: {
     flex: 1,
@@ -675,6 +679,9 @@ const styles = StyleSheet.create({
     maxHeight: 80,
     paddingVertical: 8,
     color: "#000",
+    ...Platform.select({
+      web: { outlineWidth: 0, paddingVertical: 4, minHeight: 20 },
+    }),
   },
   sendButton: {
     backgroundColor: "#4B164C",
