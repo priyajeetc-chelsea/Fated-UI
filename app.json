@@ -46,7 +46,7 @@
       ],
       "package": "com.fated.dating",
       "largeHeap": true,
-      "googleServicesFile": "./android/app/google-services.json",
+      "googleServicesFile": "./google-services.json",
       "hardwareAccelerated": true,
       "splash": {
         "image": "./assets/images/fated.png",
