@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "417900446021",
+    "project_id": "fated-82251",
+    "storage_bucket": "fated-82251.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:417900446021:android:f7f7bc368d5591c8d1be2c",
+        "android_client_info": {
+          "package_name": "com.fated.dating"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrh0Ysi7GZPEhLTZqIIBrsZ0fnBL5gI9I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
