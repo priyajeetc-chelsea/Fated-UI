@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
-import { ThemedText } from '../themed-text';
+import React, { useEffect, useRef } from "react";
+import { Animated, StyleSheet, View } from "react-native";
+import { ThemedText } from "../themed-text";
 
 interface WaveTextProps {
   text: string;
@@ -8,60 +8,110 @@ interface WaveTextProps {
 }
 
 export function WaveText({ text, style }: WaveTextProps) {
-  const animatedValues = useRef(
-    text.split('').map(() => new Animated.Value(0))
+  const letters = text.split("");
+
+  // Phase 1: rotate the first letter 360°
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  // Phase 2: fade-in for letters after the first
+  const revealAnims = useRef(
+    letters.slice(1).map(() => new Animated.Value(0)),
   ).current;
 
+  // Phase 2: continuous subtle wave for all letters
+  const waveAnims = useRef(letters.map(() => new Animated.Value(0))).current;
+
   useEffect(() => {
-    const animations = animatedValues.map((animatedValue, index) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.delay(index * 100), // Stagger the animation
-          Animated.timing(animatedValue, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(animatedValue, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ])
-      );
+    // ── Phase 1: spin "F" once (700ms) ──────────────────────────────────
+    const spinOnce = Animated.timing(rotateAnim, {
+      toValue: 1,
+      duration: 700,
+      useNativeDriver: true,
     });
 
-    Animated.stagger(30, animations).start();
+    // ── Phase 2a: staggered fade-in of remaining letters ─────────────────
+    const fadeIns = revealAnims.map((anim) =>
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    );
+    const staggeredReveal = Animated.stagger(80, fadeIns);
+
+    // ── Phase 2b: continuous small wave on all letters ───────────────────
+    const startWave = () => {
+      const waveLoops = waveAnims.map((anim) =>
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 350,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: 350,
+              useNativeDriver: true,
+            }),
+          ]),
+        ),
+      );
+      Animated.stagger(80, waveLoops).start();
+    };
+
+    // Run phase 1, then phase 2a + 2b together
+    Animated.sequence([spinOnce, staggeredReveal]).start(() => startWave());
 
     return () => {
-      animatedValues.forEach(value => value.stopAnimation());
+      rotateAnim.stopAnimation();
+      revealAnims.forEach((a) => a.stopAnimation());
+      waveAnims.forEach((a) => a.stopAnimation());
     };
-  }, [animatedValues]);
+  }, []);
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   return (
     <View style={styles.container}>
-      {text.split('').map((char, index) => (
-        <Animated.View
-          key={index}
-          style={[
+      {/* First letter — rotates in phase 1, then joins the wave */}
+      <Animated.View
+        style={{
+          transform: [
+            { rotate: spin },
             {
-              transform: [
-                {
-                  translateY: animatedValues[index].interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, -10],
-                  }),
-                },
-              ],
-              opacity: animatedValues[index].interpolate({
-                inputRange: [0, 0.5, 1],
-                outputRange: [0.6, 1, 0.6],
+              translateY: waveAnims[0].interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, -6],
               }),
             },
-          ]}
+          ],
+        }}
+      >
+        <ThemedText style={[styles.letter, style]}>{letters[0]}</ThemedText>
+      </Animated.View>
+
+      {/* Remaining letters — hidden until phase 2, then wave */}
+      {letters.slice(1).map((char, i) => (
+        <Animated.View
+          key={i + 1}
+          style={{
+            opacity: revealAnims[i],
+            transform: [
+              {
+                translateY: waveAnims[i + 1].interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, -6],
+                }),
+              },
+            ],
+          }}
         >
           <ThemedText style={[styles.letter, style]}>
-            {char === ' ' ? '\u00A0' : char}
+            {char === " " ? "\u00A0" : char}
           </ThemedText>
         </Animated.View>
       ))}
@@ -71,14 +121,14 @@ export function WaveText({ text, style }: WaveTextProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   letter: {
     fontSize: 45,
     lineHeight: 50,
-    fontFamily: 'Playfair Display Bold',
-    color: '#4B164C',
+    fontFamily: "Playfair Display Bold",
+    color: "#4B164C",
   },
 });

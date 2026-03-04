@@ -3,12 +3,12 @@ import { getDeviceInfo } from "@/utils/device-info";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
 } from "react";
 import { Platform } from "react-native";
 import { useAuth } from "./auth/AuthContext";
@@ -125,13 +125,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
         return null;
       }
 
-      // Get the token for this device
-      // Expo uses its own push notification service which works with FCM/APNs under the hood
-      const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: "0d7c7584-1501-46fe-88f8-e9c80352874f", // From app.json
-      });
+      // Get the raw FCM token (Android) / APNs token (iOS) for this device
+      // getDevicePushTokenAsync returns the native token that the backend uses to call FCM directly
+      const tokenData = await Notifications.getDevicePushTokenAsync();
 
-      console.log("📱 Push token obtained:", tokenData.data);
+      console.log("📱 FCM device token obtained:", tokenData.data);
 
       // Register the token with backend
       await registerDeviceWithBackend(tokenData.data);

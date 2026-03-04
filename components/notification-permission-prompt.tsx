@@ -1,15 +1,16 @@
+import { useLocation } from "@/contexts/LocationContext";
 import { useNotification } from "@/contexts/NotificationContext";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-    Alert,
-    Modal,
-    Platform,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const NOTIFICATION_PERMISSION_ASKED_KEY = "@notification_permission_asked";
@@ -19,6 +20,8 @@ const LOCATION_PERMISSION_ASKED_KEY = "@location_permission_asked";
 export const NotificationPermissionPrompt: React.FC = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const { hasPermission, requestPermission } = useNotification();
+  const { hasPermission: hasLocationPermission } = useLocation();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const checkIfShouldShowPrompt = async () => {
@@ -40,9 +43,6 @@ export const NotificationPermissionPrompt: React.FC = () => {
         NOTIFICATION_PERMISSION_DENIED_KEY,
       );
       if (denied === "true") {
-        console.log(
-          "⏭️ User previously denied notifications, not showing prompt",
-        );
         return;
       }
 
@@ -50,22 +50,31 @@ export const NotificationPermissionPrompt: React.FC = () => {
       const hasAsked = await AsyncStorage.getItem(
         NOTIFICATION_PERMISSION_ASKED_KEY,
       );
+      if (hasAsked) return;
 
-      // Don't show notification prompt until location prompt has been handled
-      const locationAsked = await AsyncStorage.getItem(
-        LOCATION_PERMISSION_ASKED_KEY,
-      );
+      // Clear any previously scheduled timer before scheduling a new one
+      if (timerRef.current) clearTimeout(timerRef.current);
 
-      // Show prompt after 5 seconds if we haven't asked before and location was already asked
-      if (!hasAsked && locationAsked) {
-        setTimeout(() => {
-          setShowPrompt(true);
-        }, 5000);
-      }
+      const locationAlreadyResolved =
+        hasLocationPermission === true ||
+        (await AsyncStorage.getItem(LOCATION_PERMISSION_ASKED_KEY)) !== null;
+
+      // If location is already resolved (allowed or denied), show after 5s.
+      // If location prompt is likely still showing (first launch), wait 15s so
+      // the two modals never overlap.
+      const delay = locationAlreadyResolved ? 5000 : 15000;
+
+      timerRef.current = setTimeout(() => {
+        setShowPrompt(true);
+      }, delay);
     };
 
     checkIfShouldShowPrompt();
-  }, [hasPermission]);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [hasPermission, hasLocationPermission]);
 
   const handleAllow = async () => {
     setShowPrompt(false);
