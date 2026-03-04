@@ -1,9 +1,9 @@
-import { PotentialMatchModal } from '@/components/potential-match-modal';
-import { apiService } from '@/services/api';
-import { PotentialMatchLike, PotentialMatchMutual } from '@/types/api';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { PotentialMatchModal } from "@/components/potential-match-modal";
+import { apiService } from "@/services/api";
+import { PotentialMatchLike, PotentialMatchMutual } from "@/types/api";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   AppState,
@@ -15,14 +15,14 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type SelectedPotentialMatch = {
   id: string;
   name: string;
   photo?: string;
-  type: 'likesYou' | 'mutualLike';
+  type: "likesYou" | "mutualLike";
   likedOpinion: {
     id: string;
     content: string;
@@ -32,25 +32,55 @@ type SelectedPotentialMatch = {
 };
 
 type PotentialMatchDisplay =
-  | ({ type: 'likesYou'; data: PotentialMatchLike & { unreadCount: number; isUnread: boolean; lastMessage?: { id: number; content: string } } })
-  | ({ type: 'mutualLike'; data: PotentialMatchMutual & { unreadCount: number; isUnread: boolean; lastMessage?: { id: number; content: string } } });
+  | {
+      type: "likesYou";
+      data: PotentialMatchLike & {
+        unreadCount: number;
+        isUnread: boolean;
+        lastMessage?: { id: number; content: string };
+      };
+    }
+  | {
+      type: "mutualLike";
+      data: PotentialMatchMutual & {
+        unreadCount: number;
+        isUnread: boolean;
+        lastMessage?: { id: number; content: string };
+      };
+    };
 
-const PotentialMatchPhotoWithLoader = ({ uri, userId }: { uri: string; userId: string }) => {
+const PotentialMatchPhotoWithLoader = ({
+  uri,
+  userId,
+}: {
+  uri: string;
+  userId: string;
+}) => {
   const [loading, setLoading] = useState(true);
   return (
     <>
-      <Image 
-        source={{ uri }} 
+      <Image
+        source={{ uri }}
         style={styles.chatPhoto}
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}
         onError={() => {
-          console.log('Photo failed to load for user:', userId);
+          console.log("Photo failed to load for user:", userId);
           setLoading(false);
         }}
       />
       {loading && (
-        <View style={[styles.chatPhoto, { position: 'absolute', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
+        <View
+          style={[
+            styles.chatPhoto,
+            {
+              position: "absolute",
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "#f0f0f0",
+            },
+          ]}
+        >
           <ActivityIndicator size="small" color="#4B164C" />
         </View>
       )}
@@ -59,8 +89,11 @@ const PotentialMatchPhotoWithLoader = ({ uri, userId }: { uri: string; userId: s
 };
 
 export default function PotentialMatchesScreen() {
-  const [selectedPotentialMatch, setSelectedPotentialMatch] = useState<SelectedPotentialMatch | null>(null);
-  const [potentialMatches, setPotentialMatches] = useState<PotentialMatchDisplay[]>([]);
+  const [selectedPotentialMatch, setSelectedPotentialMatch] =
+    useState<SelectedPotentialMatch | null>(null);
+  const [potentialMatches, setPotentialMatches] = useState<
+    PotentialMatchDisplay[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,19 +107,23 @@ export default function PotentialMatchesScreen() {
     setError(null);
     try {
       const res = await apiService.fetchPotentialMatches();
-      
-      const likesYou: PotentialMatchDisplay[] = (res.model?.likesYou || []).map((pm) => ({
-        type: 'likesYou',
-        data: {
-          ...pm,
-          unreadCount: pm.unreadCount ?? 0,
-          isUnread: pm.isUnread ?? false,
-          lastMessage: pm.lastMessage ?? undefined,
-        },
-      }));
 
-      const mutualLike: PotentialMatchDisplay[] = (res.model?.mutualLike || []).map((pm) => ({
-        type: 'mutualLike',
+      const likesYou: PotentialMatchDisplay[] = (res.model?.likesYou || []).map(
+        (pm) => ({
+          type: "likesYou",
+          data: {
+            ...pm,
+            unreadCount: pm.unreadCount ?? 0,
+            isUnread: pm.isUnread ?? false,
+            lastMessage: pm.lastMessage ?? undefined,
+          },
+        }),
+      );
+
+      const mutualLike: PotentialMatchDisplay[] = (
+        res.model?.mutualLike || []
+      ).map((pm) => ({
+        type: "mutualLike",
         data: {
           ...pm,
           unreadCount: pm.unreadCount ?? 0,
@@ -98,34 +135,56 @@ export default function PotentialMatchesScreen() {
 
       setPotentialMatches([...likesYou, ...mutualLike]);
     } catch {
-      setError('Failed to load potential matches.');
+      setError("Failed to load potential matches.");
     }
   }, []);
 
-  const hasPotentialMatchesChanged = useCallback((oldMatches: PotentialMatchDisplay[], newMatches: PotentialMatchDisplay[]) => {
-    if (oldMatches.length !== newMatches.length) return true;
-    
-    return oldMatches.some((oldMatch, index) => {
-      const newMatch = newMatches[index];
-      if (oldMatch.type !== newMatch.type) return true;
-      
-      const oldData = oldMatch.data;
-      const newData = newMatch.data;
-      
-      return oldData.userId !== newData.userId ||
-             oldData.unreadCount !== newData.unreadCount ||
-             oldData.isUnread !== newData.isUnread ||
-             oldData.lastMessage?.id !== newData.lastMessage?.id ||
-             oldData.lastMessage?.content !== newData.lastMessage?.content;
-    });
-  }, []);
+  const hasPotentialMatchesChanged = useCallback(
+    (
+      oldMatches: PotentialMatchDisplay[],
+      newMatches: PotentialMatchDisplay[],
+    ) => {
+      if (oldMatches.length !== newMatches.length) return true;
+
+      return oldMatches.some((oldMatch, index) => {
+        const newMatch = newMatches[index];
+        if (oldMatch.type !== newMatch.type) return true;
+
+        const oldData = oldMatch.data;
+        const newData = newMatch.data;
+
+        return (
+          oldData.userId !== newData.userId ||
+          oldData.unreadCount !== newData.unreadCount ||
+          oldData.isUnread !== newData.isUnread ||
+          oldData.lastMessage?.id !== newData.lastMessage?.id ||
+          oldData.lastMessage?.content !== newData.lastMessage?.content
+        );
+      });
+    },
+    [],
+  );
 
   const silentFetchPotentialMatches = useCallback(async () => {
     try {
       const res = await apiService.fetchPotentialMatches();
-      
-      const likesYou: PotentialMatchDisplay[] = (res.model?.likesYou || []).map((pm) => ({
-        type: 'likesYou',
+
+      const likesYou: PotentialMatchDisplay[] = (res.model?.likesYou || []).map(
+        (pm) => ({
+          type: "likesYou",
+          data: {
+            ...pm,
+            unreadCount: pm.unreadCount ?? 0,
+            isUnread: pm.isUnread ?? false,
+            lastMessage: pm.lastMessage ?? undefined,
+          },
+        }),
+      );
+
+      const mutualLike: PotentialMatchDisplay[] = (
+        res.model?.mutualLike || []
+      ).map((pm) => ({
+        type: "mutualLike",
         data: {
           ...pm,
           unreadCount: pm.unreadCount ?? 0,
@@ -134,20 +193,14 @@ export default function PotentialMatchesScreen() {
         },
       }));
 
-      const mutualLike: PotentialMatchDisplay[] = (res.model?.mutualLike || []).map((pm) => ({
-        type: 'mutualLike',
-        data: {
-          ...pm,
-          unreadCount: pm.unreadCount ?? 0,
-          isUnread: pm.isUnread ?? false,
-          lastMessage: pm.lastMessage ?? undefined,
-        },
-      }));
-      
       const newPotentialMatches = [...likesYou, ...mutualLike];
-      setPotentialMatches(prev => hasPotentialMatchesChanged(prev, newPotentialMatches) ? newPotentialMatches : prev);
+      setPotentialMatches((prev) =>
+        hasPotentialMatchesChanged(prev, newPotentialMatches)
+          ? newPotentialMatches
+          : prev,
+      );
     } catch (error) {
-      console.error('Silent polling failed:', error);
+      console.error("Silent polling failed:", error);
     }
   }, [hasPotentialMatchesChanged]);
 
@@ -171,11 +224,11 @@ export default function PotentialMatchesScreen() {
     useCallback(() => {
       isScreenFocusedRef.current = true;
       fetchPotentialMatches();
-      
+
       return () => {
         isScreenFocusedRef.current = false;
       };
-    }, [fetchPotentialMatches])
+    }, [fetchPotentialMatches]),
   );
 
   useEffect(() => {
@@ -191,7 +244,7 @@ export default function PotentialMatchesScreen() {
   useEffect(() => {
     const startPolling = () => {
       pollingIntervalRef.current = setInterval(() => {
-        if (AppState.currentState === 'active' && isScreenFocusedRef.current) {
+        if (AppState.currentState === "active" && isScreenFocusedRef.current) {
           silentFetchPotentialMatches();
         }
       }, 5000);
@@ -210,7 +263,10 @@ export default function PotentialMatchesScreen() {
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
         if (isScreenFocusedRef.current) {
           silentFetchPotentialMatches();
         }
@@ -218,7 +274,10 @@ export default function PotentialMatchesScreen() {
       appStateRef.current = nextAppState;
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange,
+    );
     return () => subscription?.remove();
   }, [silentFetchPotentialMatches]);
 
@@ -229,7 +288,7 @@ export default function PotentialMatchesScreen() {
   }, [fetchPotentialMatches]);
 
   const renderPotentialMatchItem = (pm: PotentialMatchDisplay) => {
-    if (pm.type === 'likesYou') {
+    if (pm.type === "likesYou") {
       return (
         <TouchableOpacity
           key={`likesYou-${pm.data.userId}`}
@@ -238,7 +297,7 @@ export default function PotentialMatchesScreen() {
             setSelectedPotentialMatch({
               id: pm.data.userId.toString(),
               name: pm.data.firstName,
-              type: 'likesYou',
+              type: "likesYou",
               likedOpinion: {
                 id: pm.data.likedOpinion.id.toString(),
                 content: pm.data.likedOpinion.answer,
@@ -261,10 +320,9 @@ export default function PotentialMatchesScreen() {
             </View>
             <View style={styles.chatMessageContainer}>
               <Text style={styles.chatMessage} numberOfLines={1}>
-                {pm.data.lastMessage 
+                {pm.data.lastMessage
                   ? pm.data.lastMessage.content
-                  : `"${pm.data.likedOpinion.answer.substring(0, 40)}..."`
-                }
+                  : `"${pm.data.likedOpinion.answer.substring(0, 40)}..."`}
               </Text>
               {(pm.data.lastMessage ? pm.data.unreadCount > 0 : true) && (
                 <View style={styles.chatBadge}>
@@ -278,7 +336,7 @@ export default function PotentialMatchesScreen() {
         </TouchableOpacity>
       );
     } else {
-      const displayPhoto = '';
+      const displayPhoto = "";
 
       return (
         <TouchableOpacity
@@ -289,7 +347,7 @@ export default function PotentialMatchesScreen() {
               id: pm.data.userId.toString(),
               name: pm.data.firstName,
               photo: displayPhoto,
-              type: 'mutualLike',
+              type: "mutualLike",
               likedOpinion: {
                 id: pm.data.likedOpinion.id.toString(),
                 content: pm.data.likedOpinion.answer,
@@ -300,8 +358,11 @@ export default function PotentialMatchesScreen() {
           }}
         >
           <View style={styles.chatPhotoContainer}>
-            {pm.data.photoUrl && pm.data.photoUrl.trim() !== '' ? (
-              <PotentialMatchPhotoWithLoader uri={displayPhoto} userId={pm.data.userId} />
+            {pm.data.photoUrl && pm.data.photoUrl.trim() !== "" ? (
+              <PotentialMatchPhotoWithLoader
+                uri={displayPhoto}
+                userId={pm.data.userId.toString()}
+              />
             ) : (
               <View style={styles.chatPlaceholderPhoto}>
                 <Ionicons name="person" size={28} color="#999" />
@@ -316,10 +377,9 @@ export default function PotentialMatchesScreen() {
             </View>
             <View style={styles.chatMessageContainer}>
               <Text style={styles.chatMessage} numberOfLines={1}>
-                {pm.data.lastMessage 
-                  ? pm.data.lastMessage.content 
-                  : `"${pm.data.likedOpinion.answer.substring(0, 40)}..."`
-                }
+                {pm.data.lastMessage
+                  ? pm.data.lastMessage.content
+                  : `"${pm.data.likedOpinion.answer.substring(0, 40)}..."`}
               </Text>
               {(pm.data.lastMessage ? pm.data.unreadCount > 0 : true) && (
                 <View style={styles.chatBadge}>
@@ -336,7 +396,7 @@ export default function PotentialMatchesScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.title}>Potential Matches</Text>
@@ -354,16 +414,16 @@ export default function PotentialMatchesScreen() {
         </View>
       ) : error ? (
         <View style={styles.centerContainer}>
-          <Text style={{ color: 'red' }}>{error}</Text>
+          <Text style={{ color: "red" }}>{error}</Text>
         </View>
       ) : (
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#4B164C']}
+              colors={["#4B164C"]}
               tintColor="#4B164C"
             />
           }
@@ -386,8 +446,8 @@ export default function PotentialMatchesScreen() {
           fetchPotentialMatches();
         }}
         onLikeOpinion={async (matchUserId) => {
-          const matchDisplay = potentialMatches.find(pm => {
-            if (pm.type === 'likesYou') {
+          const matchDisplay = potentialMatches.find((pm) => {
+            if (pm.type === "likesYou") {
               return pm.data.userId.toString() === matchUserId;
             }
             return false;
@@ -395,55 +455,57 @@ export default function PotentialMatchesScreen() {
           if (!matchDisplay) return;
           const matchData = matchDisplay.data;
           try {
-            const opinionsResponse = await apiService.fetchUserOpinions(Number(matchUserId));
+            const opinionsResponse = await apiService.fetchUserOpinions(
+              Number(matchUserId),
+            );
             const opinions = Array.isArray(opinionsResponse.model?.opinions)
               ? opinionsResponse.model.opinions.map((op: any) => ({
                   takeId: op.takeId ?? 0,
-                  question: op.question ?? '',
-                  answer: op.answer ?? '',
-                  tag: op.tag ?? { id: 0, name: '' },
+                  question: op.question ?? "",
+                  answer: op.answer ?? "",
+                  tag: op.tag ?? { id: 0, name: "" },
                 }))
               : [];
             router.push({
-              pathname: '/potential-matches/potential-match-home',
+              pathname: "/potential-matches/potential-match-home",
               params: {
                 userName: matchData.firstName,
                 opinions: JSON.stringify(opinions),
-                fromMatches: 'true',
+                fromMatches: "true",
               },
             });
           } catch {
             router.push({
-              pathname: '/potential-matches/potential-match-home',
+              pathname: "/potential-matches/potential-match-home",
               params: {
                 userName: matchData.firstName,
                 opinions: JSON.stringify([
                   {
                     question: matchData.likedOpinion.question,
                     answer: matchData.likedOpinion.answer,
-                    tag: { id: 0, name: '' },
+                    tag: { id: 0, name: "" },
                   },
                 ]),
-                fromMatches: 'true',
+                fromMatches: "true",
               },
             });
           }
         }}
         onLikeProfile={async (matchUserId) => {
-          const matchDisplay = potentialMatches.find(pm => {
-            if (pm.type === 'mutualLike') {
+          const matchDisplay = potentialMatches.find((pm) => {
+            if (pm.type === "mutualLike") {
               return pm.data.userId.toString() === matchUserId;
             }
             return false;
           });
           if (!matchDisplay) return;
-          
+
           router.push({
-            pathname: '/potential-matches/user-profile-page',
-            params: { 
+            pathname: "/potential-matches/user-profile-page",
+            params: {
               userBId: matchUserId,
-              fromMatches: 'true',
-            }
+              fromMatches: "true",
+            },
           });
         }}
       />
@@ -454,42 +516,42 @@ export default function PotentialMatchesScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   title: {
     fontSize: 24,
-    fontFamily:'Playfair Display Bold',
-    color: '#4B164C',
+    fontFamily: "Playfair Display Bold",
+    color: "#4B164C",
   },
   headerBadge: {
-    backgroundColor: '#ff4444',
+    backgroundColor: "#ff4444",
     borderRadius: 10,
     minWidth: 20,
     height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 6,
     marginLeft: 10,
   },
   headerBadgeText: {
-    color: 'white',
+    color: "white",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   centerContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   content: {
     flex: 1,
@@ -498,18 +560,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
-    color: '#666',
+    color: "#666",
   },
   whatsappChatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E5E5',
+    borderBottomColor: "#E5E5E5",
   },
   chatPhotoContainer: {
     marginRight: 12,
@@ -523,64 +585,64 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#f0f0f0",
+    alignItems: "center",
+    justifyContent: "center",
   },
   chatContent: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 4,
   },
   nameWithBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   chatName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+    fontWeight: "600",
+    color: "#000000",
     marginRight: 8,
   },
   chatMessageContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   chatMessage: {
     fontSize: 14,
-    color: '#666666',
+    color: "#666666",
     flex: 1,
     marginRight: 8,
   },
   chatBadge: {
-    backgroundColor: '#4B164C',
+    backgroundColor: "#4B164C",
     borderRadius: 10,
     minWidth: 20,
     height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 6,
   },
   chatBadgeText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   lockedChatPhoto: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#f5f5f5f5',
+    backgroundColor: "#f5f5f5f5",
     borderWidth: 1,
-    borderColor: '#4B164C',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#4B164C",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

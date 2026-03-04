@@ -365,7 +365,7 @@ class ApiService {
           onboardingStep: apiResponse.model.onboardingStep,
         };
 
-        console.log("🔄 Converted API Response:", convertedResponse);
+        // console.log("🔄 Converted API Response:", convertedResponse);
         return convertedResponse as T;
       } else {
         throw new Error(

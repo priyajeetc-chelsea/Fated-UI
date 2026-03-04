@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
   id: number;
@@ -17,22 +17,27 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-const USER_STORAGE_KEY = '@fated_current_user';
+const USER_STORAGE_KEY = "@fated_current_user";
 
 // Utility function to clear user data (can be called from anywhere)
 export const clearStoredUser = async () => {
   try {
     await AsyncStorage.removeItem(USER_STORAGE_KEY);
-    console.log('👤 clearStoredUser: User data and cached photos cleared from storage');
+    console.log(
+      "👤 clearStoredUser: User data and cached photos cleared from storage",
+    );
   } catch (error) {
-    console.error('👤 clearStoredUser: Failed to clear user from storage:', error);
+    console.error(
+      "👤 clearStoredUser: Failed to clear user from storage:",
+      error,
+    );
   }
 };
 
 export const useUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error("useUser must be used within a UserProvider");
   }
   return context;
 };
@@ -52,17 +57,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
         if (storedUser) {
           const user = JSON.parse(storedUser);
-          console.log('👤 UserContext: Loaded user from storage:', {
+          console.log("👤 UserContext: Loaded user from storage:", {
             id: user.id,
             name: user.name,
-            hasPhotos: user.photoUrls ? user.photoUrls.length : 0
+            hasPhotos: user.photoUrls ? user.photoUrls.length : 0,
           });
           setCurrentUser(user);
         } else {
-          console.log('👤 UserContext: No stored user found');
+          console.log("👤 UserContext: No stored user found");
         }
       } catch (error) {
-        console.error('👤 UserContext: Failed to load user from storage:', error);
+        console.error(
+          "👤 UserContext: Failed to load user from storage:",
+          error,
+        );
       } finally {
         setIsLoading(false);
       }
@@ -73,20 +81,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   // Wrap setCurrentUser to add logging and persist to storage
   const setCurrentUserWithLogging = async (user: User | null) => {
-    console.log('👤 UserContext: setCurrentUser called with:', user);
+    console.log("👤 UserContext: setCurrentUser called with:", user);
     setCurrentUser(user);
-    
+
     // Persist to AsyncStorage
     try {
       if (user) {
         await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-        console.log('👤 UserContext: User saved to storage');
+        console.log("👤 UserContext: User saved to storage");
       } else {
         await AsyncStorage.removeItem(USER_STORAGE_KEY);
-        console.log('👤 UserContext: User removed from storage');
+        console.log("👤 UserContext: User removed from storage");
       }
     } catch (error) {
-      console.error('👤 UserContext: Failed to save user to storage:', error);
+      console.error("👤 UserContext: Failed to save user to storage:", error);
     }
   };
 
@@ -95,12 +103,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     if (currentUser) {
       const updatedUser = { ...currentUser, photoUrls };
       setCurrentUser(updatedUser);
-      
+
       // Persist to AsyncStorage
       try {
-        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+        await AsyncStorage.setItem(
+          USER_STORAGE_KEY,
+          JSON.stringify(updatedUser),
+        );
       } catch (error) {
-        console.error('📸 UserContext: Failed to save user photos to storage:', error);
+        console.error(
+          "📸 UserContext: Failed to save user photos to storage:",
+          error,
+        );
       }
     }
   };
@@ -112,11 +126,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     updateUserPhotos,
   };
 
-  console.log('👤 UserContext: Rendering with currentUser =', currentUser, 'isLoading =', isLoading);
+  // console.log('👤 UserContext: Rendering with currentUser =', currentUser, 'isLoading =', isLoading);
 
-  return (
-    <UserContext.Provider value={value}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

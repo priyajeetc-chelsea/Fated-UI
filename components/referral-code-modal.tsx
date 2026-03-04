@@ -104,13 +104,13 @@ export default function ReferralCodeModal({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.modalOverlay}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback>
+      <TouchableWithoutFeedback onPress={handleClose}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.modalContainer}
+            >
               <View style={styles.modalContent}>
                 {/* Handle bar */}
                 <View style={styles.handleBar} />
@@ -127,7 +127,8 @@ export default function ReferralCodeModal({
                 </View>
 
                 <Text style={styles.subtitle}>
-                  Got a referral code from a friend? Enter it below to claim your reward.
+                  Got a referral code from a friend? Enter it below to claim
+                  your reward.
                 </Text>
 
                 {/* Input */}
@@ -149,7 +150,8 @@ export default function ReferralCodeModal({
                 <TouchableOpacity
                   style={[
                     styles.applyButton,
-                    (!code.trim() || isSubmitting) && styles.applyButtonDisabled,
+                    (!code.trim() || isSubmitting) &&
+                      styles.applyButtonDisabled,
                   ]}
                   onPress={handleApply}
                   disabled={!code.trim() || isSubmitting}
@@ -162,10 +164,10 @@ export default function ReferralCodeModal({
                   )}
                 </TouchableOpacity>
               </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }
@@ -177,7 +179,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContainer: {
-    flex: 1,
     justifyContent: "flex-end",
   },
   modalContent: {

@@ -1,80 +1,92 @@
-import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import React from "react";
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface OnboardingButtonProps {
   title: string;
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: 'primary' | 'secondary';
+  variant?: "primary" | "secondary";
 }
 
-export default function OnboardingButton({ 
-  title, 
-  onPress, 
-  loading = false, 
+export default function OnboardingButton({
+  title,
+  onPress,
+  loading = false,
   disabled = false,
-  variant = 'primary'
+  variant = "primary",
 }: OnboardingButtonProps) {
   const isDisabled = disabled || loading;
-  
+  const insets = useSafeAreaInsets();
+
   return (
-    <TouchableOpacity
-      style={[
-        styles.button,
-        variant === 'secondary' && styles.secondaryButton,
-        isDisabled && styles.disabledButton,
-      ]}
-      onPress={onPress}
-      disabled={isDisabled}
-      activeOpacity={0.8}
-    >
-      {loading ? (
-        <ActivityIndicator 
-          size="small" 
-          color={variant === 'primary' ? '#FFF' : '#000'} 
-        />
-      ) : (
-        <Text style={[
-          styles.buttonText,
-          variant === 'secondary' && styles.secondaryButtonText,
-          isDisabled && styles.disabledButtonText,
-        ]}>
-          {title}
-        </Text>
-      )}
-    </TouchableOpacity>
+    <View style={{ paddingBottom: Math.max(insets.bottom, 16), width: "100%" }}>
+      <TouchableOpacity
+        style={[
+          styles.button,
+          variant === "secondary" && styles.secondaryButton,
+          isDisabled && styles.disabledButton,
+        ]}
+        onPress={onPress}
+        disabled={isDisabled}
+        activeOpacity={0.8}
+      >
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={variant === "primary" ? "#FFF" : "#000"}
+          />
+        ) : (
+          <Text
+            style={[
+              styles.buttonText,
+              variant === "secondary" && styles.secondaryButtonText,
+              isDisabled && styles.disabledButtonText,
+            ]}
+          >
+            {title}
+          </Text>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minHeight: 52,
   },
   secondaryButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: '#000',
+    borderColor: "#000",
   },
   disabledButton: {
-    backgroundColor: '#E0E0E0',
-    borderColor: '#E0E0E0',
+    backgroundColor: "#E0E0E0",
+    borderColor: "#E0E0E0",
   },
   buttonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   secondaryButtonText: {
-    color: '#000',
+    color: "#000",
   },
   disabledButtonText: {
-    color: '#999',
+    color: "#999",
   },
 });

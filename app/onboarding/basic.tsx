@@ -468,6 +468,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "600",
     color: "#000",
+    fontFamily: "Playfair Display Bold",
     marginBottom: 8,
     textAlign: "center",
   },
