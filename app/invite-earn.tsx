@@ -63,7 +63,7 @@ export default function InviteEarnScreen() {
 
   const handleShare = async () => {
     if (!referralCode) return;
-    const message = `Hey! Join me on Fated - a dating app where your opinions matter. Use my referral code: ${referralCode} to get started!\n\nDownload Fated now!`;
+    const message = `Hey! Join me on Fated - a dating app where your opinions matter. Use my referral code: ${referralCode} to get started!\n\nDownload Fated now: https://play.google.com/store/apps/details?id=com.fated.dating`;
     try {
       await Share.share({
         message,
