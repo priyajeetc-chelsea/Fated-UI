@@ -148,9 +148,9 @@ export default function BasicDetailsForm() {
     //   newErrors.sexuality = "Sexuality is required";
     // }
 
-    if (!formData.pronouns.value.trim()) {
-      newErrors.pronouns = "Pronouns are required";
-    }
+    // if (!formData.pronouns.value.trim()) {
+    //   newErrors.pronouns = "Pronouns are required";
+    // }
 
     if (formData.interestedIn.length === 0) {
       newErrors.interestedIn = "Please select who you&rsquo;re interested in";
@@ -403,7 +403,6 @@ export default function BasicDetailsForm() {
             options={PRONOUNS_OPTIONS}
             placeholder="Select your pronouns"
             error={errors.pronouns}
-            required
             multiple
             selectedValues={
               formData.pronouns.value ? formData.pronouns.value.split("/") : []

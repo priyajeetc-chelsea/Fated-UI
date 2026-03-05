@@ -2,14 +2,14 @@ import { IntPickerOption, PickerOption } from "@/types/onboarding";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    Keyboard,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Keyboard,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface ThemedPickerProps {
@@ -95,6 +95,7 @@ export default function ThemedPicker({
         <Text style={styles.label}>
           {label}
           {required && <Text style={styles.required}> *</Text>}
+          {!required && <Text style={styles.optional}> (optional)</Text>}
         </Text>
         {showPrivacyToggle && onPrivacyToggle && (
           <View style={styles.inlineToggle}>
@@ -234,6 +235,11 @@ const styles = StyleSheet.create({
   },
   required: {
     color: "#FF4444",
+  },
+  optional: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: "#666",
   },
   inlineToggle: {
     flexDirection: "row",
