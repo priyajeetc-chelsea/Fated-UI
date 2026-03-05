@@ -106,14 +106,14 @@ export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
           />
 
           {/* Divider */}
-          <View style={styles.divider}>
+          {/* <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>or</Text>
             <View style={styles.dividerLine} />
-          </View>
+          </View> */}
 
           {/* Phone Number Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.phoneButton}
             onPress={() => setShowPhoneInput(true)}
             disabled={isLoading}
@@ -127,7 +127,7 @@ export function PhoneInputScreen({ onSuccess }: PhoneInputScreenProps) {
             <Text style={styles.phoneButtonText}>
               Continue with Phone Number
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Error Message */}
           {error && <Text style={styles.errorText}>{error}</Text>}
