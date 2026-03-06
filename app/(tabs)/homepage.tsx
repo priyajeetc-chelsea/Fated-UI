@@ -4,6 +4,7 @@ import { LocationPermissionPrompt } from "@/components/location-permission-promp
 import { NotificationPermissionPrompt } from "@/components/notification-permission-prompt";
 import OpinionModal from "@/components/opinion-modal";
 import PreLaunchScreen from "@/components/pre-launch-screen";
+import SwipeLimitModal from "@/components/swipe-limit-modal";
 import ThemeFilterBubbles from "@/components/theme-filter-bubbles";
 import { ThemedText } from "@/components/themed-text";
 import UserProfile from "@/components/user-profile";
@@ -48,6 +49,9 @@ export default function HomeScreen() {
   // Pre-launch screen state
   const [preLaunchScreen, setPreLaunchScreen] = useState(false);
   const [launchDate, setLaunchDate] = useState("");
+
+  // Swipe limit state
+  const [showSwipeLimitModal, setShowSwipeLimitModal] = useState(false);
 
   // Animation state for like/cross feedback
   const [showFeedback, setShowFeedback] = useState(false);
@@ -500,7 +504,13 @@ export default function HomeScreen() {
     comment?: string,
   ) => {
     try {
-      await apiService.sendSwipe(takeId, swipeRight, comment);
+      const result = await apiService.sendSwipe(takeId, swipeRight, comment);
+
+      if (result?.limitReached) {
+        console.log("🚫 Swipe limit reached");
+        setShowSwipeLimitModal(true);
+        return;
+      }
 
       const newUsers = users.filter((_, index) => index !== currentUserIndex);
       setUsers(newUsers);
@@ -549,6 +559,7 @@ export default function HomeScreen() {
 
     // Call swipe API with false (reject) before removing user
     const currentUser = users[currentUserIndex];
+    let limitReached = false;
     if (currentUser && currentUser.opinions.length > 0) {
       try {
         // Get the first opinion's takeId for the swipe API call
@@ -556,12 +567,24 @@ export default function HomeScreen() {
         const takeId = parseInt(firstOpinion.id); // takeId is stored in the id field
 
         if (takeId && !isNaN(takeId)) {
-          await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
+          const result = await apiService.sendSwipe(takeId, false); // swipeRight: false for reject
           console.log("User rejected via swipe API");
+
+          if (result?.limitReached) {
+            console.log("🚫 Swipe limit reached");
+            limitReached = true;
+          }
         }
       } catch (error) {
         console.error("Failed to send reject swipe:", error);
       }
+    }
+
+    if (limitReached) {
+      setTimeout(() => {
+        setShowSwipeLimitModal(true);
+      }, 1000);
+      return;
     }
 
     setTimeout(() => {
@@ -676,6 +699,12 @@ export default function HomeScreen() {
       {/* Permission prompts - shown once to user */}
       <LocationPermissionPrompt />
       <NotificationPermissionPrompt />
+
+      <SwipeLimitModal
+        visible={showSwipeLimitModal}
+        onClose={() => setShowSwipeLimitModal(false)}
+        onInvite={() => router.push("/invite-earn")}
+      />
     </BaseLayout>
   );
 }

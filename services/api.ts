@@ -411,6 +411,16 @@ class ApiService {
 
       const result = await response.json();
       console.log("✅ Swipe response:", result);
+
+      // Check for swipe limit from API response
+      if (result?.model?.limitReached) {
+        return {
+          ...result,
+          limitReached: true,
+          remainingSwipes: result.model.remainingSwipes ?? 0,
+        };
+      }
+
       return result;
     } catch (error) {
       console.error("💥 Failed to send swipe:", error);
