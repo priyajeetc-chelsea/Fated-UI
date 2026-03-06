@@ -363,6 +363,8 @@ class ApiService {
             : [],
           hasMore: apiResponse.model.hasMore || false,
           onboardingStep: apiResponse.model.onboardingStep,
+          preLaunchScreen: apiResponse.model.preLaunchScreen,
+          launchDate: apiResponse.model.launchDate,
         };
 
         // console.log("🔄 Converted API Response:", convertedResponse);
@@ -460,6 +462,8 @@ class ApiService {
           matches: [],
           hasMore: false,
           onboardingStep: response.onboardingStep,
+          preLaunchScreen: response.preLaunchScreen,
+          launchDate: response.launchDate,
         };
       }
 

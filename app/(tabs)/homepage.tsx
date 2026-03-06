@@ -3,6 +3,7 @@ import FeedbackModal from "@/components/feedback-modal";
 import { LocationPermissionPrompt } from "@/components/location-permission-prompt";
 import { NotificationPermissionPrompt } from "@/components/notification-permission-prompt";
 import OpinionModal from "@/components/opinion-modal";
+import PreLaunchScreen from "@/components/pre-launch-screen";
 import ThemeFilterBubbles from "@/components/theme-filter-bubbles";
 import { ThemedText } from "@/components/themed-text";
 import UserProfile from "@/components/user-profile";
@@ -43,6 +44,10 @@ export default function HomeScreen() {
   );
   const [selectedUserName, setSelectedUserName] = useState("");
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  // Pre-launch screen state
+  const [preLaunchScreen, setPreLaunchScreen] = useState(false);
+  const [launchDate, setLaunchDate] = useState("");
 
   // Animation state for like/cross feedback
   const [showFeedback, setShowFeedback] = useState(false);
@@ -395,6 +400,15 @@ export default function HomeScreen() {
       console.log("✅ Onboarding complete, resetting flag");
       isOnOnboardingScreen.current = false;
 
+      // Check if pre-launch screen should be shown
+      if (response.preLaunchScreen) {
+        console.log("🚀 Pre-launch screen active, launch date:", response.launchDate);
+        setPreLaunchScreen(true);
+        setLaunchDate("20th March");
+        setIsLoading(false);
+        return;
+      }
+
       if (!response.matches || response.matches.length === 0) {
         console.log("⚠️ No matches available");
         setUsers([]);
@@ -578,6 +592,22 @@ export default function HomeScreen() {
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color="#000" />
         </View>
+      </BaseLayout>
+    );
+  }
+
+  if (preLaunchScreen) {
+    return (
+      <BaseLayout showAppHeader>
+        <PreLaunchScreen
+          launchDate={launchDate}
+          onInvite={() => router.push("/invite-earn")}
+          onFeedback={() => setShowFeedbackModal(true)}
+        />
+        <FeedbackModal
+          visible={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+        />
       </BaseLayout>
     );
   }
