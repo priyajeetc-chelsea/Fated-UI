@@ -63,7 +63,7 @@ export default function InviteEarnScreen() {
 
   const handleShare = async () => {
     if (!referralCode) return;
-    const message = `Hey! Join me on Fated - a dating app where your opinions matter. Use my referral code: ${referralCode} to get started!\n\nDownload Fated now: https://play.google.com/store/apps/details?id=com.fated.dating`;
+    const message = `Hey! Join me on Fated - a dating app where your opinions matter. Use my referral code: ${referralCode} to get started!\n\nDownload for Android: https://play.google.com/store/apps/details?id=com.fated.dating\nDownload for iOS: https://app.fated.in`;
     try {
       await Share.share({
         message,
@@ -93,8 +93,15 @@ export default function InviteEarnScreen() {
           </View>
           <Text style={styles.heroTitle}>Share Fated with Friends</Text>
           <Text style={styles.heroSubtitle}>
-            Invite your friends to Fated and help them find meaningful connections.
+            Invite your friends to Fated and help them find meaningful
+            connections.
           </Text>
+          <View style={styles.benefitBadge}>
+            <Ionicons name="sparkles" size={16} color="#4B164C" />
+            <Text style={styles.benefitBadgeText}>
+              Each referral gives you <Text style={styles.benefitBold}>5 extra daily views</Text>
+            </Text>
+          </View>
         </View>
 
         {/* Referral Code Card */}
@@ -161,7 +168,7 @@ export default function InviteEarnScreen() {
             <View style={styles.stepDot}>
               <Text style={styles.stepDotText}>3</Text>
             </View>
-            <Text style={styles.stepText}>Both of you get rewarded!</Text>
+            <Text style={styles.stepText}>You get 5 extra daily views per referral!</Text>
           </View>
         </View>
       </ScrollView>
@@ -229,6 +236,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
     paddingHorizontal: 20,
+  },
+  benefitBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F0F8",
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginTop: 14,
+    gap: 8,
+  },
+  benefitBadgeText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  benefitBold: {
+    fontWeight: "700",
+    color: "#4B164C",
   },
   codeCard: {
     backgroundColor: "#fff",

@@ -143,6 +143,8 @@ export interface MatchResponse {
     step: number;
     description: string;
   };
+  preLaunchScreen?: boolean;
+  launchDate?: string;
 }
 
 // Converted User type for the app

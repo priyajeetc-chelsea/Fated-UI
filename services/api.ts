@@ -363,6 +363,8 @@ class ApiService {
             : [],
           hasMore: apiResponse.model.hasMore || false,
           onboardingStep: apiResponse.model.onboardingStep,
+          preLaunchScreen: apiResponse.model.preLaunchScreen,
+          launchDate: apiResponse.model.launchDate,
         };
 
         // console.log("🔄 Converted API Response:", convertedResponse);
@@ -409,6 +411,16 @@ class ApiService {
 
       const result = await response.json();
       console.log("✅ Swipe response:", result);
+
+      // Check for swipe limit from API response
+      if (result?.model?.limitReached) {
+        return {
+          ...result,
+          limitReached: true,
+          remainingSwipes: result.model.remainingSwipes ?? 0,
+        };
+      }
+
       return result;
     } catch (error) {
       console.error("💥 Failed to send swipe:", error);
@@ -460,6 +472,8 @@ class ApiService {
           matches: [],
           hasMore: false,
           onboardingStep: response.onboardingStep,
+          preLaunchScreen: response.preLaunchScreen,
+          launchDate: response.launchDate,
         };
       }
 

@@ -1,11 +1,23 @@
 import { AuthConfig } from "@/services/auth/config";
-import * as AuthSession from "expo-auth-session";
-import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 
 // Complete the authentication session for web
 WebBrowser.maybeCompleteAuthSession();
+
+/**
+ * Generate a cryptographically random string synchronously.
+ * Uses crypto.getRandomValues() which is sync and available in all modern browsers.
+ * This avoids breaking Safari's popup gesture chain (which requires window.open
+ * to be called synchronously from a user click handler).
+ */
+function generateRandomStringSync(length: number = 32): string {
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
+}
 
 export class GoogleAuthService {
   /**
@@ -20,64 +32,88 @@ export class GoogleAuthService {
   }
 
   /**
-   * Sign in with Google using expo-auth-session (Web)
+   * Sign in with Google using a fully synchronous setup before opening the popup.
+   *
+   * Safari blocks popups if window.open() is not called in the synchronous
+   * execution path of a user gesture. The previous implementation had 4 awaits
+   * (Crypto.digestStringAsync, AuthRequest internals, promptAsync) between the
+   * click and the popup, so Safari blocked it on first attempt.
+   *
+   * This version builds the entire OAuth URL synchronously and hands it straight
+   * to WebBrowser.openAuthSessionAsync(), which calls window.open() as its very
+   * first statement — keeping the gesture chain intact.
    */
   private static async signInWeb(): Promise<string> {
     try {
-      console.log("🌐 Starting Google Sign-In for Web...");
+      console.log("Starting Google Sign-In for Web...");
 
-      // Get the current origin and construct redirect URI manually to avoid trailing dots
+      // --- All sync work: build the OAuth URL before any await ---
+
       const origin =
         typeof window !== "undefined" ? window.location.origin : "";
-      // Remove any trailing dots from the origin
       const cleanOrigin = origin.replace(/\.+$/, "");
       const redirectUri = `${cleanOrigin}/auth/callback`;
 
-      console.log("📍 Redirect URI:", redirectUri);
+      console.log("Redirect URI:", redirectUri);
 
-      const discovery = {
-        authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-        tokenEndpoint: "https://oauth2.googleapis.com/token",
-      };
+      // Sync nonce & state (no await — preserves Safari gesture chain)
+      const nonce = generateRandomStringSync();
+      const state = generateRandomStringSync();
 
-      // Generate a nonce for security (required for id_token response type)
-      const nonce = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        Math.random().toString() + Date.now().toString(),
-      );
-
-      // For web, we need to use implicit flow (id_token) without PKCE
-      const authRequest = new AuthSession.AuthRequest({
-        clientId: AuthConfig.GOOGLE_WEB_CLIENT_ID,
-        redirectUri,
-        scopes: ["openid", "profile", "email"],
-        responseType: AuthSession.ResponseType.IdToken,
-        usePKCE: false, // Disable PKCE for web OAuth
-        extraParams: {
-          access_type: "online",
-          prompt: "select_account",
-          nonce: nonce, // Required for id_token response type
-        },
+      // Build Google OAuth URL synchronously
+      const params = new URLSearchParams({
+        client_id: AuthConfig.GOOGLE_WEB_CLIENT_ID,
+        redirect_uri: redirectUri,
+        response_type: "id_token",
+        scope: "openid profile email",
+        nonce,
+        state,
+        access_type: "online",
+        prompt: "select_account",
       });
 
-      const result = await authRequest.promptAsync(discovery);
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 
-      if (result.type === "success") {
-        const { params } = result;
-        if (!params.id_token) {
-          throw new Error("No ID token received from Google");
+      // --- First await is inside openAuthSessionAsync, but window.open()
+      //     fires synchronously at the top of that function, so the popup
+      //     is already open before any async work happens. ---
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl,
+        redirectUri,
+      );
+
+      if (result.type === "success" && result.url) {
+        // Google implicit flow returns params in the URL fragment (#)
+        const responseUrl = new URL(result.url);
+        const fragment = new URLSearchParams(responseUrl.hash.substring(1));
+
+        // CSRF check: verify state matches
+        const returnedState = fragment.get("state");
+        if (returnedState !== state) {
+          throw new Error(
+            "OAuth state mismatch — possible CSRF. Please try again.",
+          );
         }
 
-        console.log("✅ Google Sign-In successful (Web)");
-        return params.id_token;
-      } else if (result.type === "error") {
-        console.error("❌ OAuth Error:", result.error);
-        throw new Error(result.error?.message || "Google Sign-In failed");
-      } else {
+        const idToken = fragment.get("id_token");
+        if (!idToken) {
+          const error = fragment.get("error");
+          throw new Error(
+            error
+              ? `Google OAuth error: ${error}`
+              : "No ID token received from Google",
+          );
+        }
+
+        console.log("Google Sign-In successful (Web)");
+        return idToken;
+      } else if (result.type === "cancel" || result.type === "dismiss") {
         throw new Error("Google Sign-In was cancelled");
+      } else {
+        throw new Error("Google Sign-In failed");
       }
     } catch (error) {
-      console.error("❌ Google Sign-In failed (Web):", error);
+      console.error("Google Sign-In failed (Web):", error);
       throw error;
     }
   }
