@@ -57,6 +57,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const { isAuthenticated } = useAuth();
   const tokenListenerRef = useRef<Notifications.Subscription | null>(null);
+  // Prevents concurrent registration calls (e.g. checkPermission + addPushTokenListener
+  // both firing at login before either has written the token to AsyncStorage).
+  const isRegisteringRef = useRef(false);
 
   /**
    * Register device token with backend
@@ -64,8 +67,18 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
    */
   const registerDeviceWithBackend = useCallback(
     async (token: string): Promise<void> => {
+      // In-memory lock: prevents two concurrent calls (e.g. checkPermission
+      // and addPushTokenListener) from both slipping past the AsyncStorage
+      // check before either has had a chance to write the token.
+      if (isRegisteringRef.current) {
+        console.log(
+          "📱 Registration already in progress, skipping duplicate call",
+        );
+        return;
+      }
+      isRegisteringRef.current = true;
       try {
-        // Check if we've already registered this token
+        // Check if we've already registered this token in a previous session
         const lastRegisteredToken = await AsyncStorage.getItem(
           LAST_REGISTERED_TOKEN_KEY,
         );
@@ -92,6 +105,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
       } catch (error) {
         console.error("❌ Failed to register device with backend:", error);
         // Don't throw - we don't want to block the app if registration fails
+      } finally {
+        isRegisteringRef.current = false;
       }
     },
     [],
